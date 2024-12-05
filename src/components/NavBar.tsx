@@ -67,13 +67,8 @@ export default function Navbar() {
   const publicPaths = [
     { label: "Domov", value: "/", icon: <HomeIcon /> },
     { label: "O nás", value: "/o-nas", icon: <InfoIcon /> },
-<<<<<<< HEAD
-    { label: "GDPR", value: "/gdpr", icon: <GavelIcon /> },
-    { label: "Podmienky", value: "/gdpr", icon: <HeatPumpIcon /> },
-=======
     // { label: "GDPR", value: "/gdpr", icon: <GavelIcon /> },
     // { label: "Podmienky", value: "/gdpr", icon: <HeatPumpIcon /> },
->>>>>>> c12de16 (Initial commit with all project files)
     {
       label: "Registrácia",
       value: "/auth/registracia",

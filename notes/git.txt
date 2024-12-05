@@ -1,0 +1,20 @@
+
+# download your repo to local machine
+1. git clone https://github.com/.../your_repo.git
+2. cd your_repo
+3. git branch -m main
+4. git config user.name "your_github_name"
+5. git config user.email "your_github_email"
+6. git remote -v
+7. VsCode Source control -> Initial -> Commit -> Publish branch (Sync)
+
+
+# git / Github from scratch
+1. git init
+2. git branch -m main
+3. git config user.name "your_github_name"
+4. git config user.email "your_github_email"
+5. git remote add origin https://github.com/.../your_repo.git
+6. git remote -v
+7. VsCode Source control -> Initial -> Commit -> Publish branch (Sync)
+

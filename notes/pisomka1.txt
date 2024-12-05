@@ -1,0 +1,68 @@
+
+Assignment: 
+Build a Simple Next.js App with Google Authentication (NextAuth) and Material UI
+Objective:
+Your task is to build a Next.js app with Google Authentication using NextAuth, styled using Material UI, and deployed to Vercel. You will also integrate Git and set up a new GitHub repository to manage your version control. You will implement Material UI’s Menu component for the navigation functionality.
+________________________________________
+Assignment Tasks:
+1.	Initialize a new Next.js App Router inside /Dokumenty folder named: pisomka1-meno-priezvisko .
+2.	Set-up Git repository for your project
+3.	Push your project to a new GitHub repository named: pisomka1-meno-priezvisko.
+4.	Google Authentication Using NextAuth:
+    o   Set up Google Authentication using NextAuth.
+    o	Use Google OAuth for the sign-in process.
+    o	Create the following pages:
+        	Home Page: Displays a welcome message to authenticated users and prompts unauthenticated users to sign in.
+        	Sign-In Page: Use Google OAuth for authentication.
+        	Sign-Out Page: Allow users to sign out.
+    o	Ensure that user information (e.g., name, email) is displayed after signing in.
+5.	Material UI Integration:
+    o	Use Material UI to style the app, including the form elements, buttons, and Menu for navigation.
+    o	Implement a Menu component (instead of a NavBar) that adapts to the user's authentication status (signed in or signed out).
+6.	Deploy to new Vercel project
+________________________________________
+Project Requirements:
+1.	Home Page:
+    o	The home page should display different content depending on whether the user is authenticated or not.
+    o	If the user is authenticated, display a personalized message with their Google profile information.
+    o	If the user is not authenticated, prompt them to sign in with a Google account.
+2.	Sign-In Page:
+    o	The sign-in page should use Google OAuth for signing in.
+    o	Use a Material UI button with a Google icon for the sign-in process.
+3.	Sign-Out Page:
+    o	The sign-out page should allow the user to sign out and confirm that the process was successful.
+4.	Menu Navigation:
+    o	Implement a Menu component that adapts based on the user's authentication status.
+    o	Use the Material UI Menu component to display different options based on whether the user is signed in or not:
+        	Authenticated users should see options for Home and Sign-Out.
+        	Non-authenticated users should see options for Home and Sign-In.
+
+________________________________________
+Marking Criteria:
+1.	Correct Setup of Next.js App (10%):
+    o	Is the Next.js app set up correctly, with a clean project structure and proper use of components?
+2.	Google Authentication with NextAuth (40%):
+    o	Does the Google OAuth authentication work correctly?
+    o	Is user information (e.g., name, email) displayed after signing in?
+3.	Material UI Usage (20%):
+    o	Are Material UI components used to style the app?
+    o	Are buttons, forms, Menu components, and layouts well designed?
+4.	Sign-In/Sign-Out Flow Working (20%):
+    o	Is the sign-in and sign-out functionality properly implemented?
+    o	Are users redirected appropriately after signing in or out?
+5.	Git and GitHub Setup (5%):
+    o	Is the project correctly version-controlled using Git?
+    o	Is the code pushed to a GitHub repository?
+6.	Vercel Deployment (5%):
+    o	Is the app deployed on Vercel?
+    o	Are the required environment variables set up correctly on Vercel?
+
+________________________________________
+Additional Notes:
+•	Make sure to use environment variables for sensitive data (e.g., Google OAuth keys).
+•	Ensure that your GitHub repository is public so that the instructor can view your code.
+•	Submit the link to your Vercel-deployed app and the link to your GitHub repository.
+________________________________________
+
+Good luck!
+

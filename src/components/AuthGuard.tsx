@@ -1,11 +1,15 @@
 // src/components/AuthGuard.tsx
 
-// NextAuth imports
-import { getServerSession } from "next-auth";
-import { redirect } from "next/navigation";
 
-// Relative imports
-import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
+"use client";
+
+// NextAuth imports
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+
+// MUI imports
+import CircularProgress from "@mui/material/CircularProgress";
+import Box from "@mui/material/Box";
 
 // Props interface for AuthGuard
 interface AuthGuardProps {
@@ -13,13 +17,29 @@ interface AuthGuardProps {
   redirectPath: string;
 }
 
-// Server-side AuthGuard Component
-const AuthGuard = async ({ children, redirectPath }: AuthGuardProps) => {
-  const session = await getServerSession(authOptions);
+// Client-side AuthGuard Component
+const AuthGuard = ({ children, redirectPath }: AuthGuardProps) => {
+  const { data: session, status } = useSession();
+  const router = useRouter();
 
-  // Redirect unauthenticated users
+  if (status === "loading") {
+    return (
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          minHeight: "100vh",
+        }}
+      >
+        <CircularProgress color="secondary" />
+      </Box>
+    );
+  }
+
   if (!session) {
-    redirect(redirectPath);
+    router.push(redirectPath);
+    return null; // Prevent rendering children during redirect
   }
 
   return <>{children}</>;

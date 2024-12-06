@@ -5,17 +5,10 @@
 // MUI imports
 import Typography from "@mui/material/Typography";
 
-<<<<<<< HEAD
-// Relative imports
-import GoogleSignButton from "./GoogleSignButton";
-import GithubSignButton from "./GithubSignButton";
-import SignInUpViewLink from "./SignInUpViewLink";
-=======
 // Custom imports
 import GoogleSignButton from "../../components/auth/GoogleSignButton";
 import GithubSignButton from "../../components/auth/GithubSignButton";
 import SignInUpViewLink from "../../components/CustomLink";
->>>>>>> c12de16 (Initial commit with all project files)
 
 const SignInView = () => (
   <>

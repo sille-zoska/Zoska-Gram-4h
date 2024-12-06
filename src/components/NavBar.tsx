@@ -22,8 +22,6 @@ import SearchIcon from "@mui/icons-material/Search";
 import AddCircleIcon from "@mui/icons-material/AddCircle";
 import LogoutIcon from "@mui/icons-material/Logout";
 import InfoIcon from "@mui/icons-material/Info";
-import GavelIcon from "@mui/icons-material/Gavel";
-import HeatPumpIcon from "@mui/icons-material/HeatPump";
 import AppRegistrationIcon from "@mui/icons-material/AppRegistration";
 import LoginIcon from "@mui/icons-material/Login";
 import LightModeIcon from "@mui/icons-material/LightMode";
@@ -67,8 +65,6 @@ export default function Navbar() {
   const publicPaths = [
     { label: "Domov", value: "/", icon: <HomeIcon /> },
     { label: "O nás", value: "/o-nas", icon: <InfoIcon /> },
-    // { label: "GDPR", value: "/gdpr", icon: <GavelIcon /> },
-    // { label: "Podmienky", value: "/gdpr", icon: <HeatPumpIcon /> },
     {
       label: "Registrácia",
       value: "/auth/registracia",

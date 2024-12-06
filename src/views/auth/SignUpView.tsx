@@ -2,35 +2,6 @@
 
 "use client";
 
-<<<<<<< HEAD
-// MUI imports
-import Typography from "@mui/material/Typography";
-
-// Relative imports
-import GoogleSignButton from "./GoogleSignButton";
-import GithubSignButton from "./GithubSignButton";
-import SignInUpViewLink from "./SignInUpViewLink";
-
-const SignUpView = () => (
-  <>
-    {/* Title */}
-    <Typography variant="h5" sx={{ mb: 3 }}>
-      Registrácia
-    </Typography>
-
-    {/* Link to sign-in */}
-    <Typography variant="body1" sx={{ mb: 6 }}>
-      Už máte účet? <SignInUpViewLink href="/auth/prihlasenie" text="Prihláste sa" />
-    </Typography>
-
-    {/* Google Sign Up */}
-    <GoogleSignButton text="Registrovať sa účtom Google" />
-
-    {/* GitHub Sign Up */}
-    <GithubSignButton text="Registrovať sa účtom Github" />
-  </>
-);
-=======
 // React imports
 import { useState } from "react";
 
@@ -38,7 +9,6 @@ import { useState } from "react";
 import Typography from "@mui/material/Typography";
 import Checkbox from "@mui/material/Checkbox";
 import FormControlLabel from "@mui/material/FormControlLabel";
-import Button from "@mui/material/Button";
 import Alert from "@mui/material/Alert";
 
 // Custom imports
@@ -119,6 +89,5 @@ const SignUpView = () => {
     </>
   );
 };
->>>>>>> c12de16 (Initial commit with all project files)
 
 export default SignUpView;

@@ -22,13 +22,7 @@ export default function RootLayout({
       <body>
         <AuthProvider>
           <ThemeProvider>
-            <main
-              style={{
-                minHeight: "100vh",
-                display: "flex",
-                flexDirection: "column",
-              }}
-            >
+            <main >
               {children}
             </main>
             <Navbar />

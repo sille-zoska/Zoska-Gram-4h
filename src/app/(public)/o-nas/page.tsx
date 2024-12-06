@@ -1,16 +1,11 @@
-// src/app/o-nas/page.tsx
+// src/app/(public)/o-nas/page.tsx
 
-
-import Typography from "@mui/material/Typography";
+// Project imports
+import AboutView from "@/views/public/AboutView";
 
 export const metadata = { title: "O nás | ZoškaSnap" };
 
-export default function AboutUs() {
+// About Us Page Component
+const AboutPage = () => <AboutView />;
 
-  return (
-
-      <Typography> O nás </Typography>
-
-  );
-}
-
+export default AboutPage;

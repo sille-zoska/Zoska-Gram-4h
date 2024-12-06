@@ -1,7 +1,7 @@
 // src/app/(public)/gdpr/page.tsx
 
 
-// Relative imports
+// Project imports
 import GDPRView from "@/views/public/GDPRView";
 
 export const metadata = { title: "GDPR | ZoškaSnap" };

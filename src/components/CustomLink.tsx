@@ -28,28 +28,40 @@
  * );
  */
 
-"use client";
-
 // MUI imports
 import Link from "@mui/material/Link";
+import { SxProps, Theme } from "@mui/system";
 
-// Props type
+// Props interface for CustomLink
 interface LinkProps {
   href: string; // URL the link points to
   text: string; // Text displayed for the link
   color?: string; // Optional custom color (Material-UI theme colors)
+  sx?: SxProps<Theme>; // Allow additional styles
+  openInNewTab?: boolean; // Open link in a new tab
 }
 
-const CustomLink = ({ href, text, color = "secondary.main" }: LinkProps) => (
+// Custom Link Component
+const CustomLink = ({
+  href,
+  text,
+  color = "secondary.main", // Default color
+  sx = {}, // Default styles
+  openInNewTab = false, // Default behavior to open in the same tab
+}: LinkProps) => (
   <Link
     href={href}
+    target={openInNewTab ? "_blank" : "_self"} // Set target based on prop
+    rel={openInNewTab ? "noopener noreferrer" : undefined} // Add rel for security with _blank
     sx={{
-      color, // Apply the passed color
-      fontWeight: "bold", // Bold text
-      textDecoration: "none", // Remove underline
+      color, // Apply the passed color or default
+      fontWeight: "bold", // Default bold text
+      fontStyle: "italic", // Default italic text
+      textDecoration: "none", // Default no underline
       "&:hover": {
-        textDecoration: "underline", // Add underline on hover
+        textDecoration: "underline", // Default underline on hover
       },
+      ...sx, // Merge custom styles with defaults
     }}
   >
     {text}
@@ -57,3 +69,5 @@ const CustomLink = ({ href, text, color = "secondary.main" }: LinkProps) => (
 );
 
 export default CustomLink;
+
+

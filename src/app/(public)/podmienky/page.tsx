@@ -1,7 +1,7 @@
 // src/app/podmienky/page.tsx
 
 
-// Relative imports
+// Project imports
 import TermsConditionsView from "@/views/public/TermsConditionsView";
 
 export const metadata = { title: "Podmienky používania | ZoškaSnap" };

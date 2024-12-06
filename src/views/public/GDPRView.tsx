@@ -5,7 +5,7 @@
 import Typography from "@mui/material/Typography";
 import Container from "@mui/material/Container";
 
-// Relative imports
+// Project imports
 import BackButton from "@/components/BackButton";
 
 // Content import

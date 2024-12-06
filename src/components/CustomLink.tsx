@@ -1,32 +1,55 @@
 // src/components/CustomLink.tsx
 
 /**
- * @file Link.tsx
+ * @file CustomLink.tsx
  * @description
- * A reusable and customizable hyperlink component styled with Material-UI. 
- * Allows for consistent styling of links across the app.
+ * A reusable and customizable hyperlink component styled with Material-UI.
+ * Designed to standardize link styles and provide flexible options for customization.
  * 
  * @usage
- * Use this component to create hyperlinks with customizable text, URL, and color.
- * Ideal for navigation within forms, authentication views, or any page where 
- * a styled link is needed.
+ * Use this component to create hyperlinks with customizable text, URL, color, and behavior (e.g., opening in a new tab).
+ * Suitable for navigation, linking to external resources, or creating consistent links across the app.
  * 
  * @props
  * - `href` (required): The URL to which the link points.
  * - `text` (required): The text displayed for the link.
  * - `color` (optional): The color of the link. Accepts any valid Material-UI theme color (e.g., "primary", "secondary").
  *   Defaults to "secondary.main".
+ * - `sx` (optional): An object containing additional styles to customize the link.
+ *   Uses Material-UI's `SxProps<Theme>` for styling flexibility.
+ * - `openInNewTab` (optional): Boolean flag to open the link in a new tab.
+ *   Defaults to `false` (opens in the same tab).
  * 
  * @example
- * // Example usage in a React component:
- * import Link from "@/components/Link";
+ * // Example 1: Default styling
+ * <CustomLink href="/about" text="Learn more about us" />
  * 
- * const ExampleComponent = () => (
- *   <div>
- *     <p>Don't have an account? <Link href="/signup" text="Sign up here" color="primary.main" /></p>
- *   </div>
- * );
+ * @example
+ * // Example 2: Customized color and behavior
+ * <CustomLink
+ *   href="https://example.com"
+ *   text="Visit Example"
+ *   color="primary.main"
+ *   openInNewTab
+ *   sx={{
+ *     fontStyle: "normal",
+ *     textDecoration: "underline",
+ *   }}
+ * />
+ * 
+ * @example
+ * // Example 3: Additional hover effect
+ * <CustomLink
+ *   href="/features"
+ *   text="Discover Features"
+ *   sx={{
+ *     "&:hover": {
+ *       color: "primary.dark",
+ *     },
+ *   }}
+ * />
  */
+
 
 // MUI imports
 import Link from "@mui/material/Link";

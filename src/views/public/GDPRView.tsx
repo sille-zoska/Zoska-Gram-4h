@@ -12,16 +12,7 @@ import BackButton from "@/components/BackButton";
 import gdprContent from "@/content/gdprContent";
 
 const GDPRView = () => (
-  <Container
-    maxWidth="md"
-    sx={{
-      mt: 5,
-      p: 3,
-      bgcolor: "background.paper",
-      boxShadow: 3,
-      borderRadius: 2,
-    }}
-  >
+  <>
     {/* Title */}
     <Typography variant="h4" gutterBottom>
       {gdprContent.title}
@@ -51,7 +42,7 @@ const GDPRView = () => (
 
     {/* Back Button */}
     <BackButton />
-  </Container>
+  </>
 );
 
 export default GDPRView;

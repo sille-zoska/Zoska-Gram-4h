@@ -3,7 +3,6 @@
 
 // MUI imports
 import Typography from "@mui/material/Typography";
-import Container from "@mui/material/Container";
 
 // Project imports
 import BackButton from "@/components/BackButton";
@@ -12,16 +11,7 @@ import BackButton from "@/components/BackButton";
 import termsContent from "@/content/termsContent";
 
 const TermsConditionsView = () => (
-  <Container
-    maxWidth="md"
-    sx={{
-      mt: 5,
-      p: 3,
-      bgcolor: "background.paper",
-      boxShadow: 3,
-      borderRadius: 2,
-    }}
-  >
+  <>
     {/* Title */}
     <Typography variant="h4" gutterBottom>
       {termsContent.title}
@@ -51,7 +41,7 @@ const TermsConditionsView = () => (
 
     {/* Back Button */}
     <BackButton />
-  </Container>
+  </>
 );
 
 export default TermsConditionsView;

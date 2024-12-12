@@ -1,0 +1,14 @@
+
+
+git clone https://github.com/sille-zoska/test-data-creator.git
+npx prisma init
+npx prisma generate
+npx tsx index.ts
+
+cp ~/dev/testing-data/seed-data.json ~/dev/snap-zoska-4h/prisma/seedData/
+
+Close test-data-creator and open your main ZoskaInstagram project:
+npm install --save-dev tsx
+copy dbInject.ts from teacher repo
+npx tsx prisma/seedData/dbInject.ts
+npx prisma studio

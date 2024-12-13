@@ -10,16 +10,7 @@ export const metadata = { title: "Public | SnapZoška" };
 // PublicLayout Component
 export default function PublicLayout({ children }: { children: React.ReactNode }) {
   return (
-    <Container
-      // maxWidth="md"
-      // sx={{
-      //   mt: 5,
-      //   p: 3,
-      //   bgcolor: "background.paper",
-      //   boxShadow: 3,
-      //   borderRadius: 2,
-      // }}
-    >
+    <Container >
       {children} {/* Render public pages */}
     </Container>
   );

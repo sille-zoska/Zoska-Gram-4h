@@ -18,7 +18,6 @@ in browser go to https://nodejs.org/en/download/package-manager
 node -v
 npm -v
 
-Open folder
 do B. in git.txt
 npm install
 

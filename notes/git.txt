@@ -1,6 +1,6 @@
 
 
-A.  Git/GitHub from Scratch
+A.  Git/GitHub from Scratch (not yet in GitHub)
 
 1.    git init – Initialize a new Git repository.
 2.    git branch -m main – Rename the default branch to main.

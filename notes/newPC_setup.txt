@@ -2,6 +2,8 @@ Windows PowerShell terminal:
 wsl –-install
 user name: menopriezvisko
 password:
+sudo apt update
+sudo apt upgrade
 
 
 VsCode:
@@ -15,13 +17,8 @@ Google: nodejs download -> https://nodejs.org/en/download/package-manager
 ...
 node -v
 npm -v
-mkdir dev
-cd dev/
-git clone https://github.com/sille-zoska/snap-zoska-4h.git
-File -> Open folder -> dev -> snap-zoska-4h -> OK
-menopriezvisko@DESKTOP-XYZ:~/dev/snap-zoska-4h$
-git config user.name "sille-zoska"
-git config user.email "sille@zochova.sk"
-git remote -v
+
+
+do B. in git.txt
 npm install
-urobte zmenu (novy riadok) v niektorej page.tsx: commit, sync
+

@@ -24,7 +24,8 @@ B.  Clone/Download Your Own Repository
 4.    git config user.name "your_github_name" – Set your GitHub username.
 5.    git config user.email "your_github_email" – Set your GitHub email.
 6.    git remote -v – Verify the remote.
-7.    In VS Code Source Control:
+7.    npm install - Install all project dependecies
+8.    In VS Code Source Control:
         Stage changes.
         Write a commit message.
         Publish Branch to sync with GitHub.
@@ -42,7 +43,8 @@ C.  Clone/Download a Repository You Don’t Own
 7.    git config user.name "your_github_name" – Set your GitHub username.
 8.    git config user.email "your_github_email" – Set your GitHub email.
 9.    git remote -v – Verify the remote.
-10.   In VS Code Source Control:
+10.   npm install - Install all project dependecies 
+11.   In VS Code Source Control:
         Stage changes.
         Write a commit message.
         Publish Branch to sync with GitHub.

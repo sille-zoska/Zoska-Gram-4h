@@ -1,4 +1,6 @@
-// cp ~/dev/testing-data/seed-data.json ~/dev/snap-zoska-4h/prisma/seedData/
+// npm install --save-dev tsx
+
+// npx tsx prisma/seedData/dbInject.ts
 
 
 import fs from 'fs';

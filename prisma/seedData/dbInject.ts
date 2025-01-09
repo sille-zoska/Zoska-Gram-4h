@@ -1,3 +1,6 @@
+// cp ~/dev/testing-data/seed-data.json ~/dev/snap-zoska-4h/prisma/seedData/
+
+
 import fs from 'fs';
 import { PrismaClient } from '@prisma/client';
 

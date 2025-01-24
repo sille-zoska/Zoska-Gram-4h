@@ -20,4 +20,5 @@ npm -v
 
 do B. in git.txt
 npm install
+npx prisma generate
 

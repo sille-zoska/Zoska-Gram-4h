@@ -1,4 +1,4 @@
-// 
+// src/views/private/PostsView.tsx
 
 "use client";
 
@@ -46,14 +46,14 @@ const PostsView = () => {
   }, []);
 
   return (
-    <Container sx={{ mt: 4 }}>
+    <Container sx={{ mt: 4, maxWidth: 'sm' }}> {/* Limit container width */}
       <Typography variant="h4" sx={{ mb: 3 }}>
         Príspevky
       </Typography>
       <Grid container spacing={2}>
         {posts.map((post) => (
-          <Grid item xs={12} sm={6} md={4} key={post.id}>
-            <Card>
+          <Grid item xs={12} key={post.id}> {/* Single column */}
+            <Card sx={{ maxWidth: '100%' }}> {/* Adjust maxWidth */}
               <CardMedia
                 component="img"
                 height="140"
@@ -75,3 +75,4 @@ const PostsView = () => {
 };
 
 export default PostsView;
+

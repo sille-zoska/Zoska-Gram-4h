@@ -52,3 +52,5 @@ export const createPost = async (userId: string, imageUrl: string, caption?: str
     throw new Error("Could not create post");
   }
 };
+
+

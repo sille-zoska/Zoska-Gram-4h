@@ -1,15 +1,11 @@
-// src/app/profil/page.tsx
+// /src/app/(private)/profil/page.tsx
 
+// Custom imports
+import ProfilesView from "@/views/private/ProfilesView";
 
-import Typography from "@mui/material/Typography";
+export const metadata = { title: "Profily | ZoškaSnap" };
 
-export const metadata = { title: "Zoznam profilov | ZoškaSnap" };
+// Search Page
+const ProfilesPage = () => <ProfilesView />;
 
-export default function ProfileList() {
-
-  return (
-
-      <Typography> Zoznam profilov </Typography>
-
-  );
-}
+export default ProfilesPage;

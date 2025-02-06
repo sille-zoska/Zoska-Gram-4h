@@ -11,17 +11,30 @@ export default function NonAuthHomeView() {
   return (
     <Container>
       <Typography variant="h3" align="center" gutterBottom>
-        Welcome to ZoškaSnap!
+        Vitajte na ZoškaSnap!
       </Typography>
       <Typography variant="h6" align="center" gutterBottom>
-        Join our school community and share your moments.
+        Pridajte sa k našej školskej komunite a zdieľajte svoje momenty.
+      </Typography>
+
+      <Typography variant="body1" align="center" gutterBottom>
+        ZoškaSnap je miesto, kde môžete zdieľať svoje najlepšie momenty so svojimi spolužiakmi. 
+        Pridajte sa k nám a buďte súčasťou našej rastúcej komunity. 
+        Zdieľajte fotografie, komentujte a lajkujte príspevky svojich priateľov.
+      </Typography>
+
+      <Typography variant="body1" align="center" gutterBottom>
+        Naša platforma je navrhnutá tak, aby bola jednoduchá a intuitívna na používanie. 
+        Stačí sa zaregistrovať, vytvoriť si profil a začať zdieľať svoje zážitky. 
+        Či už ste na školskom výlete, na športovom podujatí alebo len tak trávite čas s priateľmi, 
+        ZoškaSnap je tu pre vás.
       </Typography>
 
       <Grid container spacing={4} justifyContent="center" sx={{ mt: 4 }}>
         <Grid item xs={12} sm={6} md={4}>
           <Image
             src="/images/gallery1.jpg"
-            alt="Gallery Image 1"
+            alt="Obrázok z galérie 1"
             width={300}
             height={200}
             style={{ borderRadius: "8px" }}
@@ -30,7 +43,7 @@ export default function NonAuthHomeView() {
         <Grid item xs={12} sm={6} md={4}>
           <Image
             src="/images/gallery2.jpg"
-            alt="Gallery Image 2"
+            alt="Obrázok z galérie 2"
             width={300}
             height={200}
             style={{ borderRadius: "8px" }}
@@ -39,13 +52,19 @@ export default function NonAuthHomeView() {
         <Grid item xs={12} sm={6} md={4}>
           <Image
             src="/images/gallery3.jpg"
-            alt="Gallery Image 3"
+            alt="Obrázok z galérie 3"
             width={300}
             height={200}
             style={{ borderRadius: "8px" }}
           />
         </Grid>
       </Grid>
+
+      <Typography variant="body1" align="center" gutterBottom sx={{ mt: 4 }}>
+        Nezmeškajte žiadne novinky a udalosti. 
+        Pridajte sa k nám ešte dnes a buďte informovaní o všetkom, čo sa deje v našej škole. 
+        Zaregistrujte sa teraz a začnite zdieľať svoje momenty s ostatnými.
+      </Typography>
 
       <Box textAlign="center" sx={{ mt: 4 }}>
         <Button
@@ -54,7 +73,7 @@ export default function NonAuthHomeView() {
           href="/auth/registracia"
           sx={{ mt: 2 }}
         >
-          Register Now
+          Zaregistrujte sa teraz
         </Button>
       </Box>
     </Container>

@@ -33,7 +33,7 @@ export default function NonAuthHomeView() {
       <Grid container spacing={4} justifyContent="center" sx={{ mt: 4 }}>
         <Grid item xs={12} sm={6} md={4}>
           <Image
-            src="/images/gallery1.jpg"
+            src="/images/home1.png"
             alt="Obrázok z galérie 1"
             width={300}
             height={200}
@@ -42,7 +42,7 @@ export default function NonAuthHomeView() {
         </Grid>
         <Grid item xs={12} sm={6} md={4}>
           <Image
-            src="/images/gallery2.jpg"
+            src="/images/home2.png"
             alt="Obrázok z galérie 2"
             width={300}
             height={200}
@@ -51,7 +51,7 @@ export default function NonAuthHomeView() {
         </Grid>
         <Grid item xs={12} sm={6} md={4}>
           <Image
-            src="/images/gallery3.jpg"
+            src="/images/home3.png"
             alt="Obrázok z galérie 3"
             width={300}
             height={200}

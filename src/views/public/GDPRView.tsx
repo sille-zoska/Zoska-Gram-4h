@@ -1,6 +1,6 @@
 // src/views/public/GDPRView.tsx
 
-
+'use client'
 // MUI imports
 import Typography from "@mui/material/Typography";
 import Container from "@mui/material/Container";

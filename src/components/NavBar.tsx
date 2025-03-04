@@ -26,6 +26,9 @@ import AppRegistrationIcon from "@mui/icons-material/AppRegistration";
 import LoginIcon from "@mui/icons-material/Login";
 import LightModeIcon from "@mui/icons-material/LightMode";
 import DarkModeIcon from "@mui/icons-material/DarkMode";
+import AddBoxOutlinedIcon from "@mui/icons-material/AddBoxOutlined";
+import ExploreIcon from "@mui/icons-material/Explore";
+import AccountCircleOutlinedIcon from "@mui/icons-material/AccountCircleOutlined";
 
 // Custom imports
 import { useTheme } from "../providers/ThemeProvider";
@@ -34,7 +37,7 @@ export default function Navbar() {
   const [value, setValue] = useState("/");
   const router = useRouter();
   const { data: session, status } = useSession();
-  const { toggleTheme, isDarkMode } = useTheme(); // Use theme context
+  const { toggleTheme, isDarkMode } = useTheme();
 
   const handleNavigation = (event: React.SyntheticEvent, newValue: string) => {
     setValue(newValue);
@@ -43,22 +46,22 @@ export default function Navbar() {
 
   // Paths for authenticated users (private paths)
   const privatePaths = [
-    { label: "Domov", value: "/", icon: <HomeIcon /> },
-    { label: "Hľadať", value: "/hladat", icon: <SearchIcon /> },
-    { label: "Pridať", value: "/prispevok", icon: <AddCircleIcon /> },
+    { label: "Feed", value: "/", icon: <HomeIcon /> },
+    { label: "Hľadať", value: "/hladat", icon: <ExploreIcon /> },
+    { label: "Pridať", value: "/vytvorit", icon: <AddBoxOutlinedIcon /> },
     {
       label: "Profil",
       value: "/profil",
       icon: session?.user?.image ? (
         <Avatar
+          sx={{ width: 24, height: 24 }}
           alt={session?.user?.name || "User"}
           src={session?.user?.image || undefined}
         />
       ) : (
-        <Avatar>{session?.user?.name?.charAt(0) || "U"}</Avatar>
+        <AccountCircleOutlinedIcon />
       ),
     },
-    { label: "Odhlásiť", value: "/auth/odhlasenie", icon: <LogoutIcon /> },
   ];
 
   // Paths for non-authenticated users (public paths)
@@ -74,8 +77,7 @@ export default function Navbar() {
   ];
 
   // Select paths based on user authentication status
-  const navigationPaths =
-    status === "authenticated" ? privatePaths : publicPaths;
+  const navigationPaths = status === "authenticated" ? privatePaths : publicPaths;
 
   return (
     <Box
@@ -84,10 +86,12 @@ export default function Navbar() {
         position: "fixed",
         bottom: 0,
         backgroundColor: (theme) => theme.palette.background.paper,
+        borderTop: (theme) => `1px solid ${theme.palette.divider}`,
         display: "flex",
         alignItems: "center",
-        justifyContent: "space-between", // Align navigation and toggle properly
-        px: 2, // Add padding for better spacing
+        justifyContent: "space-between",
+        px: 2,
+        zIndex: 1000,
       }}
     >
       {/* Navigation Section */}
@@ -95,7 +99,10 @@ export default function Navbar() {
         showLabels
         value={value}
         onChange={handleNavigation}
-        sx={{ flexGrow: 1 }} // Let navigation take most of the width
+        sx={{
+          flexGrow: 1,
+          backgroundColor: 'transparent',
+        }}
       >
         {navigationPaths.map((path) => (
           <BottomNavigationAction
@@ -112,7 +119,7 @@ export default function Navbar() {
         onClick={toggleTheme}
         sx={{
           color: (theme) => theme.palette.text.primary,
-          ml: 2, // Add space between navigation and toggle
+          ml: 2,
         }}
       >
         {isDarkMode ? <LightModeIcon /> : <DarkModeIcon />}

@@ -39,9 +39,10 @@ export async function fetchProfilesCursor({
   take = 20,
   searchTerm = "",
 }: FetchProfilesCursorParams): Promise<FetchProfilesCursorResult> {
-  // Build the WHERE clause if a searchTerm is provided
-  const whereClause: Prisma.ProfileWhereInput = searchTerm.trim()
-    ? {
+  try {
+    // Build the WHERE clause if a searchTerm is provided
+    const whereClause: Prisma.ProfileWhereInput = searchTerm.trim()
+      ? {
         OR: [
           {
             user: {
@@ -54,38 +55,52 @@ export async function fetchProfilesCursor({
           { interests: { has: searchTerm } },
         ],
       }
-    : {};
+      : {};
 
-  // Strictly type the .findMany() arguments
-  const query: Prisma.ProfileFindManyArgs = {
-    where: whereClause,
-    include: { user: true },
-    orderBy: { createdAt: "desc" },
-    take,
-  };
+    // For small datasets, we can fetch all profiles at once
+    const profiles = await prisma.profile.findMany({
+      where: whereClause,
+      include: { user: true },
+      orderBy: { createdAt: "desc" },
+    });
 
-  if (cursor) {
-    query.cursor = { id: cursor };
-    query.skip = 1; // skip the cursor item itself
+    return {
+      profiles,
+      nextCursor: undefined, // No need for pagination with small dataset
+    };
+  } catch (error) {
+    console.error("Error in fetchProfilesCursor:", error);
+    throw new Error("Could not fetch profiles");
   }
+}
 
-  // Fetch the page of profiles
-  const rawProfiles = await prisma.profile.findMany(query);
+/**
+ * Fetch a single profile by ID, including user details and posts
+ */
+export async function fetchProfileById(profileId: string) {
+  try {
+    const profile = await prisma.profile.findUnique({
+      where: { id: profileId },
+      include: {
+        user: {
+          include: {
+            posts: {
+              orderBy: { createdAt: 'desc' }
+            }
+          }
+        }
+      }
+    });
 
-  // Determine the "nextCursor" (for the next batch)
-  let nextCursor: string | undefined;
-  if (rawProfiles.length > 0) {
-    nextCursor = rawProfiles[rawProfiles.length - 1].id;
+    if (!profile) {
+      throw new Error('Profile not found');
+    }
+
+    return profile;
+  } catch (error) {
+    console.error('Error fetching profile:', error);
+    throw new Error('Could not fetch profile');
   }
-
-  /**
-   * If your DB truly guarantees that `user` always exists (no null),
-   * you can safely cast to `ProfileWithUser[]`.
-   */
-  return {
-    profiles: rawProfiles as ProfileWithUser[],
-    nextCursor,
-  };
 }
 
 

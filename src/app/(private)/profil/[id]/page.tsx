@@ -1,15 +1,17 @@
-// src/app/profil/[id]/page.tsx
+// src/app/(private)/profil/[id]/page.tsx
 
+import ProfileDetailView from "@/views/private/ProfileDetailView";
 
-import Typography from "@mui/material/Typography";
+export const metadata = { title: "Profil | ZoškaSnap" };
 
-export const metadata = { title: "Detail profilu | ZoškaSnap" };
-
-export default function ProfileDetail() {
-
-  return (
-
-      <Typography> Detail profilu </Typography>
-
-  );
+interface ProfilePageProps {
+  params: {
+    id: string;
+  };
 }
+
+const ProfilePage = ({ params }: ProfilePageProps) => {
+  return <ProfileDetailView profileId={params.id} />;
+};
+
+export default ProfilePage;

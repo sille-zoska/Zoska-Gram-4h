@@ -1,11 +1,11 @@
 // /src/app/(private)/prispevok/page.tsx
 
 // Custom imports
-import PostsView from "@/views/private/PostsView";
+import FeedView from "@/views/private/FeedView";
 
 export const metadata = { title: "Príspevky | ZoškaSnap" };
 
 // Search Page
-const PostsPage = () => <PostsView />;
+const PostsPage = () => <FeedView />;
 
 export default PostsPage;

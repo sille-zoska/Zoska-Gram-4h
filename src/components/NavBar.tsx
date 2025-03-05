@@ -9,7 +9,7 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 
 // NextAuth imports
-import { useSession } from "next-auth/react";
+import { useSession, signOut } from "next-auth/react";
 
 // MUI imports
 import Box from "@mui/material/Box";
@@ -17,6 +17,10 @@ import BottomNavigation from "@mui/material/BottomNavigation";
 import BottomNavigationAction from "@mui/material/BottomNavigationAction";
 import Avatar from "@mui/material/Avatar";
 import IconButton from "@mui/material/IconButton";
+import Menu from "@mui/material/Menu";
+import MenuItem from "@mui/material/MenuItem";
+import ListItemIcon from "@mui/material/ListItemIcon";
+import ListItemText from "@mui/material/ListItemText";
 import HomeIcon from "@mui/icons-material/Home";
 import SearchIcon from "@mui/icons-material/Search";
 import AddCircleIcon from "@mui/icons-material/AddCircle";
@@ -29,19 +33,40 @@ import DarkModeIcon from "@mui/icons-material/DarkMode";
 import AddBoxOutlinedIcon from "@mui/icons-material/AddBoxOutlined";
 import ExploreIcon from "@mui/icons-material/Explore";
 import AccountCircleOutlinedIcon from "@mui/icons-material/AccountCircleOutlined";
+import SettingsIcon from "@mui/icons-material/Settings";
 
 // Custom imports
 import { useTheme } from "../providers/ThemeProvider";
 
 export default function Navbar() {
   const [value, setValue] = useState("/");
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const router = useRouter();
   const { data: session, status } = useSession();
   const { toggleTheme, isDarkMode } = useTheme();
 
   const handleNavigation = (event: React.SyntheticEvent, newValue: string) => {
-    setValue(newValue);
-    router.push(newValue);
+    if (newValue === "/profil") {
+      // If clicking profile, open menu instead of navigating
+      setAnchorEl(event.currentTarget as HTMLElement);
+    } else {
+      setValue(newValue);
+      router.push(newValue);
+    }
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleProfileClick = () => {
+    handleMenuClose();
+    router.push("/profil");
+  };
+
+  const handleLogout = async () => {
+    handleMenuClose();
+    await signOut({ callbackUrl: "/" });
   };
 
   // Paths for authenticated users (private paths)
@@ -113,6 +138,34 @@ export default function Navbar() {
           />
         ))}
       </BottomNavigation>
+
+      {/* Profile Menu */}
+      <Menu
+        anchorEl={anchorEl}
+        open={Boolean(anchorEl)}
+        onClose={handleMenuClose}
+        anchorOrigin={{
+          vertical: 'top',
+          horizontal: 'center',
+        }}
+        transformOrigin={{
+          vertical: 'bottom',
+          horizontal: 'center',
+        }}
+      >
+        <MenuItem onClick={handleProfileClick}>
+          <ListItemIcon>
+            <AccountCircleOutlinedIcon fontSize="small" />
+          </ListItemIcon>
+          <ListItemText>Profil</ListItemText>
+        </MenuItem>
+        <MenuItem onClick={handleLogout}>
+          <ListItemIcon>
+            <LogoutIcon fontSize="small" />
+          </ListItemIcon>
+          <ListItemText>Odhlásiť sa</ListItemText>
+        </MenuItem>
+      </Menu>
 
       {/* Theme Toggle Section */}
       <IconButton

@@ -1,9 +1,12 @@
-// src/views/private/PostsView.tsx
+// src/views/private/FeedView.tsx
 
 "use client";
 
 // React imports
 import { useEffect, useState } from "react";
+
+// Next.js imports
+import Image from "next/image";
 
 // MUI imports
 import Container from "@mui/material/Container";
@@ -16,6 +19,8 @@ import CardHeader from "@mui/material/CardHeader";
 import Avatar from "@mui/material/Avatar";
 import Box from "@mui/material/Box";
 import IconButton from "@mui/material/IconButton";
+
+// MUI Icons
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
 import ShareIcon from "@mui/icons-material/Share";
@@ -24,14 +29,14 @@ import BookmarkBorderIcon from "@mui/icons-material/BookmarkBorder";
 // Server action import
 import { fetchPosts } from "@/app/actions/posts";
 
-// Post interface
+// TypeScript interfaces
 interface Post {
   id: string;
   userId: string;
   imageUrl: string;
   caption?: string | null;
-  createdAt: Date; // Adjusted to match fetched data type
-  updatedAt: Date; // Adjusted to match fetched data type
+  createdAt: Date;
+  updatedAt: Date;
   user: {
     name: string | null;
   };

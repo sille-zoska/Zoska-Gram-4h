@@ -2,8 +2,14 @@
 
 "use client";
 
+// React imports
 import { useState, useEffect } from "react";
+
+// Next.js imports
 import { useRouter } from "next/navigation";
+import Image from "next/image";
+
+// MUI imports
 import Container from "@mui/material/Container";
 import Typography from "@mui/material/Typography";
 import TextField from "@mui/material/TextField";
@@ -11,14 +17,16 @@ import Box from "@mui/material/Box";
 import CircularProgress from "@mui/material/CircularProgress";
 import IconButton from "@mui/material/IconButton";
 import InputAdornment from "@mui/material/InputAdornment";
-import SearchIcon from "@mui/icons-material/Search";
-import ClearIcon from "@mui/icons-material/Clear";
+import Avatar from "@mui/material/Avatar";
 import ImageList from "@mui/material/ImageList";
 import ImageListItem from "@mui/material/ImageListItem";
 import ImageListItemBar from "@mui/material/ImageListItemBar";
-import Avatar from "@mui/material/Avatar";
 
-// Import the server action and its types
+// MUI Icons
+import SearchIcon from "@mui/icons-material/Search";
+import ClearIcon from "@mui/icons-material/Clear";
+
+// Server action import
 import { fetchProfilesCursor, ProfileWithUser } from "@/app/actions/profiles";
 
 /**
@@ -109,16 +117,17 @@ export default function SearchView() {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
+              position: 'relative',
+              overflow: 'hidden',
             }}
           >
             {profile.avatarUrl ? (
-              <img
+              <Image
                 src={profile.avatarUrl}
                 alt={profile.user.name || "Profile"}
-                loading="lazy"
+                fill
+                sizes="(max-width: 768px) 33vw, 25vw"
                 style={{
-                  width: '100%',
-                  height: '100%',
                   objectFit: 'cover',
                 }}
               />
@@ -163,7 +172,7 @@ export default function SearchView() {
       {/* No results message */}
       {!loading && profiles.length === 0 && searchTerm && (
         <Typography align="center" sx={{ my: 4 }} color="text.secondary">
-          Žiadne výsledky pre "{searchTerm}"
+          Žiadne výsledky pre &quot;{searchTerm}&quot;
         </Typography>
       )}
     </Container>

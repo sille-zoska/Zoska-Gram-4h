@@ -1,6 +1,12 @@
 "use client";
 
+// React imports
 import { useEffect, useState } from "react";
+
+// Next.js imports
+import Image from "next/image";
+
+// MUI imports
 import Container from "@mui/material/Container";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
@@ -13,8 +19,11 @@ import ImageListItem from "@mui/material/ImageListItem";
 import CircularProgress from "@mui/material/CircularProgress";
 import PersonAddIcon from "@mui/icons-material/PersonAdd";
 import GridViewIcon from "@mui/icons-material/GridView";
+
+// Server action import
 import { fetchProfileById } from "@/app/actions/profiles";
 
+// TypeScript interfaces
 interface ProfileDetailViewProps {
   profileId: string;
 }
@@ -141,15 +150,15 @@ const ProfileDetailView = ({ profileId }: ProfileDetailViewProps) => {
                 aspectRatio: '1/1',
                 cursor: 'pointer',
                 '&:hover': { opacity: 0.8 },
+                position: 'relative',
               }}
             >
-              <img
+              <Image
                 src={post.imageUrl}
                 alt={post.caption || ""}
-                loading="lazy"
+                fill
+                sizes="(max-width: 768px) 33vw, 25vw"
                 style={{ 
-                  width: '100%',
-                  height: '100%',
                   objectFit: 'cover',
                 }}
               />

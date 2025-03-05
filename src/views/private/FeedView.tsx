@@ -29,26 +29,17 @@ import BookmarkBorderIcon from "@mui/icons-material/BookmarkBorder";
 // Server action import
 import { fetchPosts } from "@/app/actions/posts";
 
-// TypeScript interfaces
-interface Post {
-  id: string;
-  userId: string;
-  imageUrl: string;
-  caption?: string | null;
-  createdAt: Date;
-  updatedAt: Date;
-  user: {
-    name: string | null;
-  };
-}
+// Type imports
+import { Post } from "@/types/post";
 
+// Feed view component displaying posts
 const FeedView = () => {
   const [posts, setPosts] = useState<Post[]>([]);
 
   useEffect(() => {
     const loadPosts = async () => {
       try {
-        const fetchedPosts: Post[] = await fetchPosts();
+        const fetchedPosts = await fetchPosts();
         setPosts(fetchedPosts);
       } catch (error) {
         console.error("Failed to fetch posts:", error);

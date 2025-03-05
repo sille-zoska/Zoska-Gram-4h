@@ -1,5 +1,7 @@
 // src/components/CustomLink.tsx
 
+"use client";
+
 /**
  * @file CustomLink.tsx
  * @description
@@ -50,41 +52,45 @@
  * />
  */
 
-
 // MUI imports
 import Link from "@mui/material/Link";
 import { SxProps, Theme } from "@mui/system";
 
-// Props interface for CustomLink
-interface LinkProps {
-  href: string; // URL the link points to
-  text: string; // Text displayed for the link
-  color?: string; // Optional custom color (Material-UI theme colors)
-  sx?: SxProps<Theme>; // Allow additional styles
-  openInNewTab?: boolean; // Open link in a new tab
+// TypeScript interfaces
+interface CustomLinkProps {
+  /** URL the link points to */
+  href: string;
+  /** Text displayed for the link */
+  text: string;
+  /** Optional custom color (Material-UI theme colors) */
+  color?: string;
+  /** Additional styles using Material-UI's SxProps */
+  sx?: SxProps<Theme>;
+  /** Whether to open the link in a new tab */
+  openInNewTab?: boolean;
 }
 
-// Custom Link Component
+// Customizable link component with Material-UI styling
 const CustomLink = ({
   href,
   text,
-  color = "secondary.main", // Default color
-  sx = {}, // Default styles
-  openInNewTab = false, // Default behavior to open in the same tab
-}: LinkProps) => (
+  color = "secondary.main",
+  sx = {},
+  openInNewTab = false,
+}: CustomLinkProps) => (
   <Link
     href={href}
-    target={openInNewTab ? "_blank" : "_self"} // Set target based on prop
-    rel={openInNewTab ? "noopener noreferrer" : undefined} // Add rel for security with _blank
+    target={openInNewTab ? "_blank" : "_self"}
+    rel={openInNewTab ? "noopener noreferrer" : undefined}
     sx={{
-      color, // Apply the passed color or default
-      fontWeight: "bold", // Default bold text
-      fontStyle: "italic", // Default italic text
-      textDecoration: "none", // Default no underline
+      color,
+      fontWeight: "bold",
+      fontStyle: "italic",
+      textDecoration: "none",
       "&:hover": {
-        textDecoration: "underline", // Default underline on hover
+        textDecoration: "underline",
       },
-      ...sx, // Merge custom styles with defaults
+      ...sx,
     }}
   >
     {text}

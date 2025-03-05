@@ -2,7 +2,10 @@
 
 // React imports
 import { useEffect, useState } from "react";
+
+// Next.js imports
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 // MUI imports
 import Container from "@mui/material/Container";
@@ -18,6 +21,8 @@ import Stack from "@mui/material/Stack";
 import Divider from "@mui/material/Divider";
 import ImageList from "@mui/material/ImageList";
 import ImageListItem from "@mui/material/ImageListItem";
+
+// MUI Icons
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
 import PersonAddIcon from "@mui/icons-material/PersonAdd";
@@ -27,7 +32,7 @@ import GridViewIcon from "@mui/icons-material/GridView";
 // Server action import
 import { fetchProfilesCursor } from "@/app/actions/profiles";
 
-// Define a Profile interface matching your Prisma model
+// TypeScript interfaces
 interface Profile {
   id: string;
   userId: string;
@@ -41,17 +46,24 @@ interface Profile {
   };
 }
 
+interface MockPost {
+  id: string;
+  imageUrl: string;
+}
+
+// Profiles view component displaying user profiles
 const ProfilesView = () => {
   const router = useRouter();
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
 
-  // Mock data for posts (we'll replace this with real data later)
-  const mockPosts = Array(6).fill(null).map((_, i) => ({
+  // Mock data for posts (replace with real data later)
+  const mockPosts: MockPost[] = Array(6).fill(null).map((_, i) => ({
     id: i.toString(),
     imageUrl: `https://source.unsplash.com/random/300x300?sig=${i}`,
   }));
 
+  // Load profiles on mount and search term change
   useEffect(() => {
     const loadProfiles = async () => {
       try {
@@ -68,6 +80,7 @@ const ProfilesView = () => {
     loadProfiles();
   }, [searchTerm]);
 
+  // Navigate to profile detail page
   const handleProfileClick = (profileId: string) => {
     router.push(`/profil/${profileId}`);
   };
@@ -153,13 +166,15 @@ const ProfilesView = () => {
                   key={post.id}
                   sx={{ 
                     aspectRatio: '1/1',
+                    position: 'relative',
                     '&:hover': { opacity: 0.8 },
                   }}
                 >
-                  <img
+                  <Image
                     src={post.imageUrl}
                     alt=""
-                    loading="lazy"
+                    fill
+                    sizes="(max-width: 600px) 33vw, 200px"
                     style={{ objectFit: 'cover' }}
                   />
                 </ImageListItem>

@@ -3,7 +3,7 @@
 "use client";
 
 // React imports
-import React, { useState } from "react";
+import { useState } from "react";
 
 // Next.js imports
 import { useRouter } from "next/navigation";
@@ -21,6 +21,8 @@ import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
+
+// MUI Icons
 import HomeIcon from "@mui/icons-material/Home";
 import SearchIcon from "@mui/icons-material/Search";
 import AddCircleIcon from "@mui/icons-material/AddCircle";
@@ -33,21 +35,28 @@ import DarkModeIcon from "@mui/icons-material/DarkMode";
 import AddBoxOutlinedIcon from "@mui/icons-material/AddBoxOutlined";
 import ExploreIcon from "@mui/icons-material/Explore";
 import AccountCircleOutlinedIcon from "@mui/icons-material/AccountCircleOutlined";
-import SettingsIcon from "@mui/icons-material/Settings";
 
 // Custom imports
 import { useTheme } from "../providers/ThemeProvider";
 
-export default function Navbar() {
+// TypeScript interfaces
+interface NavigationPath {
+  label: string;
+  value: string;
+  icon: JSX.Element;
+}
+
+// Navigation component with theme toggle and profile menu
+const NavBar = () => {
   const [value, setValue] = useState("/");
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const router = useRouter();
   const { data: session, status } = useSession();
   const { toggleTheme, isDarkMode } = useTheme();
 
+  // Handle navigation and profile menu
   const handleNavigation = (event: React.SyntheticEvent, newValue: string) => {
     if (newValue === "/profil") {
-      // If clicking profile, open menu instead of navigating
       setAnchorEl(event.currentTarget as HTMLElement);
     } else {
       setValue(newValue);
@@ -55,22 +64,23 @@ export default function Navbar() {
     }
   };
 
-  const handleMenuClose = () => {
-    setAnchorEl(null);
-  };
+  // Close profile menu
+  const handleMenuClose = () => setAnchorEl(null);
 
+  // Navigate to profile page
   const handleProfileClick = () => {
     handleMenuClose();
     router.push("/profil");
   };
 
+  // Handle user logout
   const handleLogout = async () => {
     handleMenuClose();
     await signOut({ callbackUrl: "/" });
   };
 
-  // Paths for authenticated users (private paths)
-  const privatePaths = [
+  // Paths for authenticated users
+  const privatePaths: NavigationPath[] = [
     { label: "Feed", value: "/", icon: <HomeIcon /> },
     { label: "Hľadať", value: "/hladat", icon: <ExploreIcon /> },
     { label: "Pridať", value: "/vytvorit", icon: <AddBoxOutlinedIcon /> },
@@ -89,8 +99,8 @@ export default function Navbar() {
     },
   ];
 
-  // Paths for non-authenticated users (public paths)
-  const publicPaths = [
+  // Paths for non-authenticated users
+  const publicPaths: NavigationPath[] = [
     { label: "Domov", value: "/", icon: <HomeIcon /> },
     { label: "O nás", value: "/o-nas", icon: <InfoIcon /> },
     {
@@ -101,7 +111,7 @@ export default function Navbar() {
     { label: "Prihlásenie", value: "/auth/prihlasenie", icon: <LoginIcon /> },
   ];
 
-  // Select paths based on user authentication status
+  // Select paths based on authentication status
   const navigationPaths = status === "authenticated" ? privatePaths : publicPaths;
 
   return (
@@ -126,7 +136,7 @@ export default function Navbar() {
         onChange={handleNavigation}
         sx={{
           flexGrow: 1,
-          backgroundColor: 'transparent',
+          backgroundColor: "transparent",
         }}
       >
         {navigationPaths.map((path) => (
@@ -145,12 +155,12 @@ export default function Navbar() {
         open={Boolean(anchorEl)}
         onClose={handleMenuClose}
         anchorOrigin={{
-          vertical: 'top',
-          horizontal: 'center',
+          vertical: "top",
+          horizontal: "center",
         }}
         transformOrigin={{
-          vertical: 'bottom',
-          horizontal: 'center',
+          vertical: "bottom",
+          horizontal: "center",
         }}
       >
         <MenuItem onClick={handleProfileClick}>
@@ -179,4 +189,6 @@ export default function Navbar() {
       </IconButton>
     </Box>
   );
-}
+};
+
+export default NavBar;

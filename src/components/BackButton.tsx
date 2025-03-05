@@ -1,4 +1,4 @@
-// src/components/auth/BackButton.tsx
+// src/components/BackButton.tsx
 
 /**
  * @file BackButton.tsx
@@ -31,32 +31,36 @@
 
 // MUI imports
 import Button from "@mui/material/Button";
+
+// MUI Icons
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 
-// Props interface for flexibility
+// TypeScript interfaces
 interface BackButtonProps {
-  text?: string; // Optional button text
-  color?: "inherit" | "primary" | "secondary" | "error" | "info" | "success" | "warning"; // Material-UI button colors
+  /** Optional button text, defaults to "Späť" */
+  text?: string;
+  /** Material-UI button color variant */
+  color?: "inherit" | "primary" | "secondary" | "error" | "info" | "success" | "warning";
 }
 
+// Back button component with history navigation
 const BackButton = ({ text = "Späť", color = "primary" }: BackButtonProps) => {
+  // Navigate back or to home if no history
   const handleGoBack = () => {
     if (typeof window !== "undefined" && window.history.length > 1) {
-      window.history.back(); // Go back to the previous page
+      window.history.back();
     } else {
-      window.location.href = "/"; // Fallback to home page if no history
+      window.location.href = "/";
     }
   };
 
   return (
     <Button
       variant="outlined"
-      color={color} // Use the passed color prop
+      color={color}
       startIcon={<ArrowBackIcon />}
       onClick={handleGoBack}
-      sx={{
-        mt: 4,
-      }}
+      sx={{ mt: 4 }}
     >
       {text}
     </Button>

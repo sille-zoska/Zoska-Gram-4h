@@ -20,7 +20,6 @@ import InputAdornment from "@mui/material/InputAdornment";
 import Avatar from "@mui/material/Avatar";
 import ImageList from "@mui/material/ImageList";
 import ImageListItem from "@mui/material/ImageListItem";
-import ImageListItemBar from "@mui/material/ImageListItemBar";
 
 // MUI Icons
 import SearchIcon from "@mui/icons-material/Search";
@@ -141,23 +140,6 @@ export default function SearchView() {
                 {profile.user.name?.[0] ?? "?"}
               </Avatar>
             )}
-            <ImageListItemBar
-              title={profile.user.name || "Neznámy používateľ"}
-              subtitle={profile.location || ""}
-              position="below"
-              sx={{
-                '.MuiImageListItemBar-title': {
-                  fontSize: '0.9rem',
-                  fontWeight: 500,
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
-                },
-                '.MuiImageListItemBar-subtitle': {
-                  fontSize: '0.8rem',
-                },
-              }}
-            />
           </ImageListItem>
         ))}
       </ImageList>

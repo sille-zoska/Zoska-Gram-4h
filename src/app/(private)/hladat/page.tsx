@@ -2,10 +2,11 @@
 
 // Custom imports
 import SearchView from "@/views/private/SearchView"
+import ProfilesView from "@/views/private/ProfilesView";
 
 export const metadata = { title: "Hľadať | ZoškaSnap" };
 
 // Search Page
-const SearchPage = () => <SearchView />;
+const SearchPage = () => <ProfilesView />;
 
 export default SearchPage;

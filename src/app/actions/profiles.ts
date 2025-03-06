@@ -13,8 +13,18 @@ export interface FetchProfilesCursorParams {
   searchTerm?: string;
 }
 
+type UserWithPosts = Prisma.UserGetPayload<{
+  include: { posts: true };
+}>;
+
 export type ProfileWithUser = Prisma.ProfileGetPayload<{
-  include: { user: true };
+  include: {
+    user: {
+      include: {
+        posts: true;
+      }
+    }
+  };
 }>;
 
 interface FetchProfilesCursorResult {
@@ -22,22 +32,13 @@ interface FetchProfilesCursorResult {
   nextCursor?: string;
 }
 
-type UserWithPosts = Prisma.UserGetPayload<{
-  include: { posts: true };
-}>;
-
-interface ProfileWithUserAndPosts extends Omit<ProfileWithUser, 'user'> {
-  user: UserWithPosts;
-}
-
-// Fetch profiles with optional search and pagination
+// Fetch profiles with user info and their posts
 export const fetchProfilesCursor = async ({
   cursor,
   take = 20,
   searchTerm = "",
 }: FetchProfilesCursorParams): Promise<FetchProfilesCursorResult> => {
   try {
-    // Build the WHERE clause if a searchTerm is provided
     const whereClause: Prisma.ProfileWhereInput = searchTerm.trim()
       ? {
         OR: [
@@ -54,16 +55,25 @@ export const fetchProfilesCursor = async ({
       }
       : {};
 
-    // For small datasets, we can fetch all profiles at once
     const profiles = await prisma.profile.findMany({
       where: whereClause,
-      include: { user: true },
+      include: {
+        user: {
+          include: {
+            posts: {
+              orderBy: {
+                createdAt: 'desc'
+              }
+            }
+          }
+        }
+      },
       orderBy: { createdAt: "desc" },
     });
 
     return {
       profiles,
-      nextCursor: undefined, // No need for pagination with small dataset
+      nextCursor: undefined,
     };
   } catch (error) {
     console.error("Error in fetchProfilesCursor:", error);
@@ -74,7 +84,7 @@ export const fetchProfilesCursor = async ({
 // Fetch a single profile by ID with user details and posts
 export const fetchProfileById = async (
   profileId: string
-): Promise<ProfileWithUserAndPosts> => {
+): Promise<ProfileWithUser> => {
   try {
     const profile = await prisma.profile.findUnique({
       where: { id: profileId },
@@ -93,7 +103,7 @@ export const fetchProfileById = async (
       throw new Error("Profile not found");
     }
 
-    return profile as ProfileWithUserAndPosts;
+    return profile;
   } catch (error) {
     console.error("Error fetching profile:", error);
     throw new Error("Could not fetch profile");

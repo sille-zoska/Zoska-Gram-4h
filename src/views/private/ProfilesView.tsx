@@ -21,6 +21,9 @@ import Stack from "@mui/material/Stack";
 import Divider from "@mui/material/Divider";
 import ImageList from "@mui/material/ImageList";
 import ImageListItem from "@mui/material/ImageListItem";
+import TextField from "@mui/material/TextField";
+import InputAdornment from "@mui/material/InputAdornment";
+import CircularProgress from "@mui/material/CircularProgress";
 
 // MUI Icons
 import FavoriteIcon from "@mui/icons-material/Favorite";
@@ -28,52 +31,32 @@ import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
 import PersonAddIcon from "@mui/icons-material/PersonAdd";
 import PersonRemoveIcon from "@mui/icons-material/PersonRemove";
 import GridViewIcon from "@mui/icons-material/GridView";
+import SearchIcon from "@mui/icons-material/Search";
+import ClearIcon from "@mui/icons-material/Clear";
 
 // Server action import
-import { fetchProfilesCursor } from "@/app/actions/profiles";
-
-// TypeScript interfaces
-interface Profile {
-  id: string;
-  userId: string;
-  bio?: string | null;
-  avatarUrl?: string | null;
-  location?: string | null;
-  interests: string[];
-  user: {
-    name: string | null;
-    email: string;
-  };
-}
-
-interface MockPost {
-  id: string;
-  imageUrl: string;
-}
+import { fetchProfilesCursor, type ProfileWithUser } from "@/app/actions/profiles";
 
 // Profiles view component displaying user profiles
 const ProfilesView = () => {
   const router = useRouter();
-  const [profiles, setProfiles] = useState<Profile[]>([]);
+  const [profiles, setProfiles] = useState<ProfileWithUser[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
-
-  // Mock data for posts (replace with real data later)
-  const mockPosts: MockPost[] = Array(6).fill(null).map((_, i) => ({
-    id: i.toString(),
-    imageUrl: `https://source.unsplash.com/random/300x300?sig=${i}`,
-  }));
+  const [loading, setLoading] = useState(false);
 
   // Load profiles on mount and search term change
   useEffect(() => {
     const loadProfiles = async () => {
+      setLoading(true);
       try {
         const { profiles: fetchedProfiles } = await fetchProfilesCursor({
-          take: 10,
           searchTerm,
         });
         setProfiles(fetchedProfiles);
       } catch (error) {
         console.error("Failed to fetch profiles:", error);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -87,7 +70,52 @@ const ProfilesView = () => {
 
   return (
     <Container sx={{ mt: 4, mb: 10, maxWidth: "md" }}>
-      {profiles.map((profile) => (
+      {/* Search bar */}
+      <TextField
+        fullWidth
+        placeholder="Hľadať používateľov"
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+        sx={{
+          mb: 3,
+          '& .MuiOutlinedInput-root': {
+            borderRadius: 3,
+            backgroundColor: (theme) => 
+              theme.palette.mode === 'dark' ? 'action.hover' : 'grey.100',
+          },
+        }}
+        InputProps={{
+          startAdornment: (
+            <InputAdornment position="start">
+              <SearchIcon color="action" />
+            </InputAdornment>
+          ),
+          endAdornment: searchTerm && (
+            <InputAdornment position="end">
+              <IconButton size="small" onClick={() => setSearchTerm("")}>
+                <ClearIcon />
+              </IconButton>
+            </InputAdornment>
+          ),
+        }}
+      />
+
+      {/* Loading indicator */}
+      {loading && (
+        <Box display="flex" justifyContent="center" mt={2} mb={2}>
+          <CircularProgress />
+        </Box>
+      )}
+
+      {/* No results message */}
+      {!loading && profiles.length === 0 && searchTerm && (
+        <Typography align="center" sx={{ my: 4 }} color="text.secondary">
+          Žiadne výsledky pre &quot;{searchTerm}&quot;
+        </Typography>
+      )}
+
+      {/* Profile cards */}
+      {!loading && profiles.map((profile) => (
         <Card 
           key={profile.id}
           sx={{ 
@@ -130,7 +158,7 @@ const ProfilesView = () => {
 
                 <Stack direction="row" spacing={3} sx={{ mb: 2 }}>
                   <Typography variant="body2">
-                    <strong>42</strong> príspevkov
+                    <strong>{profile.user.posts.length}</strong> príspevkov
                   </Typography>
                   <Typography variant="body2">
                     <strong>128</strong> sledovateľov
@@ -161,21 +189,24 @@ const ProfilesView = () => {
               Nedávne príspevky
             </Typography>
             <ImageList cols={3} gap={2}>
-              {mockPosts.map((post) => (
+              {profile.user.posts.map((post) => (
                 <ImageListItem 
                   key={post.id}
                   sx={{ 
                     aspectRatio: '1/1',
                     position: 'relative',
                     '&:hover': { opacity: 0.8 },
+                    overflow: 'hidden',
                   }}
                 >
                   <Image
                     src={post.imageUrl}
-                    alt=""
+                    alt={post.caption || ""}
                     fill
                     sizes="(max-width: 600px) 33vw, 200px"
-                    style={{ objectFit: 'cover' }}
+                    style={{ 
+                      objectFit: 'cover',
+                    }}
                   />
                 </ImageListItem>
               ))}

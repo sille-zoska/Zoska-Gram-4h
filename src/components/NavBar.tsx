@@ -21,6 +21,7 @@ import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
+import Divider from "@mui/material/Divider";
 
 // MUI Icons
 import HomeIcon from "@mui/icons-material/Home";
@@ -35,6 +36,7 @@ import DarkModeIcon from "@mui/icons-material/DarkMode";
 import AddBoxOutlinedIcon from "@mui/icons-material/AddBoxOutlined";
 import ExploreIcon from "@mui/icons-material/Explore";
 import AccountCircleOutlinedIcon from "@mui/icons-material/AccountCircleOutlined";
+import SettingsIcon from "@mui/icons-material/Settings";
 
 // Custom imports
 import { useTheme } from "../providers/ThemeProvider";
@@ -70,7 +72,7 @@ const NavBar = () => {
   // Navigate to profile page
   const handleProfileClick = () => {
     handleMenuClose();
-    router.push("/profil");
+    router.push("/profil/upravit");
   };
 
   // Handle user logout
@@ -83,7 +85,7 @@ const NavBar = () => {
   const privatePaths: NavigationPath[] = [
     { label: "Feed", value: "/", icon: <HomeIcon /> },
     { label: "Hľadať", value: "/hladat", icon: <ExploreIcon /> },
-    { label: "Pridať", value: "/vytvorit", icon: <AddBoxOutlinedIcon /> },
+    { label: "Pridať", value: "/prispevok/vytvorit", icon: <AddBoxOutlinedIcon /> },
     {
       label: "Profil",
       value: "/profil",
@@ -167,8 +169,9 @@ const NavBar = () => {
           <ListItemIcon>
             <AccountCircleOutlinedIcon fontSize="small" />
           </ListItemIcon>
-          <ListItemText>Profil</ListItemText>
+          <ListItemText>Môj profil</ListItemText>
         </MenuItem>
+        <Divider />
         <MenuItem onClick={handleLogout}>
           <ListItemIcon>
             <LogoutIcon fontSize="small" />

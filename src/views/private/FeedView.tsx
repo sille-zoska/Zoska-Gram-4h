@@ -93,16 +93,9 @@ const FeedView = () => {
     if (!selectedPost) return;
     
     try {
-      await deleteComment(commentId);
-      
-      // Update local state by removing the deleted comment
-      const updatedPost = {
-        ...selectedPost,
-        comments: selectedPost.comments.filter(comment => comment.id !== commentId)
-      };
-      
+      const updatedPost = await deleteComment(commentId);
       setPosts(posts.map(post => 
-        post.id === selectedPost.id ? updatedPost : post
+        post.id === updatedPost.id ? updatedPost : post
       ));
       
       // If no comments left, close the dialog
@@ -111,6 +104,20 @@ const FeedView = () => {
       }
     } catch (error) {
       console.error("Failed to delete comment:", error);
+      // If comment not found, update UI optimistically
+      if (error instanceof Error && error.message.includes("Comment not found")) {
+        const updatedPost = {
+          ...selectedPost,
+          comments: selectedPost.comments.filter(comment => comment.id !== commentId)
+        };
+        setPosts(posts.map(post => 
+          post.id === selectedPost.id ? updatedPost : post
+        ));
+        
+        if (updatedPost.comments.length === 0) {
+          setCommentDialogOpen(false);
+        }
+      }
     }
   };
 

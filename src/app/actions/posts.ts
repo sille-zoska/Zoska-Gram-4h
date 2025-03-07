@@ -233,7 +233,7 @@ export const createComment = async (postId: string, content: string): Promise<Pr
 };
 
 // Delete a comment
-export const deleteComment = async (commentId: string): Promise<void> => {
+export const deleteComment = async (commentId: string): Promise<PrismaPostWithDetails> => {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.email) {
@@ -253,11 +253,65 @@ export const deleteComment = async (commentId: string): Promise<void> => {
       throw new Error("Not authorized to delete this comment");
     }
 
-    await prisma.comment.delete({
-      where: { id: commentId },
+    const postId = comment.postId; // Store postId before deletion
+
+    try {
+      await prisma.comment.delete({
+        where: { id: commentId },
+      });
+    } catch (deleteError) {
+      if (deleteError instanceof Prisma.PrismaClientKnownRequestError && deleteError.code === 'P2025') {
+        throw new Error("Comment not found");
+      }
+      throw deleteError;
+    }
+
+    // Return updated post after comment deletion
+    const updatedPost = await prisma.post.findUnique({
+      where: { id: postId },
+      include: {
+        user: true,
+        comments: {
+          include: {
+            user: true,
+            likes: {
+              include: {
+                user: true
+              }
+            },
+            replies: {
+              include: {
+                user: true,
+                likes: {
+                  include: {
+                    user: true
+                  }
+                }
+              }
+            }
+          },
+          orderBy: {
+            createdAt: "desc",
+          },
+        },
+        likes: {
+          include: {
+            user: true,
+          },
+        },
+      },
     });
+
+    if (!updatedPost) {
+      throw new Error("Post not found after comment deletion");
+    }
+
+    return updatedPost;
   } catch (error) {
     console.error("Error deleting comment:", error);
+    if (error instanceof Error) {
+      throw error; // Re-throw the original error to preserve the message
+    }
     throw new Error("Could not delete comment");
   }
 };

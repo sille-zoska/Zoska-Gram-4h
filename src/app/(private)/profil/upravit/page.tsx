@@ -1,3 +1,5 @@
+// src/app/(private)/profil/upravit/page.tsx
+
 import { Metadata } from "next";
 import EditProfileView from "@/views/private/EditProfileView";
 

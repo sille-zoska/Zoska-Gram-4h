@@ -5,24 +5,83 @@
 // Prisma imports
 import { prisma } from "@/app/api/auth/[...nextauth]/prisma";
 import { Prisma } from "@prisma/client";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
 
 // Type imports
 import { Post } from "@/types/post";
 
-// Type for Prisma Post with included user
-type PrismaPostWithUser = Prisma.PostGetPayload<{
-  include: { user: true };
+// Type for Prisma Post with included user, comments and likes
+type PrismaPostWithDetails = Prisma.PostGetPayload<{
+  include: {
+    user: true;
+    comments: {
+      include: {
+        user: true;
+        likes: {
+          include: {
+            user: true;
+          };
+        };
+        replies: {
+          include: {
+            user: true;
+            likes: {
+              include: {
+                user: true;
+              };
+            };
+          };
+        };
+      };
+    };
+    likes: {
+      include: {
+        user: true;
+      };
+    };
+  };
 }>;
 
-// Fetch all posts with user information
-export const fetchPosts = async (): Promise<Post[]> => {
+// Fetch all posts with user information, comments and likes
+export const fetchPosts = async (): Promise<PrismaPostWithDetails[]> => {
   try {
     const posts = await prisma.post.findMany({
       orderBy: { createdAt: "desc" },
-      include: { user: true },
+      include: {
+        user: true,
+        comments: {
+          include: {
+            user: true,
+            likes: {
+              include: {
+                user: true
+              }
+            },
+            replies: {
+              include: {
+                user: true,
+                likes: {
+                  include: {
+                    user: true
+                  }
+                }
+              }
+            }
+          },
+          orderBy: {
+            createdAt: "desc",
+          },
+        },
+        likes: {
+          include: {
+            user: true,
+          },
+        },
+      },
     });
 
-    return posts as Post[];
+    return posts;
   } catch (error) {
     console.error("Error fetching posts:", error);
     throw new Error("Could not fetch posts");
@@ -35,10 +94,27 @@ export const fetchPostsByUserId = async (userId: string): Promise<Post[]> => {
     const posts = await prisma.post.findMany({
       where: { userId },
       orderBy: { createdAt: "desc" },
-      include: { user: true },
+      include: {
+        user: true,
+        comments: {
+          include: {
+            user: true,
+            likes: {
+              include: {
+                user: true
+              }
+            }
+          }
+        },
+        likes: {
+          include: {
+            user: true
+          }
+        }
+      }
     });
 
-    return posts as Post[];
+    return posts;
   } catch (error) {
     console.error("Error fetching posts by userId:", error);
     throw new Error("Could not fetch posts");
@@ -58,13 +134,214 @@ export const createPost = async (
         imageUrl,
         caption,
       },
-      include: { user: true },
+      include: {
+        user: true,
+        comments: {
+          include: {
+            user: true,
+            likes: {
+              include: {
+                user: true
+              }
+            }
+          }
+        },
+        likes: {
+          include: {
+            user: true
+          }
+        }
+      }
     });
 
-    return newPost as Post;
+    return newPost;
   } catch (error) {
     console.error("Error creating post:", error);
     throw new Error("Could not create post");
+  }
+};
+
+// Create a new comment
+export const createComment = async (postId: string, content: string): Promise<PrismaPostWithDetails> => {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.email) {
+      throw new Error("Not authenticated");
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { email: session.user.email },
+    });
+
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    await prisma.comment.create({
+      data: {
+        content,
+        postId,
+        userId: user.id,
+      },
+    });
+
+    // Return updated post with new comment
+    const updatedPost = await prisma.post.findUnique({
+      where: { id: postId },
+      include: {
+        user: true,
+        comments: {
+          include: {
+            user: true,
+            likes: {
+              include: {
+                user: true
+              }
+            },
+            replies: {
+              include: {
+                user: true,
+                likes: {
+                  include: {
+                    user: true
+                  }
+                }
+              }
+            }
+          },
+          orderBy: {
+            createdAt: "desc",
+          },
+        },
+        likes: {
+          include: {
+            user: true,
+          },
+        },
+      },
+    });
+
+    if (!updatedPost) {
+      throw new Error("Post not found");
+    }
+
+    return updatedPost;
+  } catch (error) {
+    console.error("Error creating comment:", error);
+    throw new Error("Could not create comment");
+  }
+};
+
+// Delete a comment
+export const deleteComment = async (commentId: string): Promise<void> => {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.email) {
+      throw new Error("Not authenticated");
+    }
+
+    const comment = await prisma.comment.findUnique({
+      where: { id: commentId },
+      include: { user: true },
+    });
+
+    if (!comment) {
+      throw new Error("Comment not found");
+    }
+
+    if (comment.user.email !== session.user.email) {
+      throw new Error("Not authorized to delete this comment");
+    }
+
+    await prisma.comment.delete({
+      where: { id: commentId },
+    });
+  } catch (error) {
+    console.error("Error deleting comment:", error);
+    throw new Error("Could not delete comment");
+  }
+};
+
+// Toggle like on a post
+export const toggleLike = async (postId: string): Promise<PrismaPostWithDetails> => {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.email) {
+      throw new Error("Not authenticated");
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { email: session.user.email },
+    });
+
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    const existingLike = await prisma.like.findFirst({
+      where: {
+        postId,
+        userId: user.id,
+      },
+    });
+
+    if (existingLike) {
+      await prisma.like.delete({
+        where: { id: existingLike.id },
+      });
+    } else {
+      await prisma.like.create({
+        data: {
+          postId,
+          userId: user.id,
+        },
+      });
+    }
+
+    // Return updated post with new like status
+    const updatedPost = await prisma.post.findUnique({
+      where: { id: postId },
+      include: {
+        user: true,
+        comments: {
+          include: {
+            user: true,
+            likes: {
+              include: {
+                user: true
+              }
+            },
+            replies: {
+              include: {
+                user: true,
+                likes: {
+                  include: {
+                    user: true
+                  }
+                }
+              }
+            }
+          },
+          orderBy: {
+            createdAt: "desc",
+          },
+        },
+        likes: {
+          include: {
+            user: true,
+          },
+        },
+      },
+    });
+
+    if (!updatedPost) {
+      throw new Error("Post not found");
+    }
+
+    return updatedPost;
+  } catch (error) {
+    console.error("Error toggling like:", error);
+    throw new Error("Could not toggle like");
   }
 };
 

@@ -4,6 +4,7 @@
 
 // React imports
 import { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
 
 // Next.js imports
 import Image from "next/image";
@@ -11,7 +12,6 @@ import Image from "next/image";
 // MUI imports
 import Container from "@mui/material/Container";
 import Typography from "@mui/material/Typography";
-import Grid from "@mui/material/Grid";
 import Card from "@mui/material/Card";
 import CardMedia from "@mui/material/CardMedia";
 import CardContent from "@mui/material/CardContent";
@@ -19,43 +19,113 @@ import CardHeader from "@mui/material/CardHeader";
 import Avatar from "@mui/material/Avatar";
 import Box from "@mui/material/Box";
 import IconButton from "@mui/material/IconButton";
+import TextField from "@mui/material/TextField";
+import Button from "@mui/material/Button";
+import Dialog from "@mui/material/Dialog";
+import DialogTitle from "@mui/material/DialogTitle";
+import DialogContent from "@mui/material/DialogContent";
+import DialogActions from "@mui/material/DialogActions";
+import List from "@mui/material/List";
+import ListItem from "@mui/material/ListItem";
+import ListItemText from "@mui/material/ListItemText";
+import ListItemAvatar from "@mui/material/ListItemAvatar";
+import ListItemSecondaryAction from "@mui/material/ListItemSecondaryAction";
 
 // MUI Icons
 import FavoriteIcon from "@mui/icons-material/Favorite";
+import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
-import ShareIcon from "@mui/icons-material/Share";
-import BookmarkBorderIcon from "@mui/icons-material/BookmarkBorder";
+import DeleteIcon from "@mui/icons-material/Delete";
 
 // Server action import
-import { fetchPosts } from "@/app/actions/posts";
-
-// Type imports
-import { Post } from "@/types/post";
+import { fetchPosts, createComment, deleteComment, toggleLike } from "@/app/actions/posts";
+import { Post, Comment } from "@/types/post";
 
 // Feed view component displaying posts
 const FeedView = () => {
+  const { data: session } = useSession();
   const [posts, setPosts] = useState<Post[]>([]);
+  const [selectedPost, setSelectedPost] = useState<Post | null>(null);
+  const [commentDialogOpen, setCommentDialogOpen] = useState(false);
+  const [newComment, setNewComment] = useState("");
 
   useEffect(() => {
-    const loadPosts = async () => {
-      try {
-        const fetchedPosts = await fetchPosts();
-        setPosts(fetchedPosts);
-      } catch (error) {
-        console.error("Failed to fetch posts:", error);
-      }
-    };
-
     loadPosts();
   }, []);
+
+  const loadPosts = async () => {
+    try {
+      const fetchedPosts = await fetchPosts();
+      setPosts(fetchedPosts);
+    } catch (error) {
+      console.error("Failed to fetch posts:", error);
+    }
+  };
+
+  const handleLike = async (postId: string) => {
+    try {
+      const updatedPost = await toggleLike(postId);
+      setPosts(posts.map(post => post.id === postId ? updatedPost : post));
+    } catch (error) {
+      console.error("Failed to toggle like:", error);
+    }
+  };
+
+  const handleCommentClick = (post: Post) => {
+    setSelectedPost(post);
+    setCommentDialogOpen(true);
+  };
+
+  const handleCommentSubmit = async () => {
+    if (!selectedPost || !newComment.trim()) return;
+
+    try {
+      const updatedPost = await createComment(selectedPost.id, newComment.trim());
+      setPosts(posts.map(post => post.id === selectedPost.id ? updatedPost : post));
+      setNewComment("");
+      setCommentDialogOpen(false);
+    } catch (error) {
+      console.error("Failed to create comment:", error);
+    }
+  };
+
+  const handleDeleteComment = async (commentId: string) => {
+    if (!selectedPost) return;
+    
+    try {
+      await deleteComment(commentId);
+      
+      // Update local state by removing the deleted comment
+      const updatedPost = {
+        ...selectedPost,
+        comments: selectedPost.comments.filter(comment => comment.id !== commentId)
+      };
+      
+      setPosts(posts.map(post => 
+        post.id === selectedPost.id ? updatedPost : post
+      ));
+      
+      // If no comments left, close the dialog
+      if (updatedPost.comments.length === 0) {
+        setCommentDialogOpen(false);
+      }
+    } catch (error) {
+      console.error("Failed to delete comment:", error);
+    }
+  };
+
+  const isLikedByCurrentUser = (post: Post) => {
+    if (!session?.user?.email) return false;
+    return post.likes.some(like => like.user.email === session.user?.email);
+  };
 
   return (
     <Container 
       maxWidth="sm" 
       sx={{ 
         mt: 4, 
-        mb: 10, // Add bottom margin to avoid navbar overlap
-        px: { xs: 0 }, // Remove padding on mobile
+        mb: 10,
+        px: { xs: 0 },
       }}
     >
       {posts.map((post) => (
@@ -71,7 +141,7 @@ const FeedView = () => {
           {/* Post Header */}
           <CardHeader
             avatar={
-              <Avatar>
+              <Avatar src={post.user.image || undefined}>
                 {post.user.name?.[0] || "U"}
               </Avatar>
             }
@@ -104,20 +174,33 @@ const FeedView = () => {
           <Box sx={{ px: 2, pt: 1 }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
               <Box>
-                <IconButton size="small">
-                  <FavoriteIcon />
+                <IconButton 
+                  size="small"
+                  onClick={() => handleLike(post.id)}
+                  sx={{
+                    color: isLikedByCurrentUser(post) ? 'error.main' : 'action.active',
+                    '&:hover': {
+                      color: isLikedByCurrentUser(post) ? 'error.dark' : 'action.active',
+                    },
+                  }}
+                >
+                  {isLikedByCurrentUser(post) ? <FavoriteIcon /> : <FavoriteBorderIcon />}
                 </IconButton>
-                <IconButton size="small">
+                <IconButton 
+                  size="small"
+                  onClick={() => handleCommentClick(post)}
+                >
                   <ChatBubbleOutlineIcon />
                 </IconButton>
-                <IconButton size="small">
-                  <ShareIcon />
-                </IconButton>
               </Box>
-              <IconButton size="small">
-                <BookmarkBorderIcon />
-              </IconButton>
             </Box>
+
+            {/* Likes count */}
+            {post.likes.length > 0 && (
+              <Typography variant="body2" sx={{ fontWeight: 600, mt: 1 }}>
+                {post.likes.length} {post.likes.length === 1 ? "like" : "likes"}
+              </Typography>
+            )}
           </Box>
 
           {/* Post Content */}
@@ -130,9 +213,79 @@ const FeedView = () => {
                 {post.caption}
               </Typography>
             )}
+
+            {/* Comments preview */}
+            {post.comments.length > 0 && (
+              <Box sx={{ mt: 1 }}>
+                <Typography 
+                  variant="body2" 
+                  color="text.secondary"
+                  onClick={() => handleCommentClick(post)}
+                  sx={{ cursor: 'pointer' }}
+                >
+                  Zobraziť všetky komentáre ({post.comments.length})
+                </Typography>
+              </Box>
+            )}
           </CardContent>
         </Card>
       ))}
+
+      {/* Comments Dialog */}
+      <Dialog 
+        open={commentDialogOpen} 
+        onClose={() => setCommentDialogOpen(false)}
+        fullWidth
+        maxWidth="sm"
+      >
+        <DialogTitle>Komentáre</DialogTitle>
+        <DialogContent dividers>
+          <List>
+            {selectedPost?.comments.map((comment: Comment) => (
+              <ListItem key={comment.id}>
+                <ListItemAvatar>
+                  <Avatar src={comment.user.image || undefined}>
+                    {comment.user.name?.[0] || "U"}
+                  </Avatar>
+                </ListItemAvatar>
+                <ListItemText
+                  primary={comment.user.name}
+                  secondary={comment.content}
+                />
+                {comment.user.email === session?.user?.email && (
+                  <ListItemSecondaryAction>
+                    <IconButton 
+                      edge="end" 
+                      onClick={() => handleDeleteComment(comment.id)}
+                      size="small"
+                    >
+                      <DeleteIcon />
+                    </IconButton>
+                  </ListItemSecondaryAction>
+                )}
+              </ListItem>
+            ))}
+          </List>
+        </DialogContent>
+        <DialogActions sx={{ flexDirection: 'column', p: 2 }}>
+          <TextField
+            fullWidth
+            placeholder="Pridať komentár..."
+            value={newComment}
+            onChange={(e) => setNewComment(e.target.value)}
+            variant="outlined"
+            size="small"
+          />
+          <Button 
+            fullWidth 
+            onClick={handleCommentSubmit}
+            disabled={!newComment.trim()}
+            sx={{ mt: 1 }}
+          >
+            Pridať komentár
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Container>
   );
 };

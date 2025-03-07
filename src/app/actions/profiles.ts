@@ -5,6 +5,8 @@
 // Prisma imports
 import { prisma } from "@/app/api/auth/[...nextauth]/prisma";
 import { Prisma } from "@prisma/client";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
 
 // TypeScript interfaces
 export interface FetchProfilesCursorParams {
@@ -107,6 +109,135 @@ export const fetchProfileById = async (
   } catch (error) {
     console.error("Error fetching profile:", error);
     throw new Error("Could not fetch profile");
+  }
+};
+
+// Get current user's profile
+export const getCurrentUserProfile = async (): Promise<ProfileWithUser | null> => {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.email) {
+      throw new Error("Not authenticated");
+    }
+
+    const profile = await prisma.profile.findFirst({
+      where: {
+        user: {
+          email: session.user.email
+        }
+      },
+      include: {
+        user: {
+          include: {
+            posts: {
+              orderBy: { createdAt: "desc" },
+            },
+          },
+        },
+      },
+    });
+
+    return profile;
+  } catch (error) {
+    console.error("Error getting current user profile:", error);
+    throw new Error("Could not get current user profile");
+  }
+};
+
+// Update profile
+interface UpdateProfileData {
+  name?: string;
+  bio?: string;
+  location?: string;
+  avatarUrl?: string;
+}
+
+export const updateProfile = async (data: UpdateProfileData): Promise<ProfileWithUser> => {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.email) {
+      throw new Error("Not authenticated");
+    }
+
+    // First, update the user's name
+    const updatedUser = await prisma.user.update({
+      where: {
+        email: session.user.email
+      },
+      data: {
+        name: data.name
+      }
+    });
+
+    // Then, update the profile
+    const updatedProfile = await prisma.profile.update({
+      where: {
+        userId: updatedUser.id
+      },
+      data: {
+        bio: data.bio,
+        location: data.location,
+        avatarUrl: data.avatarUrl,
+      },
+      include: {
+        user: {
+          include: {
+            posts: {
+              orderBy: { createdAt: "desc" },
+            },
+          },
+        },
+      },
+    });
+
+    return updatedProfile;
+  } catch (error) {
+    console.error("Error updating profile:", error);
+    throw new Error("Could not update profile");
+  }
+};
+
+// Create new profile for user
+export const createProfile = async (data: UpdateProfileData): Promise<ProfileWithUser> => {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.email) {
+      throw new Error("Not authenticated");
+    }
+
+    // First, update the user's name
+    const updatedUser = await prisma.user.update({
+      where: {
+        email: session.user.email
+      },
+      data: {
+        name: data.name
+      }
+    });
+
+    // Then, create the profile
+    const newProfile = await prisma.profile.create({
+      data: {
+        userId: updatedUser.id,
+        bio: data.bio,
+        location: data.location,
+        avatarUrl: data.avatarUrl,
+      },
+      include: {
+        user: {
+          include: {
+            posts: {
+              orderBy: { createdAt: "desc" },
+            },
+          },
+        },
+      },
+    });
+
+    return newProfile;
+  } catch (error) {
+    console.error("Error creating profile:", error);
+    throw new Error("Could not create profile");
   }
 };
 

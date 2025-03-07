@@ -16,18 +16,23 @@ import Button from "@mui/material/Button";
 import Avatar from "@mui/material/Avatar";
 import Paper from "@mui/material/Paper";
 import IconButton from "@mui/material/IconButton";
+import Alert from "@mui/material/Alert";
+import Snackbar from "@mui/material/Snackbar";
 
 // MUI Icons
 import PhotoCameraIcon from "@mui/icons-material/PhotoCamera";
 import SaveIcon from "@mui/icons-material/Save";
 
 // Server action import
-import { fetchProfilesCursor, type ProfileWithUser } from "@/app/actions/profiles";
+import { getCurrentUserProfile, updateProfile, createProfile, type ProfileWithUser } from "@/app/actions/profiles";
 
 export default function EditProfileView() {
   const router = useRouter();
   const [profile, setProfile] = useState<ProfileWithUser | null>(null);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     bio: "",
@@ -38,19 +43,19 @@ export default function EditProfileView() {
   useEffect(() => {
     const loadProfile = async () => {
       try {
-        // TODO: Replace with actual getCurrentUserProfile action
-        const { profiles } = await fetchProfilesCursor({ take: 1 });
-        if (profiles.length > 0) {
-          setProfile(profiles[0]);
+        const userProfile = await getCurrentUserProfile();
+        if (userProfile) {
+          setProfile(userProfile);
           setFormData({
-            name: profiles[0].user.name || "",
-            bio: profiles[0].bio || "",
-            location: profiles[0].location || "",
-            avatarUrl: profiles[0].avatarUrl || "",
+            name: userProfile.user.name || "",
+            bio: userProfile.bio || "",
+            location: userProfile.location || "",
+            avatarUrl: userProfile.avatarUrl || "",
           });
         }
       } catch (error) {
         console.error("Failed to fetch profile:", error);
+        setError("Nepodarilo sa načítať profil");
       } finally {
         setLoading(false);
       }
@@ -61,8 +66,29 @@ export default function EditProfileView() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Implement profile update action
-    console.log("Updating profile with:", formData);
+    setSaving(true);
+    setError(null);
+    
+    try {
+      const updatedProfile = profile 
+        ? await updateProfile(formData)
+        : await createProfile(formData);
+        
+      setProfile(updatedProfile);
+      setSuccess(true);
+      // Refresh the page to update the navigation bar avatar
+      router.refresh();
+
+      // Wait 1.5 seconds then redirect to feed
+      setTimeout(() => {
+        router.push("/");
+      }, 1500);
+    } catch (error) {
+      console.error("Failed to save profile:", error);
+      setError("Nepodarilo sa uložiť zmeny");
+    } finally {
+      setSaving(false);
+    }
   };
 
   if (loading) {
@@ -73,19 +99,11 @@ export default function EditProfileView() {
     );
   }
 
-  if (!profile) {
-    return (
-      <Container maxWidth="sm" sx={{ mt: 4 }}>
-        <Typography>Profil sa nenašiel</Typography>
-      </Container>
-    );
-  }
-
   return (
     <Container maxWidth="sm" sx={{ mt: 4, mb: 10 }}>
       <Paper sx={{ p: 3 }}>
         <Typography variant="h5" gutterBottom>
-          Upraviť profil
+          {profile ? "Upraviť profil" : "Vytvoriť profil"}
         </Typography>
 
         <Box component="form" onSubmit={handleSubmit} sx={{ mt: 3 }}>
@@ -122,6 +140,7 @@ export default function EditProfileView() {
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
             margin="normal"
+            required
           />
 
           <TextField
@@ -147,12 +166,37 @@ export default function EditProfileView() {
             variant="contained"
             fullWidth
             startIcon={<SaveIcon />}
+            disabled={saving}
             sx={{ mt: 3 }}
           >
-            Uložiť zmeny
+            {saving ? "Ukladám..." : (profile ? "Uložiť zmeny" : "Vytvoriť profil")}
           </Button>
         </Box>
       </Paper>
+
+      {/* Success message */}
+      <Snackbar
+        open={success}
+        autoHideDuration={6000}
+        onClose={() => setSuccess(false)}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Alert severity="success" onClose={() => setSuccess(false)}>
+          {profile ? "Zmeny boli úspešne uložené" : "Profil bol úspešne vytvorený"}
+        </Alert>
+      </Snackbar>
+
+      {/* Error message */}
+      <Snackbar
+        open={!!error}
+        autoHideDuration={6000}
+        onClose={() => setError(null)}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Alert severity="error" onClose={() => setError(null)}>
+          {error}
+        </Alert>
+      </Snackbar>
     </Container>
   );
 } 

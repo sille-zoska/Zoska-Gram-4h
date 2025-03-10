@@ -2,7 +2,7 @@
 
 import SignVerifyView from "@/views/auth/SignVerifyView";
 
-export const metadata = { title: "Overenie účtu | ZoškaSnap" };
+export const metadata = { title: "Overenie účtu | ZoškaGram" };
 
 const VerifyPage = () => <SignVerifyView />;
 

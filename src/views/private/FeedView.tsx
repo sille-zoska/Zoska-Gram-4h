@@ -2,57 +2,87 @@
 
 "use client";
 
-// React imports
+// React and Next.js imports
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
-
-// Next.js imports
 import Image from "next/image";
 
-// MUI imports
-import Container from "@mui/material/Container";
-import Typography from "@mui/material/Typography";
-import Card from "@mui/material/Card";
-import CardMedia from "@mui/material/CardMedia";
-import CardContent from "@mui/material/CardContent";
-import CardHeader from "@mui/material/CardHeader";
-import Avatar from "@mui/material/Avatar";
-import Box from "@mui/material/Box";
-import IconButton from "@mui/material/IconButton";
-import TextField from "@mui/material/TextField";
-import Button from "@mui/material/Button";
-import Dialog from "@mui/material/Dialog";
-import DialogTitle from "@mui/material/DialogTitle";
-import DialogContent from "@mui/material/DialogContent";
-import DialogActions from "@mui/material/DialogActions";
-import List from "@mui/material/List";
-import ListItem from "@mui/material/ListItem";
-import ListItemText from "@mui/material/ListItemText";
-import ListItemAvatar from "@mui/material/ListItemAvatar";
-import ListItemSecondaryAction from "@mui/material/ListItemSecondaryAction";
+// MUI Component imports
+import {
+  Container,
+  Typography,
+  Card,
+  CardMedia,
+  CardContent,
+  CardHeader,
+  Avatar,
+  Box,
+  IconButton,
+  TextField,
+  Button,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  List,
+  ListItem,
+  ListItemText,
+  ListItemAvatar,
+  ListItemSecondaryAction,
+} from "@mui/material";
 
-// MUI Icons
-import FavoriteIcon from "@mui/icons-material/Favorite";
-import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
-import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
-import DeleteIcon from "@mui/icons-material/Delete";
+// MUI Icon imports
+import {
+  Favorite as FavoriteIcon,
+  FavoriteBorder as FavoriteBorderIcon,
+  ChatBubbleOutline as ChatBubbleOutlineIcon,
+  Delete as DeleteIcon,
+} from "@mui/icons-material";
 
-// Server action import
+// Server actions
 import { fetchPosts, createComment, deleteComment, toggleLike } from "@/app/actions/posts";
+
+// Types
 import { Post, Comment } from "@/types/post";
 
-// Feed view component displaying posts
+// Types for component props and state
+type OptimisticUpdate = {
+  type: 'like' | 'comment' | 'deleteComment';
+  postId: string;
+  data: {
+    commentId?: string;
+    content?: string;
+    userId?: string;
+  };
+};
+
+/**
+ * FeedView Component
+ * 
+ * Displays a feed of posts with likes and comments functionality.
+ * Features:
+ * - Infinite scrolling post feed
+ * - Like/unlike posts
+ * - Add/delete comments
+ * - View comments in a dialog
+ * - Optimistic updates for better UX
+ */
 const FeedView = () => {
+  // Hooks
   const { data: session } = useSession();
+  
+  // State
   const [posts, setPosts] = useState<Post[]>([]);
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   const [commentDialogOpen, setCommentDialogOpen] = useState(false);
   const [newComment, setNewComment] = useState("");
 
+  // Effects
   useEffect(() => {
     loadPosts();
   }, []);
 
+  // Data fetching
   const loadPosts = async () => {
     try {
       const fetchedPosts = await fetchPosts();
@@ -62,6 +92,7 @@ const FeedView = () => {
     }
   };
 
+  // Event handlers
   const handleLike = async (postId: string) => {
     try {
       const updatedPost = await toggleLike(postId);
@@ -93,39 +124,107 @@ const FeedView = () => {
     if (!selectedPost) return;
     
     try {
+      // Optimistic update
+      const updatedComments = selectedPost.comments.filter(comment => comment.id !== commentId);
+      const optimisticPost = {
+        ...selectedPost,
+        comments: updatedComments
+      };
+      
+      // Update UI immediately
+      setSelectedPost(optimisticPost);
+      setPosts(posts.map(post => 
+        post.id === selectedPost.id ? optimisticPost : post
+      ));
+      
+      // Close dialog if no comments left
+      if (updatedComments.length === 0) {
+        setCommentDialogOpen(false);
+      }
+
+      // Server update
       const updatedPost = await deleteComment(commentId);
+      
+      // Sync with server state
       setPosts(posts.map(post => 
         post.id === updatedPost.id ? updatedPost : post
       ));
-      
-      // If no comments left, close the dialog
-      if (updatedPost.comments.length === 0) {
-        setCommentDialogOpen(false);
-      }
+      setSelectedPost(updatedPost);
     } catch (error) {
       console.error("Failed to delete comment:", error);
-      // If comment not found, update UI optimistically
-      if (error instanceof Error && error.message.includes("Comment not found")) {
-        const updatedPost = {
-          ...selectedPost,
-          comments: selectedPost.comments.filter(comment => comment.id !== commentId)
-        };
+      // Revert optimistic update on error
+      const originalPost = posts.find(post => post.id === selectedPost.id);
+      if (originalPost) {
+        setSelectedPost(originalPost);
         setPosts(posts.map(post => 
-          post.id === selectedPost.id ? updatedPost : post
+          post.id === selectedPost.id ? originalPost : post
         ));
-        
-        if (updatedPost.comments.length === 0) {
-          setCommentDialogOpen(false);
-        }
       }
     }
   };
 
-  const isLikedByCurrentUser = (post: Post) => {
+  // Helper functions
+  const isLikedByCurrentUser = (post: Post): boolean => {
     if (!session?.user?.email) return false;
     return post.likes.some(like => like.user.email === session.user?.email);
   };
 
+  // Render functions
+  const renderPostHeader = (post: Post) => (
+    <CardHeader
+      avatar={
+        <Avatar src={post.user.image || undefined}>
+          {post.user.name?.[0] || "U"}
+        </Avatar>
+      }
+      title={post.user.name || "Neznámy používateľ"}
+      subheader={new Date(post.createdAt).toLocaleDateString('sk-SK')}
+      sx={{
+        '& .MuiCardHeader-title': {
+          fontWeight: 600,
+          fontSize: '0.95rem',
+        },
+        '& .MuiCardHeader-subheader': {
+          fontSize: '0.8rem',
+        },
+      }}
+    />
+  );
+
+  const renderPostActions = (post: Post) => (
+    <Box sx={{ px: 2, pt: 1 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+        <Box>
+          <IconButton 
+            size="small"
+            onClick={() => handleLike(post.id)}
+            sx={{
+              color: isLikedByCurrentUser(post) ? 'error.main' : 'action.active',
+              '&:hover': {
+                color: isLikedByCurrentUser(post) ? 'error.dark' : 'action.active',
+              },
+            }}
+          >
+            {isLikedByCurrentUser(post) ? <FavoriteIcon /> : <FavoriteBorderIcon />}
+          </IconButton>
+          <IconButton 
+            size="small"
+            onClick={() => handleCommentClick(post)}
+          >
+            <ChatBubbleOutlineIcon />
+          </IconButton>
+        </Box>
+      </Box>
+
+      {post.likes.length > 0 && (
+        <Typography variant="body2" sx={{ fontWeight: 600, mt: 1 }}>
+          {post.likes.length} {post.likes.length === 1 ? "like" : "likes"}
+        </Typography>
+      )}
+    </Box>
+  );
+
+  // Main render
   return (
     <Container 
       maxWidth="sm" 
@@ -145,27 +244,8 @@ const FeedView = () => {
             borderBottom: (theme) => `1px solid ${theme.palette.divider}`,
           }}
         >
-          {/* Post Header */}
-          <CardHeader
-            avatar={
-              <Avatar src={post.user.image || undefined}>
-                {post.user.name?.[0] || "U"}
-              </Avatar>
-            }
-            title={post.user.name || "Neznámy používateľ"}
-            subheader={new Date(post.createdAt).toLocaleDateString('sk-SK')}
-            sx={{
-              '& .MuiCardHeader-title': {
-                fontWeight: 600,
-                fontSize: '0.95rem',
-              },
-              '& .MuiCardHeader-subheader': {
-                fontSize: '0.8rem',
-              },
-            }}
-          />
+          {renderPostHeader(post)}
 
-          {/* Post Image */}
           <CardMedia
             component="img"
             image={post.imageUrl}
@@ -177,40 +257,8 @@ const FeedView = () => {
             }}
           />
 
-          {/* Post Actions */}
-          <Box sx={{ px: 2, pt: 1 }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-              <Box>
-                <IconButton 
-                  size="small"
-                  onClick={() => handleLike(post.id)}
-                  sx={{
-                    color: isLikedByCurrentUser(post) ? 'error.main' : 'action.active',
-                    '&:hover': {
-                      color: isLikedByCurrentUser(post) ? 'error.dark' : 'action.active',
-                    },
-                  }}
-                >
-                  {isLikedByCurrentUser(post) ? <FavoriteIcon /> : <FavoriteBorderIcon />}
-                </IconButton>
-                <IconButton 
-                  size="small"
-                  onClick={() => handleCommentClick(post)}
-                >
-                  <ChatBubbleOutlineIcon />
-                </IconButton>
-              </Box>
-            </Box>
+          {renderPostActions(post)}
 
-            {/* Likes count */}
-            {post.likes.length > 0 && (
-              <Typography variant="body2" sx={{ fontWeight: 600, mt: 1 }}>
-                {post.likes.length} {post.likes.length === 1 ? "like" : "likes"}
-              </Typography>
-            )}
-          </Box>
-
-          {/* Post Content */}
           <CardContent sx={{ pt: 1 }}>
             {post.caption && (
               <Typography variant="body2" sx={{ mb: 1 }}>
@@ -221,7 +269,6 @@ const FeedView = () => {
               </Typography>
             )}
 
-            {/* Comments preview */}
             {post.comments.length > 0 && (
               <Box sx={{ mt: 1 }}>
                 <Typography 
@@ -238,7 +285,6 @@ const FeedView = () => {
         </Card>
       ))}
 
-      {/* Comments Dialog */}
       <Dialog 
         open={commentDialogOpen} 
         onClose={() => setCommentDialogOpen(false)}

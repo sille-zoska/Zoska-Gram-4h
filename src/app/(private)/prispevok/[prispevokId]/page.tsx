@@ -4,7 +4,10 @@
 import Typography from "@mui/material/Typography";
 import Container from "@mui/material/Container";
 
-export const metadata = { title: "Detail prispevku | ZoškaSnap" };
+export const metadata = { 
+  title: "Detail príspevku | ZoškaGram",
+  description: "Pozrite si detail príspevku, komentáre a reakcie."
+};
 
 export default function PostDetail({
   params,

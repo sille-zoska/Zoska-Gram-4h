@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 // Next.js imports
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { useSession } from "next-auth/react";
 
 // MUI imports
 import Container from "@mui/material/Container";
@@ -35,19 +36,39 @@ import SearchIcon from "@mui/icons-material/Search";
 import ClearIcon from "@mui/icons-material/Clear";
 
 // Server action import
-import { fetchProfilesCursor, type ProfileWithUser } from "@/app/actions/profiles";
+import { fetchProfilesCursor, followUser, unfollowUser, type ProfileWithUser } from "@/app/actions/profiles";
 
-// Profiles view component displaying user profiles
+// Types
+type LoadingState = {
+  search: boolean;
+  follow: string | null;
+};
+
+/**
+ * ProfilesView Component
+ * 
+ * Displays a searchable list of user profiles with follow functionality.
+ * Features:
+ * - Search users by name
+ * - Follow/unfollow users
+ * - View user stats (posts, followers, following)
+ * - View recent posts grid
+ * - Navigate to detailed profile view
+ */
 const ProfilesView = () => {
+  const { data: session } = useSession();
   const router = useRouter();
   const [profiles, setProfiles] = useState<ProfileWithUser[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState<LoadingState>({
+    search: false,
+    follow: null
+  });
 
   // Load profiles on mount and search term change
   useEffect(() => {
     const loadProfiles = async () => {
-      setLoading(true);
+      setLoading(prev => ({ ...prev, search: true }));
       try {
         const { profiles: fetchedProfiles } = await fetchProfilesCursor({
           searchTerm,
@@ -56,66 +77,175 @@ const ProfilesView = () => {
       } catch (error) {
         console.error("Failed to fetch profiles:", error);
       } finally {
-        setLoading(false);
+        setLoading(prev => ({ ...prev, search: false }));
       }
     };
 
     loadProfiles();
   }, [searchTerm]);
 
+  const handleFollowToggle = async (e: React.MouseEvent, profile: ProfileWithUser) => {
+    e.stopPropagation();
+    if (!session?.user?.email || loading.follow) return;
+
+    setLoading(prev => ({ ...prev, follow: profile.id }));
+    try {
+      const updatedProfile = isFollowing(profile)
+        ? await unfollowUser(profile.user.id)
+        : await followUser(profile.user.id);
+      
+      setProfiles(profiles.map(p => 
+        p.id === profile.id ? updatedProfile : p
+      ));
+    } catch (error) {
+      console.error("Failed to toggle follow:", error);
+    } finally {
+      setLoading(prev => ({ ...prev, follow: null }));
+    }
+  };
+
+  const isFollowing = (profile: ProfileWithUser) => {
+    if (!session?.user?.email) return false;
+    return profile.user.followers.some(
+      follow => follow.followerId === profile.userId
+    );
+  };
+
   // Navigate to profile detail page
   const handleProfileClick = (profileId: string) => {
     router.push(`/profil/${profileId}`);
   };
 
+  const handleSearchClear = () => {
+    setSearchTerm("");
+  };
+
+  // Render functions
+  const renderSearchBar = () => (
+    <TextField
+      fullWidth
+      placeholder="Hľadať používateľov"
+      value={searchTerm}
+      onChange={(e) => setSearchTerm(e.target.value)}
+      sx={{
+        mb: 3,
+        '& .MuiOutlinedInput-root': {
+          borderRadius: 3,
+          backgroundColor: (theme) => 
+            theme.palette.mode === 'dark' ? 'action.hover' : 'grey.100',
+        },
+      }}
+      InputProps={{
+        startAdornment: (
+          <InputAdornment position="start">
+            <SearchIcon color="action" />
+          </InputAdornment>
+        ),
+        endAdornment: searchTerm && (
+          <InputAdornment position="end">
+            <IconButton size="small" onClick={handleSearchClear}>
+              <ClearIcon />
+            </IconButton>
+          </InputAdornment>
+        ),
+      }}
+    />
+  );
+
+  const renderProfileInfo = (profile: ProfileWithUser) => (
+    <Box sx={{ flexGrow: 1 }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+        <Typography variant="h6" sx={{ mr: 2 }}>
+          {profile.user.name || "Neznámy používateľ"}
+        </Typography>
+        <Button
+          variant="contained"
+          size="small"
+          startIcon={isFollowing(profile) ? <PersonRemoveIcon /> : <PersonAddIcon />}
+          onClick={(e) => handleFollowToggle(e, profile)}
+          disabled={loading.follow === profile.id || session?.user?.email === profile.user.email}
+        >
+          {isFollowing(profile) ? "Nesledovať" : "Sledovať"}
+        </Button>
+      </Box>
+
+      <Stack direction="row" spacing={3} sx={{ mb: 2 }}>
+        <Typography variant="body2">
+          <strong>{profile.user.posts.length}</strong> príspevkov
+        </Typography>
+        <Typography variant="body2">
+          <strong>{profile.user.followers.length}</strong> sledovateľov
+        </Typography>
+        <Typography variant="body2">
+          <strong>{profile.user.following.length}</strong> sledovaných
+        </Typography>
+      </Stack>
+
+      {profile.bio && (
+        <Typography variant="body2" sx={{ mb: 1 }}>
+          {profile.bio}
+        </Typography>
+      )}
+      
+      {profile.location && (
+        <Typography variant="body2" color="text.secondary">
+          📍 {profile.location}
+        </Typography>
+      )}
+    </Box>
+  );
+
+  const renderRecentPosts = (profile: ProfileWithUser) => (
+    <>
+      <Divider sx={{ mb: 2 }} />
+      <Typography variant="subtitle2" sx={{ mb: 1 }}>
+        <GridViewIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
+        Nedávne príspevky
+      </Typography>
+      <ImageList cols={3} gap={2}>
+        {profile.user.posts.map((post) => (
+          <ImageListItem 
+            key={post.id}
+            sx={{ 
+              aspectRatio: '1/1',
+              position: 'relative',
+              '&:hover': { opacity: 0.8 },
+              overflow: 'hidden',
+            }}
+          >
+            <Image
+              src={post.imageUrl}
+              alt={post.caption || ""}
+              fill
+              sizes="(max-width: 600px) 33vw, 200px"
+              style={{ 
+                objectFit: 'cover',
+              }}
+            />
+          </ImageListItem>
+        ))}
+      </ImageList>
+    </>
+  );
+
+  // Main render
   return (
     <Container sx={{ mt: 4, mb: 10, maxWidth: "md" }}>
-      {/* Search bar */}
-      <TextField
-        fullWidth
-        placeholder="Hľadať používateľov"
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
-        sx={{
-          mb: 3,
-          '& .MuiOutlinedInput-root': {
-            borderRadius: 3,
-            backgroundColor: (theme) => 
-              theme.palette.mode === 'dark' ? 'action.hover' : 'grey.100',
-          },
-        }}
-        InputProps={{
-          startAdornment: (
-            <InputAdornment position="start">
-              <SearchIcon color="action" />
-            </InputAdornment>
-          ),
-          endAdornment: searchTerm && (
-            <InputAdornment position="end">
-              <IconButton size="small" onClick={() => setSearchTerm("")}>
-                <ClearIcon />
-              </IconButton>
-            </InputAdornment>
-          ),
-        }}
-      />
+      {renderSearchBar()}
 
-      {/* Loading indicator */}
-      {loading && (
+      {loading.search && (
         <Box display="flex" justifyContent="center" mt={2} mb={2}>
           <CircularProgress />
         </Box>
       )}
 
-      {/* No results message */}
-      {!loading && profiles.length === 0 && searchTerm && (
+      {!loading.search && profiles.length === 0 && searchTerm && (
         <Typography align="center" sx={{ my: 4 }} color="text.secondary">
           Žiadne výsledky pre &quot;{searchTerm}&quot;
         </Typography>
       )}
 
-      {/* Profile cards */}
-      {!loading && profiles.map((profile) => (
+      {!loading.search && profiles.map((profile) => (
         <Card 
           key={profile.id}
           sx={{ 
@@ -130,7 +260,6 @@ const ProfilesView = () => {
         >
           <CardContent>
             <Box sx={{ display: 'flex', mb: 3 }}>
-              {/* Profile Avatar and Info */}
               <Avatar
                 src={profile.avatarUrl || undefined}
                 sx={{ width: 80, height: 80, mr: 3 }}
@@ -138,81 +267,11 @@ const ProfilesView = () => {
                 {profile.user.name?.[0] || "U"}
               </Avatar>
               
-              <Box sx={{ flexGrow: 1 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                  <Typography variant="h6" sx={{ mr: 2 }}>
-                    {profile.user.name || "Neznámy používateľ"}
-                  </Typography>
-                  <Button
-                    variant="contained"
-                    size="small"
-                    startIcon={<PersonAddIcon />}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      // Add follow functionality later
-                    }}
-                  >
-                    Sledovať
-                  </Button>
-                </Box>
-
-                <Stack direction="row" spacing={3} sx={{ mb: 2 }}>
-                  <Typography variant="body2">
-                    <strong>{profile.user.posts.length}</strong> príspevkov
-                  </Typography>
-                  <Typography variant="body2">
-                    <strong>128</strong> sledovateľov
-                  </Typography>
-                  <Typography variant="body2">
-                    <strong>96</strong> sledovaných
-                  </Typography>
-                </Stack>
-
-                {profile.bio && (
-                  <Typography variant="body2" sx={{ mb: 1 }}>
-                    {profile.bio}
-                  </Typography>
-                )}
-                
-                {profile.location && (
-                  <Typography variant="body2" color="text.secondary">
-                    📍 {profile.location}
-                  </Typography>
-                )}
-              </Box>
+              {renderProfileInfo(profile)}
             </Box>
 
-            {/* Recent Posts Grid */}
-            <Divider sx={{ mb: 2 }} />
-            <Typography variant="subtitle2" sx={{ mb: 1 }}>
-              <GridViewIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
-              Nedávne príspevky
-            </Typography>
-            <ImageList cols={3} gap={2}>
-              {profile.user.posts.map((post) => (
-                <ImageListItem 
-                  key={post.id}
-                  sx={{ 
-                    aspectRatio: '1/1',
-                    position: 'relative',
-                    '&:hover': { opacity: 0.8 },
-                    overflow: 'hidden',
-                  }}
-                >
-                  <Image
-                    src={post.imageUrl}
-                    alt={post.caption || ""}
-                    fill
-                    sizes="(max-width: 600px) 33vw, 200px"
-                    style={{ 
-                      objectFit: 'cover',
-                    }}
-                  />
-                </ImageListItem>
-              ))}
-            </ImageList>
+            {renderRecentPosts(profile)}
 
-            {/* Interaction Buttons */}
             <Stack 
               direction="row" 
               spacing={1} 

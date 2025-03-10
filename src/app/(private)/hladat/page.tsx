@@ -1,9 +1,14 @@
-// src/app/hladat/page.tsx
+// src/app/(private)/hladat/page.tsx
 
-// Custom imports
+import { Metadata } from "next";
+
+// View component import
 import ProfilesView from "@/views/private/ProfilesView";
 
-export const metadata = { title: "Hľadať | ZoškaSnap" };
+export const metadata: Metadata = {
+  title: "Hľadať | ZoškaGram",
+  description: "Nájdite a sledujte svojich spolužiakov, učiteľov a priateľov."
+};
 
 // Search Page
 const SearchPage = () => <ProfilesView />;

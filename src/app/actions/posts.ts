@@ -242,7 +242,14 @@ export const deleteComment = async (commentId: string): Promise<PrismaPostWithDe
 
     const comment = await prisma.comment.findUnique({
       where: { id: commentId },
-      include: { user: true },
+      include: {
+        user: {
+          select: {
+            id: true,
+            email: true
+          }
+        }
+      },
     });
 
     if (!comment) {

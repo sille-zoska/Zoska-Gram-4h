@@ -2,7 +2,7 @@
 
 import SignUpView from "@/views/auth/SignUpView";
 
-export const metadata = { title: "Registrácia užívateľa | ZoškaSnap" };
+export const metadata = { title: "Registrácia | ZoškaGram" };
 
 export default function SignUpPage() {
   return <SignUpView />;

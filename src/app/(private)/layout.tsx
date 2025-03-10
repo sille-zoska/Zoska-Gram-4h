@@ -1,24 +1,34 @@
 // src/app/(private)/layout.tsx
 
+import { Metadata } from "next";
 
-// Project imports
+// Component imports
 import AuthGuard from "@/components/AuthGuard";
 
 // MUI imports
 import Box from "@mui/material/Box";
 
+// Types
+type PrivateLayoutProps = {
+  children: React.ReactNode;
+};
+
 // Metadata for the layout
-export const metadata = { title: "Protected | SnapZoška" };
+export const metadata: Metadata = {
+  title: "ZoškaGram | Váš feed",
+  description: "Prezerajte si príspevky od vašich spolužiakov a učiteľov, zdieľajte vlastné momenty a buďte v kontakte s komunitou SPŠE Zochova.",
+  robots: "noindex, nofollow", // Private pages should not be indexed
+};
 
 // PrivateLayout Component
-const PrivateLayout = ({ children }: { children: React.ReactNode }) => (
+const PrivateLayout = ({ children }: PrivateLayoutProps) => (
   <AuthGuard redirectPath="/auth/registracia">
     <Box
       sx={{
         minHeight: "100vh",
         display: "flex",
-        justifyContent: "center", // Horizontally center content
-        alignItems: "flex-start", // Align content at the top
+        justifyContent: "center",
+        alignItems: "flex-start",
         backgroundColor: "background.default",
         px: 2,
       }}

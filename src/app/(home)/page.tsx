@@ -10,7 +10,7 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
 // Custom imports
 import NonAuthHomeView from "@/views/home/HomeNonAuthView";
 
-export const metadata = { title: "Domov | ZoškaSnap" };
+export const metadata = { title: "Domov | ZoškaGram" };
 
 // HomePage Component
 const HomePage = async () => {

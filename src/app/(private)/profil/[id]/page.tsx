@@ -2,7 +2,10 @@
 
 import ProfileDetailView from "@/views/private/ProfileDetailView";
 
-export const metadata = { title: "Profil | ZoškaSnap" };
+export const metadata = { 
+  title: "Profil používateľa | ZoškaGram",
+  description: "Prezrite si profil používateľa, jeho príspevky a aktivitu."
+};
 
 interface ProfilePageProps {
   params: {

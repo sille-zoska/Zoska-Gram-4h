@@ -4,7 +4,7 @@
 import SignInView from "@/views/auth/SignInView";
 
 // Metadata for the page
-export const metadata = { title: "Prihlásenie užívateľa | ZoškaSnap" };
+export const metadata = { title: "Prihlásenie | ZoškaGram" };
 
 // Page component
 const SignInPage = () => <SignInView />;

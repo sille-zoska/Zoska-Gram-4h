@@ -4,7 +4,7 @@
 // Project imports
 import GDPRView from "@/views/public/GDPRView";
 
-export const metadata = { title: "GDPR | ZoškaSnap" };
+export const metadata = { title: "GDPR | ZoškaGram" };
 
 // GDPR Page Component
 const GDPRPage = () => <GDPRView />;

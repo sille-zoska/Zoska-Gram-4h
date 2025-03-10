@@ -19,15 +19,19 @@ type UserWithPosts = Prisma.UserGetPayload<{
   include: { posts: true };
 }>;
 
-export type ProfileWithUser = Prisma.ProfileGetPayload<{
+type ProfileWithFollowCounts = Prisma.ProfileGetPayload<{
   include: {
     user: {
       include: {
         posts: true;
-      }
-    }
+        followers: true;
+        following: true;
+      };
+    };
   };
 }>;
+
+export type ProfileWithUser = ProfileWithFollowCounts;
 
 interface FetchProfilesCursorResult {
   profiles: ProfileWithUser[];
@@ -66,7 +70,9 @@ export const fetchProfilesCursor = async ({
               orderBy: {
                 createdAt: 'desc'
               }
-            }
+            },
+            followers: true,
+            following: true
           }
         }
       },
@@ -93,9 +99,9 @@ export const fetchProfileById = async (
       include: {
         user: {
           include: {
-            posts: {
-              orderBy: { createdAt: "desc" },
-            },
+            posts: true,
+            followers: true,
+            following: true,
           },
         },
       },
@@ -117,21 +123,25 @@ export const getCurrentUserProfile = async (): Promise<ProfileWithUser | null> =
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.email) {
-      throw new Error("Not authenticated");
+      return null;
     }
 
-    const profile = await prisma.profile.findFirst({
-      where: {
-        user: {
-          email: session.user.email
-        }
-      },
+    const user = await prisma.user.findUnique({
+      where: { email: session.user.email },
+    });
+
+    if (!user) {
+      return null;
+    }
+
+    const profile = await prisma.profile.findUnique({
+      where: { userId: user.id },
       include: {
         user: {
           include: {
-            posts: {
-              orderBy: { createdAt: "desc" },
-            },
+            posts: true,
+            followers: true,
+            following: true,
           },
         },
       },
@@ -139,8 +149,8 @@ export const getCurrentUserProfile = async (): Promise<ProfileWithUser | null> =
 
     return profile;
   } catch (error) {
-    console.error("Error getting current user profile:", error);
-    throw new Error("Could not get current user profile");
+    console.error("Error fetching current user profile:", error);
+    throw new Error("Could not fetch profile");
   }
 };
 
@@ -185,6 +195,8 @@ export const updateProfile = async (data: UpdateProfileData): Promise<ProfileWit
             posts: {
               orderBy: { createdAt: "desc" },
             },
+            followers: true,
+            following: true,
           },
         },
       },
@@ -229,6 +241,8 @@ export const createProfile = async (data: UpdateProfileData): Promise<ProfileWit
             posts: {
               orderBy: { createdAt: "desc" },
             },
+            followers: true,
+            following: true,
           },
         },
       },
@@ -238,6 +252,137 @@ export const createProfile = async (data: UpdateProfileData): Promise<ProfileWit
   } catch (error) {
     console.error("Error creating profile:", error);
     throw new Error("Could not create profile");
+  }
+};
+
+// Add these new actions
+export const followUser = async (targetUserId: string): Promise<ProfileWithUser> => {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.email) {
+      throw new Error("Not authenticated");
+    }
+
+    const currentUser = await prisma.user.findUnique({
+      where: { email: session.user.email },
+    });
+
+    if (!currentUser) {
+      throw new Error("Current user not found");
+    }
+
+    // Check if already following
+    const existingFollow = await prisma.follow.findUnique({
+      where: {
+        followerId_followingId: {
+          followerId: currentUser.id,
+          followingId: targetUserId,
+        },
+      },
+    });
+
+    // If already following, just return the current profile state
+    if (existingFollow) {
+      const profile = await prisma.profile.findUnique({
+        where: { userId: targetUserId },
+        include: {
+          user: {
+            include: {
+              posts: true,
+              followers: true,
+              following: true,
+            },
+          },
+        },
+      });
+
+      if (!profile) {
+        throw new Error("Profile not found");
+      }
+
+      return profile;
+    }
+
+    // Create follow relationship
+    await prisma.follow.create({
+      data: {
+        followerId: currentUser.id,
+        followingId: targetUserId,
+      },
+    });
+
+    // Return updated profile
+    const updatedProfile = await prisma.profile.findUnique({
+      where: { userId: targetUserId },
+      include: {
+        user: {
+          include: {
+            posts: true,
+            followers: true,
+            following: true,
+          },
+        },
+      },
+    });
+
+    if (!updatedProfile) {
+      throw new Error("Profile not found");
+    }
+
+    return updatedProfile;
+  } catch (error) {
+    console.error("Error following user:", error);
+    throw error;
+  }
+};
+
+export const unfollowUser = async (targetUserId: string): Promise<ProfileWithUser> => {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.email) {
+      throw new Error("Not authenticated");
+    }
+
+    const currentUser = await prisma.user.findUnique({
+      where: { email: session.user.email },
+    });
+
+    if (!currentUser) {
+      throw new Error("Current user not found");
+    }
+
+    // Delete follow relationship
+    await prisma.follow.delete({
+      where: {
+        followerId_followingId: {
+          followerId: currentUser.id,
+          followingId: targetUserId,
+        },
+      },
+    });
+
+    // Return updated profile
+    const updatedProfile = await prisma.profile.findUnique({
+      where: { userId: targetUserId },
+      include: {
+        user: {
+          include: {
+            posts: true,
+            followers: true,
+            following: true,
+          },
+        },
+      },
+    });
+
+    if (!updatedProfile) {
+      throw new Error("Profile not found");
+    }
+
+    return updatedProfile;
+  } catch (error) {
+    console.error("Error unfollowing user:", error);
+    throw error;
   }
 };
 

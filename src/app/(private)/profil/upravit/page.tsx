@@ -4,8 +4,8 @@ import { Metadata } from "next";
 import EditProfileView from "@/views/private/EditProfileView";
 
 export const metadata: Metadata = {
-  title: "Upraviť profil | ZoskaGram",
-  description: "Upraviť svoj profil na ZoskaGram",
+  title: "Upraviť profil | ZoškaGram",
+  description: "Spravujte svoj profil, upravte svoje informácie a nastavenia."
 };
 
 export default function EditProfilePage() {

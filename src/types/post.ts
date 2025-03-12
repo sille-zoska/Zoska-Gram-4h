@@ -32,11 +32,29 @@ export interface CommentLike {
 export interface Post {
     id: string;
     userId: string;
+    caption: string | null;
     imageUrl: string;
-    caption?: string | null;
-    createdAt: Date;
-    updatedAt: Date;
-    user: User;
+    createdAt: Date | string;
+    updatedAt?: Date | string;
     comments: Comment[];
     likes: Like[];
+    bookmarks?: Bookmark[];
+    user: {
+        id: string;
+        name: string | null;
+        email: string;
+    };
+    tags?: string[];
+}
+
+export interface Bookmark {
+    id: string;
+    userId: string;
+    postId: string;
+    createdAt?: Date | string;
+    user: {
+        id: string;
+        name: string | null;
+        email: string;
+    };
 } 

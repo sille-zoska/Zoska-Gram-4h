@@ -1,3 +1,9 @@
+
+// npx prisma format
+// npx prisma migrate dev --name init
+// npx prisma generate
+// npx prisma studio
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -77,6 +83,7 @@ model User {
   posts              Post[]
   profile            Profile?
   sessions           Session[]
+  bookmarks          Bookmark[]
 }
 
 model Post {
@@ -91,6 +98,7 @@ model Post {
   likes        Like[]
   Notification Notification[]
   user         User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bookmarks    Bookmark[]
 }
 
 model Profile {
@@ -174,4 +182,15 @@ enum NotificationType {
   LIKE
   COMMENT
   MENTION
+}
+
+model Bookmark {
+  id        String   @id @default(cuid())
+  userId    String
+  postId    String
+  createdAt DateTime @default(now())
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, postId])
 }

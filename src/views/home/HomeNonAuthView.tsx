@@ -2,81 +2,140 @@
 
 "use client";
 
-import { useTheme } from "@mui/material/styles";
-import { Container, Typography, Grid, Button, Box } from "@mui/material";
+import { Box, Container, Typography, Button, Grid, Paper } from "@mui/material";
 import Image from "next/image";
+import Link from "next/link";
 
-export default function NonAuthHomeView() {
-  const theme = useTheme();
+const HomeNonAuthView = () => {
   return (
-    <Container>
-      <Typography variant="h3" align="center" gutterBottom>
-        Vitajte na ZoškaSnap!
-      </Typography>
-      <Typography variant="h6" align="center" gutterBottom>
-        Pridajte sa k našej školskej komunite a zdieľajte svoje momenty.
-      </Typography>
+    <Container maxWidth="lg" sx={{ py: 8 }}>
+      <Grid container spacing={4} alignItems="center">
+        {/* Left side - Hero content */}
+        <Grid item xs={12} md={6}>
+          <Box sx={{ mb: 4 }}>
+            <Typography
+              variant="h1"
+              sx={{
+                fontSize: { xs: "2.5rem", md: "3.5rem" },
+                fontWeight: 700,
+                background: "linear-gradient(45deg, #FF385C, #1DA1F2)",
+                backgroundClip: "text",
+                WebkitBackgroundClip: "text",
+                color: "transparent",
+                mb: 2,
+              }}
+            >
+              ZoškaGram
+            </Typography>
+            <Typography
+              variant="h2"
+              sx={{
+                fontSize: { xs: "1.5rem", md: "2rem" },
+                fontWeight: 500,
+                color: "text.secondary",
+                mb: 3,
+              }}
+            >
+              Zdieľaj svoje školské momenty s ostatnými študentmi SPŠE Zochova
+            </Typography>
+            <Box sx={{ display: "flex", gap: 2 }}>
+              <Button
+                component={Link}
+                href="/auth/registracia"
+                variant="contained"
+                size="large"
+                sx={{
+                  px: 4,
+                  py: 1.5,
+                  borderRadius: "50px",
+                  fontSize: "1.1rem",
+                }}
+              >
+                Pridaj sa k nám
+              </Button>
+              <Button
+                component={Link}
+                href="/auth/prihlasenie"
+                variant="outlined"
+                size="large"
+                sx={{
+                  px: 4,
+                  py: 1.5,
+                  borderRadius: "50px",
+                  fontSize: "1.1rem",
+                }}
+              >
+                Prihlásiť sa
+              </Button>
+            </Box>
+          </Box>
 
-      <Typography variant="body1" align="center" gutterBottom>
-        ZoškaSnap je miesto, kde môžete zdieľať svoje najlepšie momenty so svojimi spolužiakmi. 
-        Pridajte sa k nám a buďte súčasťou našej rastúcej komunity. 
-        Zdieľajte fotografie, komentujte a lajkujte príspevky svojich priateľov.
-      </Typography>
-
-      <Typography variant="body1" align="center" gutterBottom>
-        Naša platforma je navrhnutá tak, aby bola jednoduchá a intuitívna na používanie. 
-        Stačí sa zaregistrovať, vytvoriť si profil a začať zdieľať svoje zážitky. 
-        Či už ste na školskom výlete, na športovom podujatí alebo len tak trávite čas s priateľmi, 
-        ZoškaSnap je tu pre vás.
-      </Typography>
-
-      <Grid container spacing={4} justifyContent="center" sx={{ mt: 4 }}>
-        <Grid item xs={12} sm={6} md={4}>
-          <Image
-            src="/images/home1.png"
-            alt="Obrázok z galérie 1"
-            width={300}
-            height={200}
-            style={{ borderRadius: "8px" }}
-          />
+          {/* Features */}
+          <Grid container spacing={2} sx={{ mt: 4 }}>
+            {[
+              {
+                title: "Zdieľaj momenty",
+                description: "Fotky z projektov, školských akcií a každodenného života",
+              },
+              {
+                title: "Buď v spojení",
+                description: "Komunikuj so spolužiakmi a zostaň v obraze",
+              },
+              {
+                title: "Buduj komunitu",
+                description: "Vytváraj a objavuj obsah pre študentov SPŠE Zochova",
+              },
+            ].map((feature, index) => (
+              <Grid item xs={12} sm={6} key={index}>
+                <Paper
+                  elevation={0}
+                  sx={{
+                    p: 2,
+                    height: "100%",
+                    backgroundColor: "background.paper",
+                    borderRadius: 2,
+                    transition: "transform 0.2s",
+                    "&:hover": {
+                      transform: "translateY(-4px)",
+                    },
+                  }}
+                >
+                  <Typography variant="h6" sx={{ mb: 1, fontWeight: 600 }}>
+                    {feature.title}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    {feature.description}
+                  </Typography>
+                </Paper>
+              </Grid>
+            ))}
+          </Grid>
         </Grid>
-        <Grid item xs={12} sm={6} md={4}>
-          <Image
-            src="/images/home2.png"
-            alt="Obrázok z galérie 2"
-            width={300}
-            height={200}
-            style={{ borderRadius: "8px" }}
-          />
-        </Grid>
-        <Grid item xs={12} sm={6} md={4}>
-          <Image
-            src="/images/home3.png"
-            alt="Obrázok z galérie 3"
-            width={300}
-            height={200}
-            style={{ borderRadius: "8px" }}
-          />
+
+        {/* Right side - Preview Image */}
+        <Grid item xs={12} md={6}>
+          <Box
+            sx={{
+              position: "relative",
+              height: { xs: "400px", md: "600px" },
+              borderRadius: 4,
+              overflow: "hidden",
+              boxShadow: (theme) => `0 24px 48px ${theme.palette.primary.main}20`,
+            }}
+          >
+            <Image
+              src="/images/home/zoskagram-home1.png" 
+              alt="ZoškaGram App Preview"
+              fill
+              style={{ objectFit: "cover" }}
+              priority
+            />
+          </Box>
         </Grid>
       </Grid>
-
-      <Typography variant="body1" align="center" gutterBottom sx={{ mt: 4 }}>
-        Nezmeškajte žiadne novinky a udalosti. 
-        Pridajte sa k nám ešte dnes a buďte informovaní o všetkom, čo sa deje v našej škole. 
-        Zaregistrujte sa teraz a začnite zdieľať svoje momenty s ostatnými.
-      </Typography>
-
-      <Box textAlign="center" sx={{ mt: 4 }}>
-        <Button
-          variant="contained"
-          color="primary"
-          href="/auth/registracia"
-          sx={{ mt: 2 }}
-        >
-          Zaregistrujte sa teraz
-        </Button>
-      </Box>
     </Container>
   );
-}
+};
+
+export default HomeNonAuthView;
 

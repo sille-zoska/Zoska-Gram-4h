@@ -1,7 +1,10 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 "use client";
 
 // React imports
 import { useState, useEffect } from "react";
+import { useSession } from 'next-auth/react';
 
 // Next.js imports
 import { useRouter } from "next/navigation";
@@ -29,11 +32,41 @@ import PhotoCameraIcon from "@mui/icons-material/PhotoCamera";
 import SaveIcon from "@mui/icons-material/Save";
 import EditIcon from "@mui/icons-material/Edit";
 import GridViewIcon from "@mui/icons-material/GridView";
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
 // Server action import
-import { getCurrentUserProfile, updateProfile, createProfile, type ProfileWithUser } from "@/app/actions/profiles";
+import { getCurrentUserProfile, updateProfile, createProfile } from "@/app/actions/profiles";
 
 // Types
+interface ExtendedUser {
+  id?: string;
+  name?: string | null;
+  email?: string | null;
+  image?: string | null;
+}
+
+interface Post {
+  id: string;
+  imageUrl: string;
+  caption?: string | null;
+}
+
+interface Profile {
+  id: string;
+  userId: string;
+  bio: string | null;
+  location: string | null;
+  avatarUrl: string | null;
+  interests: string[];
+  user: {
+    name: string | null;
+    email: string;
+    posts?: Post[];
+    followers?: any[];
+    following?: any[];
+  };
+}
+
 type FormData = {
   name: string;
   bio: string;
@@ -58,67 +91,123 @@ type LoadingState = {
  * - Display follower/following counts
  */
 const EditProfileView = () => {
-  // Hooks
+  const { data: session } = useSession();
   const router = useRouter();
-
-  // State
-  const [profile, setProfile] = useState<ProfileWithUser | null>(null);
   const [loading, setLoading] = useState<LoadingState>({
     initial: true,
     save: false
   });
   const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [success, setSuccess] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [isNewProfile, setIsNewProfile] = useState(false);
   const [formData, setFormData] = useState<FormData>({
     name: "",
     bio: "",
     location: "",
     avatarUrl: "",
   });
+  const [profile, setProfile] = useState<Profile | null>(null);
+
+  // For displaying interests as a string in the form
+  const [interestsString, setInterestsString] = useState('');
 
   // Effects
   useEffect(() => {
-    loadProfile();
-  }, []);
-
-  // Data fetching
-  const loadProfile = async () => {
-    try {
-      const userProfile = await getCurrentUserProfile();
-      if (userProfile) {
-        setProfile(userProfile);
-        setFormData({
-          name: userProfile.user.name || "",
-          bio: userProfile.bio || "",
-          location: userProfile.location || "",
-          avatarUrl: userProfile.avatarUrl || "",
-        });
+    const loadProfile = async () => {
+      if (session?.user?.email) {
+        try {
+          // Pass the email to fetch profile as a workaround if id is missing
+          const userProfile = await getCurrentUserProfile();
+          
+          if (userProfile) {
+            // Existing profile - load its data
+            setProfile(userProfile);
+            setFormData({
+              name: userProfile.user.name || "",
+              bio: userProfile.bio || "",
+              location: userProfile.location || "",
+              avatarUrl: userProfile.avatarUrl || "",
+            });
+            setInterestsString(userProfile.interests ? userProfile.interests.join(', ') : '');
+            setIsNewProfile(false);
+          } else {
+            // New profile - start with empty form but prefill avatar with user's image
+            setFormData({
+              name: session.user.name || "",
+              bio: "",
+              location: "",
+              avatarUrl: session.user.image || "",
+            });
+            setInterestsString('');
+            setIsNewProfile(true);
+          }
+        } catch (error) {
+          console.error('Error loading profile:', error);
+        } finally {
+          setLoading(prev => ({ ...prev, initial: false }));
+        }
       }
-    } catch (error) {
-      console.error("Failed to fetch profile:", error);
-      setError("Nepodarilo sa načítať profil");
-    } finally {
-      setLoading(prev => ({ ...prev, initial: false }));
+    };
+
+    loadProfile();
+  }, [session]);
+
+  // Validation function
+  const validateForm = (): boolean => {
+    const errors: Record<string, string> = {};
+    
+    if (!formData.name.trim()) {
+      errors.name = "Meno je povinné";
+    } else if (formData.name.length > 50) {
+      errors.name = "Meno môže mať maximálne 50 znakov";
     }
+    
+    if (formData.bio.length > 500) {
+      errors.bio = "Bio môže mať maximálne 500 znakov";
+    }
+    
+    if (formData.location.length > 100) {
+      errors.location = "Lokalita môže mať maximálne 100 znakov";
+    }
+    
+    setFieldErrors(errors);
+    return Object.keys(errors).length === 0;
   };
 
   // Event handlers
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate form before submission
+    if (!validateForm()) {
+      return;
+    }
+    
     setLoading(prev => ({ ...prev, save: true }));
     setError(null);
     
     try {
-      const updatedProfile = profile 
-        ? await updateProfile(formData)
-        : await createProfile(formData);
-        
-      setProfile(updatedProfile);
+      if (isNewProfile) {
+        const newProfile = await createProfile(formData);
+        setProfile(newProfile);
+      } else {
+        const updatedProfile = await updateProfile(formData);
+        setProfile(updatedProfile);
+      }
+      
       setSuccess(true);
       setIsEditing(false);
+      
       // Refresh the page to update the navigation bar avatar
       router.refresh();
+      
+      // Add 1.5 second delay then redirect to feed page
+      setTimeout(() => {
+        router.push('/prispevok');
+      }, 1500);
+      
     } catch (error) {
       console.error("Failed to save profile:", error);
       setError("Nepodarilo sa uložiť zmeny");
@@ -136,16 +225,16 @@ const EditProfileView = () => {
   const renderProfileHeader = () => (
     <Box sx={{ display: 'flex', mb: 4 }}>
       <Avatar
-        src={profile?.avatarUrl || undefined}
+        src={formData.avatarUrl || undefined}
         sx={{ width: 100, height: 100, mr: 4 }}
       >
-        {profile?.user.name?.[0] || "U"}
+        {formData.name?.[0] || "U"}
       </Avatar>
 
       <Box sx={{ flexGrow: 1 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
           <Typography variant="h5" sx={{ mr: 2 }}>
-            {profile?.user.name || "Neznámy používateľ"}
+            {formData.name || "Neznámy používateľ"}
           </Typography>
           <Button
             variant="contained"
@@ -169,15 +258,15 @@ const EditProfileView = () => {
           </Typography>
         </Box>
 
-        {profile?.bio && (
+        {formData.bio && (
           <Typography variant="body1" sx={{ mb: 1 }}>
-            {profile.bio}
+            {formData.bio}
           </Typography>
         )}
 
-        {profile?.location && (
+        {formData.location && (
           <Typography variant="body2" color="text.secondary">
-            📍 {profile.location}
+            📍 {formData.location}
           </Typography>
         )}
       </Box>
@@ -193,7 +282,7 @@ const EditProfileView = () => {
         </Typography>
         
         <ImageList cols={3} gap={2}>
-          {(profile?.user.posts || []).map((post) => (
+          {(profile?.user.posts || []).map((post: Post) => (
             <ImageListItem 
               key={post.id}
               sx={{ 
@@ -233,15 +322,17 @@ const EditProfileView = () => {
     <Paper sx={{ p: 3 }}>
       <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
         <Typography variant="h5" sx={{ flexGrow: 1 }}>
-          Upraviť profil
+          {isNewProfile ? "Vytvoriť profil" : "Upraviť profil"}
         </Typography>
-        <Button
-          variant="outlined"
-          onClick={() => setIsEditing(false)}
-          sx={{ mr: 1 }}
-        >
-          Zrušiť
-        </Button>
+        {!isNewProfile && (
+          <Button
+            variant="outlined"
+            onClick={() => setIsEditing(false)}
+            sx={{ mr: 1 }}
+          >
+            Zrušiť
+          </Button>
+        )}
       </Box>
 
       <Box component="form" onSubmit={handleSubmit}>
@@ -274,6 +365,9 @@ const EditProfileView = () => {
               label="Meno"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              error={!!fieldErrors.name}
+              helperText={fieldErrors.name}
+              required
             />
           </Grid>
           <Grid item xs={12}>
@@ -284,6 +378,8 @@ const EditProfileView = () => {
               rows={4}
               value={formData.bio}
               onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
+              error={!!fieldErrors.bio}
+              helperText={fieldErrors.bio || `${formData.bio.length}/500`}
             />
           </Grid>
           <Grid item xs={12}>
@@ -292,6 +388,8 @@ const EditProfileView = () => {
               label="Lokalita"
               value={formData.location}
               onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+              error={!!fieldErrors.location}
+              helperText={fieldErrors.location}
             />
           </Grid>
           <Grid item xs={12}>
@@ -302,10 +400,16 @@ const EditProfileView = () => {
               disabled={loading.save}
               startIcon={loading.save ? <CircularProgress size={20} /> : <SaveIcon />}
             >
-              {loading.save ? "Ukladá sa..." : "Uložiť zmeny"}
+              {loading.save ? "Ukladá sa..." : isNewProfile ? "Vytvoriť profil" : "Uložiť zmeny"}
             </Button>
           </Grid>
         </Grid>
+        
+        {error && (
+          <Alert severity="error" sx={{ mt: 2 }}>
+            {error}
+          </Alert>
+        )}
       </Box>
     </Paper>
   );
@@ -316,6 +420,25 @@ const EditProfileView = () => {
       <Box display="flex" justifyContent="center" alignItems="center" minHeight="50vh">
         <CircularProgress />
       </Box>
+    );
+  }
+
+  // NEW SECTION: Handle new users without a profile
+  if (isNewProfile) {
+    return (
+      <Container sx={{ mt: 4, mb: 10 }}>
+        {renderEditForm()}
+        
+        <Snackbar
+          open={success}
+          autoHideDuration={6000}
+          onClose={() => setSuccess(false)}
+        >
+          <Alert severity="success">
+            Profil bol úspešne vytvorený
+          </Alert>
+        </Snackbar>
+      </Container>
     );
   }
 

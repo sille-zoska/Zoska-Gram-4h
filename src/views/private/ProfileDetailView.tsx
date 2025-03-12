@@ -17,6 +17,13 @@ import {
   ImageList,
   ImageListItem,
   CircularProgress,
+  Tabs,
+  Tab,
+  Skeleton,
+  Paper,
+  IconButton,
+  useMediaQuery,
+  useTheme
 } from "@mui/material";
 
 // MUI Icon imports
@@ -24,6 +31,10 @@ import {
   PersonAdd as PersonAddIcon,
   PersonRemove as PersonRemoveIcon,
   GridView as GridViewIcon,
+  Bookmark as BookmarkIcon,
+  Settings as SettingsIcon,
+  Edit as EditIcon,
+  LocationOn as LocationIcon
 } from "@mui/icons-material";
 
 // Server actions
@@ -85,17 +96,17 @@ type LoadingState = {
  * - Display follower/following counts
  */
 const ProfileDetailView = ({ profileId }: ProfileDetailViewProps) => {
-  // Hooks
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const { data: session } = useSession();
-  
-  // State
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [activeTab, setActiveTab] = useState(0);
   const [loading, setLoading] = useState<LoadingState>({
     initial: true,
     follow: false
   });
   const [error, setError] = useState<string | null>(null);
-  const [isFollowing, setIsFollowing] = useState(false);
 
   // Data fetching
   const loadProfile = useCallback(async () => {
@@ -106,7 +117,7 @@ const ProfileDetailView = ({ profileId }: ProfileDetailViewProps) => {
       // Check if current user is following this profile
       if (session?.user?.email) {
         const isCurrentUserFollowing = data.user.followers.some(
-          follow => follow.followerId === data.userId
+          follow => follow.follower.email === session.user?.email
         );
         setIsFollowing(isCurrentUserFollowing);
       }
@@ -132,147 +143,316 @@ const ProfileDetailView = ({ profileId }: ProfileDetailViewProps) => {
         ? await unfollowUser(profile.user.id)
         : await followUser(profile.user.id);
       
-      setProfile(updatedProfile);
-      setIsFollowing(!isFollowing);
+      // Refresh the profile data
+      const refreshedProfile = await fetchProfileById(profileId);
+      setProfile(refreshedProfile);
+      
+      // Update following state based on refreshed data
+      const newFollowingState = refreshedProfile.user.followers.some(
+        follow => follow.follower.email === session.user?.email
+      );
+      setIsFollowing(newFollowingState);
     } catch (error) {
-      // Don't show error for "already following" case
-      if (error instanceof Error && error.message !== "Already following this user") {
-        console.error("Failed to toggle follow:", error);
-        // Optionally show error message to user
-      }
+      console.error("Failed to toggle follow:", error);
     } finally {
       setLoading(prev => ({ ...prev, follow: false }));
     }
   };
 
-  // Helper functions
-  const isOwnProfile = (): boolean => {
-    if (!profile || !session?.user?.email) return false;
-    return session.user.email === profile.user.email;
+  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+    setActiveTab(newValue);
   };
 
-  // Render functions
-  const renderProfileHeader = () => (
-    <Box sx={{ display: 'flex', mb: 4 }}>
-      <Avatar
-        src={profile?.avatarUrl || undefined}
-        sx={{ width: 100, height: 100, mr: 4 }}
-      >
-        {profile?.user.name?.[0] || "U"}
-      </Avatar>
-
-      <Box sx={{ flexGrow: 1 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-          <Typography variant="h5" sx={{ mr: 2 }}>
-            {profile?.user.name || "Neznámy používateľ"}
-          </Typography>
-          {!isOwnProfile() && (
-            <Button
-              variant="contained"
-              size="small"
-              startIcon={isFollowing ? <PersonRemoveIcon /> : <PersonAddIcon />}
-              onClick={handleFollowToggle}
-              disabled={loading.follow}
-            >
-              {isFollowing ? "Nesledovať" : "Sledovať"}
-            </Button>
-          )}
-        </Box>
-
-        <Box sx={{ display: 'flex', gap: 4, mb: 2 }}>
-          <Typography>
-            <strong>{profile?.user.posts.length || 0}</strong> príspevkov
-          </Typography>
-          <Typography>
-            <strong>{profile?.user.followers.length || 0}</strong> sledovateľov
-          </Typography>
-          <Typography>
-            <strong>{profile?.user.following.length || 0}</strong> sledovaných
-          </Typography>
-        </Box>
-
-        {profile?.bio && (
-          <Typography variant="body1" sx={{ mb: 1 }}>
-            {profile.bio}
-          </Typography>
-        )}
-
-        {profile?.location && (
-          <Typography variant="body2" color="text.secondary">
-            📍 {profile.location}
-          </Typography>
-        )}
-      </Box>
-    </Box>
-  );
-
-  const renderPostsGrid = () => (
-    <>
-      <Divider sx={{ mb: 2 }} />
-      <Box sx={{ mb: 2 }}>
-        <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-          <GridViewIcon /> Príspevky
-        </Typography>
-        
-        <ImageList cols={3} gap={2}>
-          {(profile?.user.posts || []).map((post) => (
-            <ImageListItem 
-              key={post.id}
-              sx={{ 
-                aspectRatio: '1/1',
-                cursor: 'pointer',
-                '&:hover': { opacity: 0.8 },
-                position: 'relative',
-              }}
-            >
-              <Image
-                src={post.imageUrl}
-                alt={post.caption || ""}
-                fill
-                sizes="(max-width: 768px) 33vw, 25vw"
-                style={{ 
-                  objectFit: 'cover',
-                }}
-              />
-            </ImageListItem>
-          ))}
-        </ImageList>
-      </Box>
-
-      {(!profile?.user.posts || profile.user.posts.length === 0) && (
-        <Typography 
-          align="center" 
-          color="text.secondary"
-          sx={{ mt: 4 }}
-        >
-          Zatiaľ žiadne príspevky
-        </Typography>
-      )}
-    </>
-  );
-
-  // Loading and error states
   if (loading.initial) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="50vh">
-        <CircularProgress />
-      </Box>
+      <Container maxWidth="md" sx={{ py: 4 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', mb: 4 }}>
+          <Skeleton variant="circular" width={150} height={150} sx={{ mr: 4 }} />
+          <Box sx={{ flexGrow: 1 }}>
+            <Skeleton variant="text" width="60%" height={40} />
+            <Skeleton variant="text" width="40%" height={30} />
+            <Box sx={{ display: 'flex', gap: 2, mt: 2 }}>
+              <Skeleton variant="rectangular" width={120} height={40} />
+              <Skeleton variant="rectangular" width={120} height={40} />
+            </Box>
+          </Box>
+        </Box>
+        <Skeleton variant="rectangular" height={50} sx={{ mb: 2 }} />
+        <Grid container spacing={2}>
+          {[1, 2, 3, 4, 5, 6].map((item) => (
+            <Grid item xs={4} key={item}>
+              <Skeleton variant="rectangular" height={0} sx={{ pt: '100%' }} />
+            </Grid>
+          ))}
+        </Grid>
+      </Container>
     );
   }
 
   if (error || !profile) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="50vh">
-        <Typography color="error">{error || "Profil sa nenašiel"}</Typography>
-      </Box>
+      <Container maxWidth="md" sx={{ py: 4, textAlign: 'center' }}>
+        <Typography variant="h5" color="error" gutterBottom>
+          {error || "Profil sa nepodarilo načítať"}
+        </Typography>
+        <Button variant="contained" onClick={() => window.location.reload()}>
+          Skúsiť znova
+        </Button>
+      </Container>
     );
   }
 
-  // Main render
+  const { user } = profile;
+  const isOwnProfile = user.email === session?.user?.email;
+  const postsCount = user.posts.length;
+  const followersCount = user.followers.length;
+  const followingCount = user.following.length;
+
   return (
-    <Container sx={{ mt: 4, mb: 10 }}>
-      {renderProfileHeader()}
-      {renderPostsGrid()}
+    <Container maxWidth="md" sx={{ py: 4 }}>
+      {/* Profile Header */}
+      <Paper 
+        elevation={0} 
+        sx={{ 
+          p: { xs: 2, md: 4 }, 
+          mb: 4, 
+          borderRadius: 3,
+          background: 'linear-gradient(to bottom, rgba(255,56,92,0.05), rgba(29,161,242,0.05))'
+        }}
+      >
+        <Box 
+          sx={{
+            display: 'flex',
+            flexDirection: { xs: 'column', md: 'row' },
+            alignItems: { xs: 'center', md: 'flex-start' },
+            gap: { xs: 3, md: 4 }
+          }}
+        >
+          {/* Profile Avatar */}
+          <Avatar
+            src={profile.avatarUrl || undefined}
+            alt={user.name || "User"}
+            sx={{
+              width: { xs: 120, md: 150 },
+              height: { xs: 120, md: 150 },
+              border: '4px solid white',
+              boxShadow: '0 4px 20px rgba(0,0,0,0.1)'
+            }}
+          />
+          
+          {/* Profile Info */}
+          <Box sx={{ flex: 1, textAlign: { xs: 'center', md: 'left' } }}>
+            <Box 
+              sx={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: { xs: 'center', md: 'flex-start' },
+                mb: 2
+              }}
+            >
+              <Typography 
+                variant="h4" 
+                fontWeight={600}
+                sx={{ mr: 2 }}
+              >
+                {user.name}
+              </Typography>
+              
+              {isOwnProfile ? (
+                <Button
+                  variant="outlined"
+                  startIcon={<EditIcon />}
+                  href="/profil/upravit"
+                  sx={{ 
+                    borderRadius: 6,
+                    fontSize: { xs: '0.8rem', md: '0.9rem' }
+                  }}
+                >
+                  Upraviť profil
+                </Button>
+              ) : (
+                <Button
+                  variant={isFollowing ? "outlined" : "contained"}
+                  onClick={handleFollowToggle}
+                  disabled={loading.follow}
+                  sx={{ 
+                    borderRadius: 6,
+                    minWidth: 110,
+                    fontSize: { xs: '0.8rem', md: '0.9rem' }
+                  }}
+                >
+                  {isFollowing ? "Nesledovať" : "Sledovať"}
+                </Button>
+              )}
+              
+              {isOwnProfile && (
+                <IconButton sx={{ ml: 1 }}>
+                  <SettingsIcon />
+                </IconButton>
+              )}
+            </Box>
+            
+            {/* Profile Stats */}
+            <Box 
+              sx={{ 
+                display: 'flex', 
+                gap: { xs: 3, md: 4 },
+                justifyContent: { xs: 'center', md: 'flex-start' },
+                mb: 2
+              }}
+            >
+              <Box sx={{ textAlign: 'center' }}>
+                <Typography variant="h6" fontWeight={600}>
+                  {postsCount}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  príspevkov
+                </Typography>
+              </Box>
+              <Box sx={{ textAlign: 'center' }}>
+                <Typography variant="h6" fontWeight={600}>
+                  {followersCount}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  sledovateľov
+                </Typography>
+              </Box>
+              <Box sx={{ textAlign: 'center' }}>
+                <Typography variant="h6" fontWeight={600}>
+                  {followingCount}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  sleduje
+                </Typography>
+              </Box>
+            </Box>
+            
+            {/* Bio and Location */}
+            {profile.bio && (
+              <Typography 
+                variant="body1" 
+                sx={{ 
+                  whiteSpace: 'pre-line',
+                  textAlign: { xs: 'center', md: 'left' },
+                  mt: 1
+                }}
+              >
+                {profile.bio}
+              </Typography>
+            )}
+            
+            {profile.location && (
+              <Box 
+                sx={{ 
+                  display: 'flex', 
+                  alignItems: 'center',
+                  justifyContent: { xs: 'center', md: 'flex-start' },
+                  mt: 1
+                }}
+              >
+                <LocationIcon fontSize="small" color="action" sx={{ mr: 0.5 }} />
+                <Typography variant="body2" color="text.secondary">
+                  {profile.location}
+                </Typography>
+              </Box>
+            )}
+          </Box>
+        </Box>
+      </Paper>
+      
+      {/* Tabs for content filtering */}
+      <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
+        <Tabs
+          value={activeTab}
+          onChange={handleTabChange}
+          variant="fullWidth"
+          centered
+        >
+          <Tab 
+            icon={<GridViewIcon />} 
+            label={isMobile ? null : "PRÍSPEVKY"} 
+            iconPosition="start"
+          />
+          <Tab 
+            icon={<BookmarkIcon />} 
+            label={isMobile ? null : "ULOŽENÉ"} 
+            iconPosition="start"
+          />
+        </Tabs>
+      </Box>
+      
+      {/* Profile Content */}
+      {activeTab === 0 && (
+        postsCount > 0 ? (
+          <Grid container spacing={2}>
+            {user.posts.map((post) => (
+              <Grid item xs={4} key={post.id}>
+                <Box
+                  sx={{
+                    position: 'relative',
+                    pt: '100%', // 1:1 Aspect Ratio
+                    borderRadius: 2,
+                    overflow: 'hidden',
+                    cursor: 'pointer',
+                    '&:hover .overlay': {
+                      opacity: 1,
+                    },
+                  }}
+                >
+                  <Image
+                    src={post.imageUrl}
+                    alt={post.caption || 'Post image'}
+                    fill
+                    sizes="(max-width: 768px) 33vw, 25vw"
+                    style={{ objectFit: 'cover' }}
+                  />
+                  <Box
+                    className="overlay"
+                    sx={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      bgcolor: 'rgba(0, 0, 0, 0.3)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      opacity: 0,
+                      transition: 'opacity 0.2s',
+                    }}
+                  >
+                    {/* Likes and Comments count */}
+                  </Box>
+                </Box>
+              </Grid>
+            ))}
+          </Grid>
+        ) : (
+          <Box sx={{ textAlign: 'center', py: 8 }}>
+            <Typography variant="h6" sx={{ mb: 2 }}>
+              Zatiaľ tu nie sú žiadne príspevky
+            </Typography>
+            {isOwnProfile && (
+              <Button 
+                variant="contained" 
+                href="/prispevok/vytvorit"
+                sx={{ borderRadius: 50, px: 3 }}
+              >
+                Pridať prvý príspevok
+              </Button>
+            )}
+          </Box>
+        )
+      )}
+      
+      {activeTab === 1 && (
+        <Box sx={{ textAlign: 'center', py: 8 }}>
+          <Typography variant="h6" sx={{ mb: 2 }}>
+            Zatiaľ tu nie sú žiadne uložené príspevky
+          </Typography>
+        </Box>
+      )}
     </Container>
   );
 };

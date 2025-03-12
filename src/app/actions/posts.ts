@@ -43,6 +43,29 @@ type PrismaPostWithDetails = Prisma.PostGetPayload<{
   };
 }>;
 
+// Add this type to your Post type to include bookmarks
+export type PostWithDetails = Prisma.PostGetPayload<{
+  include: {
+    user: true;
+    likes: {
+      include: {
+        user: true;
+      }
+    };
+    comments: {
+      include: {
+        user: true;
+        likes: true;
+      }
+    };
+    bookmarks: {
+      include: {
+        user: true;
+      }
+    };
+  }
+}>;
+
 // Fetch all posts with user information, comments and likes
 export const fetchPosts = async (): Promise<PrismaPostWithDetails[]> => {
   try {
@@ -74,6 +97,11 @@ export const fetchPosts = async (): Promise<PrismaPostWithDetails[]> => {
           },
         },
         likes: {
+          include: {
+            user: true,
+          },
+        },
+        bookmarks: {
           include: {
             user: true,
           },
@@ -218,6 +246,11 @@ export const createComment = async (postId: string, content: string): Promise<Pr
             user: true,
           },
         },
+        bookmarks: {
+          include: {
+            user: true,
+          },
+        },
       },
     });
 
@@ -302,6 +335,11 @@ export const deleteComment = async (commentId: string): Promise<PrismaPostWithDe
           },
         },
         likes: {
+          include: {
+            user: true,
+          },
+        },
+        bookmarks: {
           include: {
             user: true,
           },
@@ -392,6 +430,11 @@ export const toggleLike = async (postId: string): Promise<PrismaPostWithDetails>
             user: true,
           },
         },
+        bookmarks: {
+          include: {
+            user: true,
+          },
+        },
       },
     });
 
@@ -405,5 +448,138 @@ export const toggleLike = async (postId: string): Promise<PrismaPostWithDetails>
     throw new Error("Could not toggle like");
   }
 };
+
+// Add this function if it doesn't exist or update it if it does
+export async function toggleBookmark(postId: string) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.email) {
+      return { error: "Neprihlásený používateľ" };
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { email: session.user.email },
+    });
+
+    if (!user) {
+      return { error: "Používateľ sa nenašiel" };
+    }
+
+    // Check if bookmark already exists
+    const existingBookmark = await prisma.bookmark.findUnique({
+      where: {
+        userId_postId: {
+          userId: user.id,
+          postId: postId,
+        },
+      },
+    });
+
+    if (existingBookmark) {
+      // Remove bookmark
+      await prisma.bookmark.delete({
+        where: {
+          userId_postId: {
+            userId: user.id,
+            postId: postId,
+          },
+        },
+      });
+    } else {
+      // Add bookmark
+      await prisma.bookmark.create({
+        data: {
+          userId: user.id,
+          postId: postId,
+        },
+      });
+    }
+
+    // Return updated post with bookmarks
+    const updatedPost = await prisma.post.findUnique({
+      where: { id: postId },
+      include: {
+        user: true,
+        comments: {
+          include: {
+            user: true,
+            likes: true,
+          },
+          orderBy: {
+            createdAt: 'desc',
+          },
+        },
+        likes: {
+          include: {
+            user: true,
+          },
+        },
+        bookmarks: {
+          include: {
+            user: true,
+          },
+        },
+      },
+    });
+
+    return updatedPost;
+  } catch (error) {
+    console.error("Error toggling bookmark:", error);
+    return { error: "Nepodarilo sa pridať/odobrať záložku" };
+  }
+}
+
+// Add this server action to fetch bookmarked posts
+export async function fetchBookmarkedPosts() {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.email) {
+    throw new Error("Not authenticated");
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { email: session.user.email },
+  });
+
+  if (!user) {
+    throw new Error("User not found");
+  }
+
+  const bookmarks = await prisma.bookmark.findMany({
+    where: {
+      userId: user.id,
+    },
+    include: {
+      post: {
+        include: {
+          user: true,
+          likes: {
+            include: {
+              user: true,
+            },
+          },
+          comments: {
+            include: {
+              user: true,
+              likes: true,
+            },
+            orderBy: {
+              createdAt: "desc",
+            },
+          },
+          bookmarks: {
+            include: {
+              user: true,
+            },
+          },
+        },
+      },
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+
+  return bookmarks.map(bookmark => bookmark.post);
+}
 
 

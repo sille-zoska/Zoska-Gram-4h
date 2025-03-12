@@ -7,6 +7,7 @@ import { prisma } from "@/app/api/auth/[...nextauth]/prisma";
 import { Prisma } from "@prisma/client";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
+import { revalidatePath } from 'next/cache';
 
 // TypeScript interfaces
 export interface FetchProfilesCursorParams {
@@ -24,8 +25,28 @@ type ProfileWithFollowCounts = Prisma.ProfileGetPayload<{
     user: {
       include: {
         posts: true;
-        followers: true;
-        following: true;
+        followers: {
+          include: {
+            follower: {
+              select: {
+                id: true;
+                email: true;
+                name: true;
+              }
+            }
+          }
+        };
+        following: {
+          include: {
+            following: {
+              select: {
+                id: true;
+                email: true;
+                name: true;
+              }
+            }
+          }
+        };
       };
     };
   };
@@ -71,8 +92,28 @@ export const fetchProfilesCursor = async ({
                 createdAt: 'desc'
               }
             },
-            followers: true,
-            following: true
+            followers: {
+              include: {
+                follower: {
+                  select: {
+                    id: true,
+                    email: true,
+                    name: true,
+                  }
+                }
+              }
+            },
+            following: {
+              include: {
+                following: {
+                  select: {
+                    id: true,
+                    email: true,
+                    name: true,
+                  }
+                }
+              }
+            }
           }
         }
       },
@@ -100,8 +141,28 @@ export const fetchProfileById = async (
         user: {
           include: {
             posts: true,
-            followers: true,
-            following: true,
+            followers: {
+              include: {
+                follower: {
+                  select: {
+                    id: true,
+                    email: true,
+                    name: true,
+                  }
+                }
+              }
+            },
+            following: {
+              include: {
+                following: {
+                  select: {
+                    id: true,
+                    email: true,
+                    name: true,
+                  }
+                }
+              }
+            }
           },
         },
       },
@@ -140,8 +201,28 @@ export const getCurrentUserProfile = async (): Promise<ProfileWithUser | null> =
         user: {
           include: {
             posts: true,
-            followers: true,
-            following: true,
+            followers: {
+              include: {
+                follower: {
+                  select: {
+                    id: true,
+                    email: true,
+                    name: true,
+                  }
+                }
+              }
+            },
+            following: {
+              include: {
+                following: {
+                  select: {
+                    id: true,
+                    email: true,
+                    name: true,
+                  }
+                }
+              }
+            }
           },
         },
       },
@@ -195,13 +276,34 @@ export const updateProfile = async (data: UpdateProfileData): Promise<ProfileWit
             posts: {
               orderBy: { createdAt: "desc" },
             },
-            followers: true,
-            following: true,
+            followers: {
+              include: {
+                follower: {
+                  select: {
+                    id: true,
+                    email: true,
+                    name: true,
+                  }
+                }
+              }
+            },
+            following: {
+              include: {
+                following: {
+                  select: {
+                    id: true,
+                    email: true,
+                    name: true,
+                  }
+                }
+              }
+            }
           },
         },
       },
     });
 
+    revalidatePath('/profil');
     return updatedProfile;
   } catch (error) {
     console.error("Error updating profile:", error);
@@ -241,13 +343,34 @@ export const createProfile = async (data: UpdateProfileData): Promise<ProfileWit
             posts: {
               orderBy: { createdAt: "desc" },
             },
-            followers: true,
-            following: true,
+            followers: {
+              include: {
+                follower: {
+                  select: {
+                    id: true,
+                    email: true,
+                    name: true,
+                  }
+                }
+              }
+            },
+            following: {
+              include: {
+                following: {
+                  select: {
+                    id: true,
+                    email: true,
+                    name: true,
+                  }
+                }
+              }
+            }
           },
         },
       },
     });
 
+    revalidatePath('/profil');
     return newProfile;
   } catch (error) {
     console.error("Error creating profile:", error);
@@ -255,7 +378,7 @@ export const createProfile = async (data: UpdateProfileData): Promise<ProfileWit
   }
 };
 
-// Add these new actions
+// Follow user action
 export const followUser = async (targetUserId: string): Promise<ProfileWithUser> => {
   try {
     const session = await getServerSession(authOptions);
@@ -289,8 +412,28 @@ export const followUser = async (targetUserId: string): Promise<ProfileWithUser>
           user: {
             include: {
               posts: true,
-              followers: true,
-              following: true,
+              followers: {
+                include: {
+                  follower: {
+                    select: {
+                      id: true,
+                      email: true,
+                      name: true,
+                    }
+                  }
+                }
+              },
+              following: {
+                include: {
+                  following: {
+                    select: {
+                      id: true,
+                      email: true,
+                      name: true,
+                    }
+                  }
+                }
+              }
             },
           },
         },
@@ -311,15 +454,35 @@ export const followUser = async (targetUserId: string): Promise<ProfileWithUser>
       },
     });
 
-    // Return updated profile
+    // Return updated profile with full follower information
     const updatedProfile = await prisma.profile.findUnique({
       where: { userId: targetUserId },
       include: {
         user: {
           include: {
             posts: true,
-            followers: true,
-            following: true,
+            followers: {
+              include: {
+                follower: {
+                  select: {
+                    id: true,
+                    email: true,
+                    name: true,
+                  }
+                }
+              }
+            },
+            following: {
+              include: {
+                following: {
+                  select: {
+                    id: true,
+                    email: true,
+                    name: true,
+                  }
+                }
+              }
+            }
           },
         },
       },
@@ -336,6 +499,7 @@ export const followUser = async (targetUserId: string): Promise<ProfileWithUser>
   }
 };
 
+// Unfollow user action
 export const unfollowUser = async (targetUserId: string): Promise<ProfileWithUser> => {
   try {
     const session = await getServerSession(authOptions);
@@ -361,15 +525,35 @@ export const unfollowUser = async (targetUserId: string): Promise<ProfileWithUse
       },
     });
 
-    // Return updated profile
+    // Return updated profile with full follower information
     const updatedProfile = await prisma.profile.findUnique({
       where: { userId: targetUserId },
       include: {
         user: {
           include: {
             posts: true,
-            followers: true,
-            following: true,
+            followers: {
+              include: {
+                follower: {
+                  select: {
+                    id: true,
+                    email: true,
+                    name: true,
+                  }
+                }
+              }
+            },
+            following: {
+              include: {
+                following: {
+                  select: {
+                    id: true,
+                    email: true,
+                    name: true,
+                  }
+                }
+              }
+            }
           },
         },
       },
@@ -385,5 +569,80 @@ export const unfollowUser = async (targetUserId: string): Promise<ProfileWithUse
     throw error;
   }
 };
+
+interface ProfileData {
+  userId: string;
+  bio?: string;
+  location?: string;
+  avatarUrl?: string;
+  interests?: string[];
+}
+
+export async function fetchProfile(userId: string) {
+  try {
+    const profile = await prisma.profile.findUnique({
+      where: { userId },
+    });
+
+    return profile;
+  } catch (error) {
+    console.error('Error fetching profile:', error);
+    throw new Error('Failed to fetch profile');
+  }
+}
+
+// Add this function to fetch a user's bookmarked posts
+export async function fetchUserBookmarks() {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.email) {
+      throw new Error("Neprihlásený používateľ");
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { email: session.user.email },
+    });
+
+    if (!user) {
+      throw new Error("Používateľ sa nenašiel");
+    }
+
+    // Get all bookmarks with their posts
+    const bookmarks = await prisma.bookmark.findMany({
+      where: { userId: user.id },
+      include: {
+        post: {
+          include: {
+            user: true,
+            likes: {
+              include: {
+                user: true,
+              },
+            },
+            comments: {
+              include: {
+                user: true,
+              },
+            },
+            bookmarks: {
+              include: {
+                user: true,
+              },
+            },
+          },
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+
+    // Extract the posts from the bookmarks
+    return bookmarks.map(bookmark => bookmark.post);
+  } catch (error) {
+    console.error("Error fetching bookmarks:", error);
+    throw new Error("Nepodarilo sa načítať záložky");
+  }
+}
 
 

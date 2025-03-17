@@ -75,6 +75,7 @@ export const authOptions: NextAuthOptions = {
 
       // Handle new user redirect
       if (url.includes('?newUser=true')) {
+        console.log("redirecting to profile edit page");
         return `${baseUrl}/profil/upravit`;
       }
 

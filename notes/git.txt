@@ -1,0 +1,53 @@
+
+
+A.  Git/GitHub from Scratch (not yet in GitHub)
+
+1.    git init – Initialize a new Git repository.
+2.    git branch -m main – Rename the default branch to main.
+3.    git config user.name "your_github_name" – Set your GitHub username.
+4.    git config user.email "your_github_email" – Set your GitHub email.
+5.    Create a new repository on GitHub (without a README or .gitignore).
+6.    git remote add origin https://github.com/your_username/new_repo.git – Add the remote repository.
+7.    git remote -v – Verify the remote.
+8.    In VS Code Source Control:
+        Stage changes.
+        Write a commit message.
+        Publish Branch to sync with GitHub.
+
+
+
+B.  Clone/Download Your Own Repository
+
+1.    git clone https://github.com/your_username/your_repo.git – Clone your repository.
+2.    cd your_repo – Navigate into the repository folder.
+3.    git branch -m main – Rename the default branch to main.
+4.    git config user.name "your_github_name" – Set your GitHub username.
+5.    git config user.email "your_github_email" – Set your GitHub email.
+6.    git remote -v – Verify the remote.
+7.    npm install - Install all project dependecies
+8.    In VS Code Source Control:
+        Stage changes.
+        Write a commit message.
+        Publish Branch to sync with GitHub.
+
+
+
+C.  Clone/Download a Repository You Don’t Own
+
+1.    git clone https://github.com/owner_username/some_repo.git – Clone the repository.
+2.    cd some_repo – Navigate into the repository folder.
+3.    git remote remove origin – Remove the original remote.
+4.    Create a new repository on GitHub (without a README or .gitignore).
+5.    git remote add origin https://github.com/your_username/your_new_repo.git – Add your new remote repository.
+6.    git branch -m main – Rename the default branch to main.
+7.    git config user.name "your_github_name" – Set your GitHub username.
+8.    git config user.email "your_github_email" – Set your GitHub email.
+9.    git remote -v – Verify the remote.
+10.   npm install - Install all project dependecies 
+11.   In VS Code Source Control:
+        Stage changes.
+        Write a commit message.
+        Publish Branch to sync with GitHub.
+
+
+        

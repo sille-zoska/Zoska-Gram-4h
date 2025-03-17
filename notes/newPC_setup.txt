@@ -1,0 +1,24 @@
+Windows PowerShell terminal:
+wsl –-install
+user name: menopriezvisko
+password:
+sudo apt update
+sudo apt upgrade
+
+
+VsCode:
+Press blue >< button in very left down of VsCode and choose Connect to Wsl or WSL
+Check File -> Auto Save 
+Install extensions in WSL UBUNTU: GitHub Pull Requests, GitLens, Prettier - Code formatter
+Terminal -> New terminal
+menopriezvisko@DESKTOP-XYZ:~$
+sudo apt install unzip
+in browser go to https://nodejs.org/en/download/package-manager
+...
+node -v
+npm -v
+
+do B. in git.txt
+npm install
+npx prisma generate
+

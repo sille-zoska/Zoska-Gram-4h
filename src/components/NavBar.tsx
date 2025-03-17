@@ -91,7 +91,6 @@ const NavBar = () => {
   // Handle theme toggle
   const handleThemeToggle = () => {
     toggleTheme();
-    // No need to close menu, let user see the theme change immediately
   };
 
   // Paths for authenticated users
@@ -175,6 +174,24 @@ const NavBar = () => {
             />
           ))}
         </BottomNavigation>
+        
+        {/* Theme Toggle Button for non-authenticated users */}
+        {status !== "authenticated" && (
+          <IconButton 
+            onClick={handleThemeToggle} 
+            sx={{ 
+              ml: 1, 
+              mr: 1,
+              color: 'text.secondary',
+              '&:hover': {
+                color: 'primary.main',
+              }
+            }}
+            aria-label={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
+          >
+            {isDarkMode ? <LightModeIcon /> : <DarkModeIcon />}
+          </IconButton>
+        )}
       </Box>
 
       {/* Profile Menu */}

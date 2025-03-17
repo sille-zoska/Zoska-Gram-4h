@@ -43,11 +43,12 @@ const SignOutView = ({ open = true, onClose }: SignOutViewProps) => {
   const handleSignOut = async () => {
     setIsLoggingOut(true);
     try {
+      // Let NextAuth handle the redirect completely
       await signOut({ 
         redirect: true,
-        callbackUrl: "/"
+        callbackUrl: "/" // Simple home page redirect
       });
-      handleClose();
+      // No need for handleClose() here
     } catch (error) {
       console.error("Error signing out:", error);
       setIsLoggingOut(false);

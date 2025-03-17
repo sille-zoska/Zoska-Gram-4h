@@ -22,7 +22,7 @@ export const metadata: Metadata = {
 
 // PrivateLayout Component
 const PrivateLayout = ({ children }: PrivateLayoutProps) => (
-  <AuthGuard redirectPath="/auth/registracia">
+  <AuthGuard redirectPath="/auth/prihlasenie">
     <Box
       sx={{
         minHeight: "100vh",

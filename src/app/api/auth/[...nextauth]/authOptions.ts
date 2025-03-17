@@ -70,9 +70,15 @@ export const authOptions: NextAuthOptions = {
     },
     async redirect({ url, baseUrl }) {
       console.log("redirecting to", url);
-      // Handle sign-in and sign-out redirects properly
+
+      // Handle sign-out redirects properly
       if (url.includes('/api/auth/signout')) {
-        return baseUrl; // Redirect to home page after sign-out
+        return `${baseUrl}/`; // Redirect to home page after sign-out (without parameters)
+      }
+
+      // If the URL already points to the home page, don't redirect again
+      if (url === baseUrl || url === `${baseUrl}/`) {
+        return url;
       }
 
       // Handle new user redirect
@@ -81,9 +87,13 @@ export const authOptions: NextAuthOptions = {
       }
 
       // For regular sign-in, redirect to feed page
-      return url.startsWith(baseUrl)
-        ? url
-        : `${baseUrl}/prispevok`;
+      // Only redirect to /prispevok if it's a sign-in operation
+      if (url.includes('/api/auth/callback') || url.includes('/api/auth/signin')) {
+        return `${baseUrl}/prispevok`;
+      }
+
+      // For all other cases, don't redirect
+      return url;
     },
   },
 };

@@ -25,6 +25,10 @@ interface AuthGuardProps {
 const AuthGuard = ({ children, redirectPath }: AuthGuardProps) => {
   const { data: session, status } = useSession();
   const router = useRouter();
+  
+  // Check for the from=signout parameter in the URL
+  const isFromSignout = typeof window !== 'undefined' && 
+    window.location.search.includes('from=signout');
 
   // Show loading spinner while checking authentication
   if (status === "loading") {
@@ -40,6 +44,16 @@ const AuthGuard = ({ children, redirectPath }: AuthGuardProps) => {
         <CircularProgress color="secondary" />
       </Box>
     );
+  }
+
+  // If user just signed out, don't redirect them again
+  if (isFromSignout && !session) {
+    // Remove the parameter and stay on the current page
+    if (typeof window !== 'undefined') {
+      const newUrl = window.location.pathname;
+      window.history.replaceState({}, '', newUrl);
+    }
+    return null; // Let the public page handle the rendering
   }
 
   // Redirect to specified path if not authenticated

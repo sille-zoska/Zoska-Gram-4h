@@ -68,6 +68,7 @@ export const authOptions: NextAuthOptions = {
       return session;
     },
     async redirect({ url, baseUrl }) {
+      console.log("redirecting to", url);
       // Handle sign-in and sign-out redirects properly
       if (url.includes('/api/auth/signout')) {
         return baseUrl; // Redirect to home page after sign-out
@@ -75,7 +76,6 @@ export const authOptions: NextAuthOptions = {
 
       // Handle new user redirect
       if (url.includes('?newUser=true')) {
-        console.log("redirecting to profile edit page");
         return `${baseUrl}/profil/upravit`;
       }
 

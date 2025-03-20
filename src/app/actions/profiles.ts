@@ -3,7 +3,7 @@
 "use server";
 
 // Prisma imports
-import { prisma } from "@/app/api/auth/[...nextauth]/prisma";
+import { prisma } from "@/app/api/prisma/prisma";
 import { Prisma } from "@prisma/client";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";

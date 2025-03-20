@@ -3,7 +3,7 @@
 "use client";
 
 // React imports
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSession } from 'next-auth/react';
 
 // Next.js imports
@@ -113,6 +113,12 @@ const EditProfileView = () => {
   // For displaying interests as a string in the form
   const [interestsString, setInterestsString] = useState('');
 
+  // Add ref for file input
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // Add uploading state
+  const [isAvatarUploading, setIsAvatarUploading] = useState(false);
+
   // Effects
   useEffect(() => {
     const loadProfile = async () => {
@@ -216,9 +222,49 @@ const EditProfileView = () => {
     }
   };
 
+  // Updated handleAvatarUpload to use Vercel Blob
   const handleAvatarUpload = () => {
-    // TODO: Implement avatar upload
-    console.log("Upload avatar");
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+
+  const handleAvatarFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setIsAvatarUploading(true);
+    setError(null);
+
+    try {
+      // Upload the avatar to Vercel Blob
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("folder", "avatars");
+
+      const response = await fetch("/api/images", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to upload avatar");
+      }
+
+      const { url: avatarUrl } = await response.json();
+
+      // Update the form data with the new avatar URL
+      setFormData(prev => ({
+        ...prev,
+        avatarUrl
+      }));
+    } catch (error) {
+      console.error("Failed to upload avatar:", error);
+      setError(error instanceof Error ? error.message : "Failed to upload avatar");
+    } finally {
+      setIsAvatarUploading(false);
+    }
   };
 
   // Render functions
@@ -352,9 +398,21 @@ const EditProfileView = () => {
                 backgroundColor: "background.paper",
               }}
               onClick={handleAvatarUpload}
+              disabled={isAvatarUploading}
             >
-              <PhotoCameraIcon />
+              {isAvatarUploading ? (
+                <CircularProgress size={24} />
+              ) : (
+                <PhotoCameraIcon />
+              )}
             </IconButton>
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleAvatarFileChange}
+              style={{ display: "none" }}
+              accept="image/*"
+            />
           </Box>
         </Box>
 

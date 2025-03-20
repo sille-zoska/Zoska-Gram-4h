@@ -3,6 +3,7 @@
 // React and Next.js imports
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 
 // MUI Component imports
 import {
@@ -13,6 +14,8 @@ import {
   Button,
   Card,
   CardMedia,
+  Alert,
+  CircularProgress,
 } from "@mui/material";
 
 // MUI Icon imports
@@ -27,6 +30,9 @@ type FormState = {
   };
 };
 
+// Add this import
+import { createPost } from "@/app/actions/posts";
+
 /**
  * CreatePostView Component
  * 
@@ -38,8 +44,13 @@ type FormState = {
  * - Responsive layout
  */
 const CreatePostView = () => {
-  // Hooks
+  // Add session
+  const { data: session } = useSession();
   const router = useRouter();
+  
+  // Add loading and error states
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
   
   // State
   const [formState, setFormState] = useState<FormState>({
@@ -88,26 +99,48 @@ const CreatePostView = () => {
     }));
   };
 
+  // Updated handleSubmit function to use Vercel Blob
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     
-    if (!formState.image.file) return;
+    if (!formState.image.file || !session?.user) return;
+
+    setIsUploading(true);
+    setUploadError(null);
 
     try {
-      // TODO: Implement post creation logic:
-      // 1. Upload the image to storage
+      // 1. Upload the image to Vercel Blob
+      const formData = new FormData();
+      formData.append("file", formState.image.file);
+      formData.append("folder", "posts");
+
+      const response = await fetch("/api/images", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to upload image");
+      }
+
+      const { url: imageUrl } = await response.json();
+
       // 2. Create the post in the database
-      // 3. Redirect to the feed
+      await createPost(formState.caption, imageUrl);
       
-      // Clean up the preview URL
+      // 3. Clean up the preview URL
       if (formState.image.preview) {
         URL.revokeObjectURL(formState.image.preview);
       }
       
-      // Redirect to feed after successful creation
+      // 4. Redirect to feed after successful creation
       router.push("/prispevok");
     } catch (error) {
       console.error("Failed to create post:", error);
+      setUploadError(error instanceof Error ? error.message : "Failed to create post");
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -169,14 +202,27 @@ const CreatePostView = () => {
           sx={{ mb: 3 }}
         />
 
+        {uploadError && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {uploadError}
+          </Alert>
+        )}
+
         <Button
           fullWidth
           variant="contained"
           type="submit"
-          disabled={!formState.image.file}
+          disabled={!formState.image.file || isUploading}
           sx={{ mb: 2 }}
         >
-          Zdieľať príspevok
+          {isUploading ? (
+            <>
+              <CircularProgress size={24} sx={{ mr: 1 }} color="inherit" />
+              Nahrávam...
+            </>
+          ) : (
+            "Zdieľať príspevok"
+          )}
         </Button>
 
         {formState.image.preview && (
@@ -184,6 +230,7 @@ const CreatePostView = () => {
             fullWidth
             color="error"
             onClick={handleImageClear}
+            disabled={isUploading}
           >
             Zrušiť výber
           </Button>

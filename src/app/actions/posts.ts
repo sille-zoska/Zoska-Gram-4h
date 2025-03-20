@@ -3,7 +3,7 @@
 "use server";
 
 // Prisma imports
-import { prisma } from "@/app/api/auth/[...nextauth]/prisma";
+import { prisma } from "@/app/api/prisma/prisma";
 import { Prisma } from "@prisma/client";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
@@ -150,44 +150,40 @@ export const fetchPostsByUserId = async (userId: string): Promise<Post[]> => {
 };
 
 // Create a new post with image and optional caption
-export const createPost = async (
-  userId: string,
-  imageUrl: string,
-  caption?: string
-): Promise<Post> => {
+export async function createPost(caption: string, imageUrl: string) {
+  const session = await getServerSession(authOptions);
+
+  if (!session?.user?.id) {
+    throw new Error("Unauthorized");
+  }
+
   try {
-    const newPost = await prisma.post.create({
+    const post = await prisma.post.create({
       data: {
-        userId,
-        imageUrl,
         caption,
+        imageUrl,
+        userId: session.user.id,
       },
       include: {
-        user: true,
-        comments: {
-          include: {
-            user: true,
-            likes: {
-              include: {
-                user: true
-              }
-            }
-          }
+        user: {
+          select: {
+            id: true,
+            name: true,
+            image: true,
+          },
         },
-        likes: {
-          include: {
-            user: true
-          }
-        }
-      }
+        likes: true,
+        comments: true,
+        bookmarks: true, // Include bookmarks to match your Post type
+      },
     });
 
-    return newPost;
+    return post;
   } catch (error) {
     console.error("Error creating post:", error);
-    throw new Error("Could not create post");
+    throw new Error("Failed to create post");
   }
-};
+}
 
 // Create a new comment
 export const createComment = async (postId: string, content: string): Promise<PrismaPostWithDetails> => {

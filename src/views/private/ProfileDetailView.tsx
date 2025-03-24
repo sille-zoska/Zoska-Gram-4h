@@ -45,14 +45,24 @@ import {
   fetchUserBookmarks
 } from "@/app/actions/profiles";
 
+// Components
+import PostImageCarousel from "@/components/PostImageCarousel";
+
 // Types
 type ProfileDetailViewProps = {
   profileId: string;
 };
 
-type Post = {
+type PostImage = {
   id: string;
   imageUrl: string;
+  order: number;
+};
+
+type Post = {
+  id: string;
+  imageUrl?: string;
+  images?: PostImage[];
   caption?: string | null;
   createdAt: Date;
 };
@@ -418,13 +428,22 @@ const ProfileDetailView = ({ profileId }: ProfileDetailViewProps) => {
                     },
                   }}
                 >
-                  <Image
-                    src={post.imageUrl}
-                    alt={post.caption || 'Post image'}
-                    fill
-                    sizes="(max-width: 768px) 33vw, 25vw"
-                    style={{ objectFit: 'cover' }}
-                  />
+                  {post.images && post.images.length > 0 ? (
+                    <PostImageCarousel 
+                      images={post.images}
+                      aspectRatio="1/1" 
+                    />
+                  ) : post.imageUrl ? (
+                    <Image
+                      src={post.imageUrl}
+                      alt={post.caption || 'Post image'}
+                      fill
+                      sizes="(max-width: 768px) 33vw, 25vw"
+                      style={{ objectFit: 'cover' }}
+                    />
+                  ) : (
+                    <Box sx={{ bgcolor: 'grey.200', width: '100%', height: '100%', position: 'absolute' }} />
+                  )}
                   <Box
                     className="overlay"
                     sx={{
@@ -482,13 +501,22 @@ const ProfileDetailView = ({ profileId }: ProfileDetailViewProps) => {
                     },
                   }}
                 >
-                  <Image
-                    src={post.imageUrl}
-                    alt={post.caption || 'Post image'}
-                    fill
-                    sizes="(max-width: 768px) 33vw, 25vw"
-                    style={{ objectFit: 'cover' }}
-                  />
+                  {post.images && post.images.length > 0 ? (
+                    <PostImageCarousel 
+                      images={post.images}
+                      aspectRatio="1/1" 
+                    />
+                  ) : post.imageUrl ? (
+                    <Image
+                      src={post.imageUrl}
+                      alt={post.caption || 'Post image'}
+                      fill
+                      sizes="(max-width: 768px) 33vw, 25vw"
+                      style={{ objectFit: 'cover' }}
+                    />
+                  ) : (
+                    <Box sx={{ bgcolor: 'grey.200', width: '100%', height: '100%', position: 'absolute' }} />
+                  )}
                   <Box
                     className="overlay"
                     sx={{

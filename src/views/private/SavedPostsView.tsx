@@ -36,6 +36,22 @@ import {
 import { Post } from "@/types/post";
 import { fetchBookmarkedPosts } from "@/app/actions/posts";
 
+// Helper function to get the appropriate image URL from a post
+const getPostImageUrl = (post: Post): string => {
+  // If the post has the new images array and it's not empty, use the first image
+  if (post.images && post.images.length > 0) {
+    // Sort by order if multiple images
+    const sortedImages = [...post.images].sort((a, b) => a.order - b.order);
+    return sortedImages[0].imageUrl;
+  }
+  // Fall back to the old imageUrl field if it exists
+  if (post.imageUrl) {
+    return post.imageUrl;
+  }
+  // Return a placeholder image URL as fallback
+  return "/images/placeholder.jpg";
+};
+
 /**
  * SavedPostsView Component
  * 
@@ -168,7 +184,7 @@ const SavedPostsView = () => {
                 onClick={() => handlePostClick(post.id)}
               >
                 <Image
-                  src={post.imageUrl}
+                  src={getPostImageUrl(post)}
                   alt={post.caption || 'Saved post image'}
                   fill
                   sizes="(max-width: 600px) 33vw, 25vw"

@@ -2,40 +2,49 @@
 
 "use client";
 
-// React imports
+// React and Next.js imports
 import { useState, useEffect, useRef } from "react";
-import { useSession } from 'next-auth/react';
-
-// Next.js imports
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import Image from "next/image";
 
 // MUI imports
-import Container from "@mui/material/Container";
-import Typography from "@mui/material/Typography";
-import Box from "@mui/material/Box";
-import TextField from "@mui/material/TextField";
-import Button from "@mui/material/Button";
-import Avatar from "@mui/material/Avatar";
-import Paper from "@mui/material/Paper";
-import IconButton from "@mui/material/IconButton";
-import Alert from "@mui/material/Alert";
-import Snackbar from "@mui/material/Snackbar";
-import Divider from "@mui/material/Divider";
-import ImageList from "@mui/material/ImageList";
-import ImageListItem from "@mui/material/ImageListItem";
-import CircularProgress from "@mui/material/CircularProgress";
-import Grid from "@mui/material/Grid";
+import {
+  Container,
+  Box,
+  TextField,
+  Button,
+  Typography,
+  Stack,
+  Avatar,
+  Paper,
+  Divider,
+  ImageList,
+  ImageListItem,
+  Chip,
+  IconButton,
+  CircularProgress,
+  Grid,
+  InputAdornment,
+  Snackbar,
+  Alert,
+} from "@mui/material";
 
 // MUI Icons
-import PhotoCameraIcon from "@mui/icons-material/PhotoCamera";
-import SaveIcon from "@mui/icons-material/Save";
-import EditIcon from "@mui/icons-material/Edit";
-import GridViewIcon from "@mui/icons-material/GridView";
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import {
+  Save as SaveIcon,
+  PhotoCamera as PhotoCameraIcon,
+  GridView as GridViewIcon,
+  LocationOn as LocationIcon,
+  ArrowBack as ArrowBackIcon,
+  Edit as EditIcon,
+} from "@mui/icons-material";
 
-// Server action import
+// Actions
 import { getCurrentUserProfile, updateProfile, createProfile } from "@/app/actions/profiles";
+
+// Components 
+import PostImageCarousel from "@/components/PostImageCarousel";
 
 // Types
 interface ExtendedUser {
@@ -47,8 +56,13 @@ interface ExtendedUser {
 
 interface Post {
   id: string;
-  imageUrl: string;
+  imageUrl?: string;
   caption?: string | null;
+  images?: {
+    id: string;
+    imageUrl: string;
+    order: number;
+  }[];
 }
 
 interface Profile {
@@ -267,6 +281,22 @@ const EditProfileView = () => {
     }
   };
 
+  // Helper function to get the appropriate image URL from a post
+  const getPostImageUrl = (post: Post): string => {
+    // If the post has the new images array and it's not empty, use the first image
+    if (post.images && post.images.length > 0) {
+      // Sort by order if multiple images
+      const sortedImages = [...post.images].sort((a, b) => a.order - b.order);
+      return sortedImages[0].imageUrl;
+    }
+    // Fall back to the old imageUrl field if it exists
+    if (post.imageUrl) {
+      return post.imageUrl;
+    }
+    // Return a placeholder image URL as fallback
+    return "/images/placeholder.jpg";
+  };
+
   // Render functions
   const renderProfileHeader = () => (
     <Box sx={{ display: 'flex', mb: 4 }}>
@@ -338,15 +368,24 @@ const EditProfileView = () => {
                 position: 'relative',
               }}
             >
-              <Image
-                src={post.imageUrl}
-                alt={post.caption || ""}
-                fill
-                sizes="(max-width: 768px) 33vw, 25vw"
-                style={{ 
-                  objectFit: 'cover',
-                }}
-              />
+              {post.images && post.images.length > 0 ? (
+                // Use PostImageCarousel for multiple images
+                <PostImageCarousel 
+                  images={post.images}
+                  aspectRatio="1/1"
+                />
+              ) : (
+                // Use standard Image for single image
+                <Image
+                  src={getPostImageUrl(post)}
+                  alt={post.caption || ""}
+                  fill
+                  sizes="(max-width: 768px) 33vw, 25vw"
+                  style={{ 
+                    objectFit: 'cover',
+                  }}
+                />
+              )}
             </ImageListItem>
           ))}
         </ImageList>

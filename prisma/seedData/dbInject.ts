@@ -72,10 +72,10 @@ async function seed() {
       if (item.posts && item.posts.length > 0) {
         console.log(`Creating ${item.posts.length} posts for: ${item.name}`);
         for (const post of item.posts) {
-          await prisma.post.upsert({
+          // First create the post without imageUrl
+          const createdPost = await prisma.post.upsert({
             where: { id: post.id },
             update: {
-              imageUrl: post.imageUrl,
               caption: post.caption,
               tags: post.tags || [],
               updatedAt: new Date(post.updatedAt)
@@ -83,13 +83,31 @@ async function seed() {
             create: {
               id: post.id,
               userId: item.id,
-              imageUrl: post.imageUrl,
               caption: post.caption,
               tags: post.tags || [],
               createdAt: new Date(post.createdAt || new Date()),
               updatedAt: new Date(post.updatedAt)
-            }
+            },
           });
+
+          // Then add the image to the PostImage table
+          if (post.imageUrl) {
+            await prisma.postImage.upsert({
+              where: {
+                id: `${post.id}-image-0` // Create a predictable ID for the first image
+              },
+              update: {
+                imageUrl: post.imageUrl,
+              },
+              create: {
+                id: `${post.id}-image-0`,
+                postId: post.id,
+                imageUrl: post.imageUrl,
+                order: 0, // First image in order
+                createdAt: new Date(post.createdAt || new Date())
+              }
+            });
+          }
         }
       }
 

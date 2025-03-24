@@ -56,7 +56,10 @@ import {
 import { fetchPosts, createComment, deleteComment, toggleLike, toggleBookmark } from "@/app/actions/posts";
 
 // Types
-import { Post, Comment, Bookmark } from "@/types/post";
+import { Post, Comment, Bookmark, PostImage } from "@/types/post";
+
+// Import PostImageCarousel component
+import PostImageCarousel from "@/components/PostImageCarousel";
 
 // Type for optimistic UI updates
 type OptimisticUpdate = {
@@ -105,19 +108,32 @@ const FeedView = () => {
   }, []);
 
   // Data fetching
-    const loadPosts = async () => {
-      try {
+  const loadPosts = async () => {
+    try {
       setLoading(true);
       const fetchedPosts = await fetchPosts();
-        setPosts(fetchedPosts.map(post => ({
-          ...post,
-          bookmarks: []
-        }) as Post));
-      } catch (error) {
-        console.error("Failed to fetch posts:", error);
+      setPosts(fetchedPosts as unknown as Post[]);
+    } catch (error) {
+      console.error("Failed to fetch posts:", error);
     } finally {
       setLoading(false);
     }
+  };
+
+  // Helper function to get the primary image URL or handle multiple images
+  const getPostImageUrl = (post: Post): string => {
+    // If the post has the new images array and it's not empty, use the first image
+    if (post.images && post.images.length > 0) {
+      // Sort by order if multiple images
+      const sortedImages = [...post.images].sort((a, b) => a.order - b.order);
+      return sortedImages[0].imageUrl;
+    }
+    // Fall back to the old imageUrl field if it exists
+    if (post.imageUrl) {
+      return post.imageUrl;
+    }
+    // Return a placeholder image URL as fallback
+    return "/images/placeholder.jpg";
   };
 
   // Helper functions
@@ -181,10 +197,9 @@ const FeedView = () => {
       
       // Update posts state
       setPosts(prevPosts => 
-        prevPosts.map(post => post.id === postId ? {
-          ...updatedPost,
-          bookmarks: []
-        } as Post : post)
+        prevPosts.map(p => 
+          p.id === postId ? { ...updatedPost } as unknown as Post : p
+        )
       );
     } catch (error) {
       console.error(`Failed to toggle like:`, error);
@@ -200,9 +215,11 @@ const FeedView = () => {
 
   const handleBookmarkToggle = async (postId: string) => {
     try {
-      await toggleBookmark(postId);
+      const updatedPost = await toggleBookmark(postId);
       // Refresh all posts after bookmark change
-      loadPosts();
+      setPosts(prevPosts => prevPosts.map(p => 
+        p.id === postId ? { ...updatedPost } as unknown as Post : p
+      ));
     } catch (error) {
       console.error('Error bookmarking post:', error);
       setNotification({
@@ -245,10 +262,9 @@ const FeedView = () => {
       
       // Update post with new comments
       setPosts(prevPosts => 
-        prevPosts.map(post => post.id === postId ? {
-          ...updatedPost,
-          bookmarks: []
-        } as Post : post)
+        prevPosts.map(p => 
+          p.id === postId ? { ...updatedPost } as unknown as Post : p
+        )
       );
       
       // Clear comment input
@@ -274,14 +290,13 @@ const FeedView = () => {
     // Find the post to update
     const postToUpdate = posts.find(p => p.id === postId);
     if (!postToUpdate) return;
-    
+
     // Create optimistically updated post with comment removed
     const updatedComments = postToUpdate.comments.filter(c => c.id !== commentId);
     const optimisticPost = {
       ...postToUpdate,
-      comments: updatedComments,
-      bookmarks: []
-    } as Post;
+      comments: updatedComments
+    } as unknown as Post;
     
     // Add to optimistic updates
     setOptimisticUpdates(prev => [
@@ -291,53 +306,58 @@ const FeedView = () => {
     
     // Update UI immediately (for both feed and dialog)
     setPosts(prevPosts => 
-      prevPosts.map(post => post.id === postId ? optimisticPost : post)
+      prevPosts.map(p => 
+        p.id === postId ? optimisticPost : p
+      )
     );
     
     // Update selected post if in dialog
     if (selectedPost && selectedPost.id === postId) {
-      setSelectedPost({
-        ...selectedPost,
-        bookmarks: []
-      } as Post);
+      setSelectedPost(optimisticPost);
     }
     
     try {
+      // Call deleteComment with just the commentId
       const updatedPost = await deleteComment(commentId);
       
       // Update the posts state with server response
       setPosts(prevPosts => 
-        prevPosts.map(post => post.id === postId ? {
-          ...updatedPost,
-          bookmarks: []
-        } as Post : post)
+        prevPosts.map(p => 
+          p.id === postId ? { ...updatedPost } as unknown as Post : p
+        )
       );
       
       // Update selected post if in dialog
       if (selectedPost && selectedPost.id === postId) {
-        setSelectedPost({
-          ...updatedPost,
-          bookmarks: []
-        } as Post);
+        setSelectedPost({ ...updatedPost } as unknown as Post);
       }
+      
+      // Show success notification
+      setNotification({
+        message: "Komentár bol vymazaný",
+        severity: "success"
+      });
     } catch (error) {
       console.error("Failed to delete comment:", error);
       // Revert optimistic update on error
       setPosts(prevPosts => {
-        const originalPost = prevPosts.find(p => p.id === postId);
-        return prevPosts.map(post => post.id === postId && originalPost ? originalPost : post);
+        const originalPost = posts.find(p => p.id === postId);
+        return prevPosts.map(p => p.id === postId && originalPost ? originalPost : p);
       });
       
       // Revert selected post if in dialog
       if (selectedPost && selectedPost.id === postId) {
         const originalPost = posts.find(p => p.id === postId);
         if (originalPost) {
-          setSelectedPost({
-            ...originalPost,
-            bookmarks: []
-          } as Post);
+          setSelectedPost(originalPost);
         }
       }
+      
+      // Show error notification
+      setNotification({
+        message: "Nepodarilo sa vymazať komentár",
+        severity: "error"
+      });
     } finally {
       // Remove optimistic update
       setOptimisticUpdates(prev => prev.filter(update => update.id !== optimisticId));
@@ -389,9 +409,11 @@ const FeedView = () => {
 
   const handleBookmark = async (postId: string): Promise<void> => {
     try {
-      await toggleBookmark(postId);
+      const updatedPost = await toggleBookmark(postId);
       // Refresh all posts after bookmark change
-      loadPosts();
+      setPosts(prevPosts => prevPosts.map(p => 
+        p.id === postId ? { ...updatedPost } as unknown as Post : p
+      ));
     } catch (error) {
       console.error('Error bookmarking post:', error);
       setNotification({
@@ -487,16 +509,27 @@ const FeedView = () => {
                 }
               />
               
-              <CardMedia
-                component="img"
-                image={post.imageUrl}
-                alt={post.caption || 'Post image'}
-                sx={{ 
-                  aspectRatio: '1/1',
-                  objectFit: 'cover',
-                  backgroundColor: '#f0f0f0',
-                }}
-              />
+              {post.images && post.images.length > 0 ? (
+                // Use PostImageCarousel for multiple images
+                <Box sx={{ aspectRatio: '1/1', position: 'relative' }}>
+                  <PostImageCarousel 
+                    images={post.images}
+                    aspectRatio="1/1"
+                  />
+                </Box>
+              ) : (
+                // Use standard CardMedia for single image
+                <CardMedia
+                  component="img"
+                  image={getPostImageUrl(post)}
+                  alt={post.caption || 'Post image'}
+                  sx={{ 
+                    aspectRatio: '1/1',
+                    objectFit: 'cover',
+                    backgroundColor: '#f0f0f0',
+                  }}
+                />
+              )}
               
               <CardActions disableSpacing sx={{ pt: 1, pb: 0 }}>
                 <IconButton 
@@ -674,15 +707,11 @@ const FeedView = () => {
                 createComment(selectedPost.id, newComment.trim())
                   .then(updatedPost => {
                     setPosts(prevPosts => 
-                      prevPosts.map(post => post.id === selectedPost.id ? {
-                        ...updatedPost,
-                        bookmarks: []
-                      } as Post : post)
+                      prevPosts.map(p => 
+                        p.id === selectedPost.id ? { ...updatedPost } as unknown as Post : p
+                      )
                     );
-                    setSelectedPost({
-                      ...updatedPost,
-                      bookmarks: []
-                    } as Post);
+                    setSelectedPost({ ...updatedPost } as unknown as Post);
                     setNewComment("");
                   })
                   .catch(error => {

@@ -29,11 +29,20 @@ export interface CommentLike {
     createdAt: Date;
 }
 
+export interface PostImage {
+    id: string;
+    postId: string;
+    imageUrl: string;
+    order: number;
+    createdAt: Date;
+}
+
 export interface Post {
     id: string;
     userId: string;
     caption: string | null;
-    imageUrl: string;
+    imageUrl?: string;
+    images?: PostImage[];
     createdAt: Date | string;
     updatedAt?: Date | string;
     comments: Comment[];

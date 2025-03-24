@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-
 "use client";
 
 // React imports
@@ -32,7 +31,6 @@ import CircularProgress from "@mui/material/CircularProgress";
 import Paper from "@mui/material/Paper";
 import { Tab, Tabs } from "@mui/material";
 import BookmarkIcon from "@mui/icons-material/Bookmark";
-import { fetchUserBookmarks } from "@/app/actions/profiles";
 import Snackbar from "@mui/material/Snackbar";
 import Alert from "@mui/material/Alert";
 
@@ -45,18 +43,23 @@ import GridViewIcon from "@mui/icons-material/GridView";
 import SearchIcon from "@mui/icons-material/Search";
 import ClearIcon from "@mui/icons-material/Clear";
 import EditIcon from "@mui/icons-material/Edit";
+import SettingsIcon from "@mui/icons-material/Settings";
+import AccountCircleIcon from "@mui/icons-material/AccountCircle";
+import ExploreIcon from "@mui/icons-material/Explore";
 
 // Server action import
-import { fetchProfilesCursor, followUser, unfollowUser, type ProfileWithUser, fetchProfile } from "@/app/actions/profiles";
+import { fetchProfilesCursor, followUser, unfollowUser, type ProfileWithUser, fetchProfile, fetchUserBookmarks } from "@/app/actions/profiles";
+
+// Add PostImage component import
+import PostImageCarousel from "@/components/PostImageCarousel";
 
 // Types
 import { LoadingState, Profile, ExtendedUser } from '@/types/common';
 
-// Add Post type definition - must match your existing Post structure
+// Update Post interface to handle both old and new image structure
 interface Post {
   id: string;
   caption: string | null;
-  imageUrl: string;
   createdAt: Date;
   user: {
     id: string;
@@ -66,6 +69,13 @@ interface Post {
   comments?: any[];
   likes?: any[];
   bookmarks?: any[];
+  // Support both the old imageUrl field and the new images array
+  imageUrl?: string;
+  images?: {
+    id: string;
+    imageUrl: string;
+    order: number;
+  }[];
 }
 
 // Remove or rename your local Profile interface to avoid conflict
@@ -89,12 +99,11 @@ interface UserProfile {
   };
 }
 
-// Define this interface at the top of your file
+// Define this interface to be compatible with both old and new data structures
 interface BookmarkedPost {
   id: string;
   userId: string;
   caption: string | null;
-  imageUrl: string;
   createdAt: Date;
   updatedAt: Date;
   tags: string[];
@@ -103,17 +112,30 @@ interface BookmarkedPost {
     name: string | null;
     email: string;
   };
+  // Support both the old imageUrl field and the new images array
+  imageUrl?: string;
+  images?: {
+    id: string;
+    imageUrl: string;
+    order: number;
+  }[];
 }
 
-// Add this interface near your other interfaces
+// Update this interface to be compatible with both old and new data structures
 interface ProfilePost {
   id: string;
   userId: string;
-  imageUrl: string;
   caption: string | null;
   createdAt: Date;
   updatedAt: Date;
   tags: string[];
+  // Support both the old imageUrl field and the new images array
+  imageUrl?: string;
+  images?: {
+    id: string;
+    imageUrl: string;
+    order: number;
+  }[];
 }
 
 /**
@@ -133,16 +155,17 @@ const ProfilesView = () => {
   const [profiles, setProfiles] = useState<ProfileWithUser[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [isLoading, setIsLoading] = useState(true);
-  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [profileLoading, setProfileLoading] = useState(true);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [bookmarkedPosts, setBookmarkedPosts] = useState<BookmarkedPost[]>([]);
   const [activeTab, setActiveTab] = useState(0);
   const [notification, setNotification] = useState<{
     message: string;
     severity: "success" | "error";
   } | null>(null);
+  const [viewMode, setViewMode] = useState<'explore' | 'profile'>('explore');
 
-  // Load profiles on mount and search term change
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  // Load all profiles for exploration view
   useEffect(() => {
     const loadProfiles = async () => {
       setIsLoading(true);
@@ -153,6 +176,10 @@ const ProfilesView = () => {
         setProfiles(fetchedProfiles);
       } catch (error) {
         console.error("Failed to fetch profiles:", error);
+        setNotification({
+          message: "Nepodarilo sa načítať profily",
+          severity: "error"
+        });
       } finally {
         setIsLoading(false);
       }
@@ -161,31 +188,31 @@ const ProfilesView = () => {
     loadProfiles();
   }, [searchTerm]);
 
+  // Load current user's profile separately
   useEffect(() => {
-    const loadProfile = async () => {
+    const loadUserProfile = async () => {
       if (!session?.user?.email) {
-        setIsLoading(false);
+        setProfileLoading(false);
         return;
       }
       
       try {
-        const userProfile = await fetchProfile(session.user.email);
-        setProfile(userProfile as any); // Temporary fix to bypass type checking
+        const fetchedProfile = await fetchProfile(session.user.email);
+        setUserProfile(fetchedProfile as any);
       } catch (error) {
-        console.error('Error loading profile:', error);
+        console.error('Error loading user profile:', error);
       } finally {
-        setIsLoading(false);
+        setProfileLoading(false);
       }
     };
 
-    loadProfile();
+    loadUserProfile();
   }, [session]);
 
   const handleFollowToggle = async (e: React.MouseEvent, profile: ProfileWithUser) => {
     e.stopPropagation();
-    if (!session?.user?.email || isLoading) return;
+    if (!session?.user?.email) return;
 
-    setIsLoading(true);
     try {
       const updatedProfile = isFollowing(profile)
         ? await unfollowUser(profile.user.id)
@@ -196,10 +223,19 @@ const ProfilesView = () => {
         searchTerm,
       });
       setProfiles(refreshedProfiles);
+      
+      setNotification({
+        message: isFollowing(profile) 
+          ? "Používateľ bol odstránený zo sledovaných" 
+          : "Používateľ bol pridaný do sledovaných",
+        severity: "success"
+      });
     } catch (error) {
       console.error("Failed to toggle follow:", error);
-    } finally {
-      setIsLoading(false);
+      setNotification({
+        message: "Nepodarilo sa aktualizovať sledovanie",
+        severity: "error"
+      });
     }
   };
 
@@ -221,12 +257,12 @@ const ProfilesView = () => {
     setSearchTerm("");
   };
 
-  // Wrap the loadBookmarkedPosts function with useCallback
+  // Load bookmarked posts when viewing bookmarks tab
   const loadBookmarkedPosts = useCallback(async () => {
     if (session?.user?.email) {
       try {
         const bookmarks = await fetchUserBookmarks();
-        setBookmarkedPosts(bookmarks);
+        setBookmarkedPosts(bookmarks as unknown as BookmarkedPost[]);
       } catch (error) {
         console.error("Error loading bookmarked posts:", error);
         setNotification({
@@ -237,12 +273,32 @@ const ProfilesView = () => {
     }
   }, [session]);
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
-    if (activeTab === 1) {
+    if (viewMode === 'profile' && activeTab === 1) {
       loadBookmarkedPosts();
     }
-  }, [activeTab, session]);
+  }, [activeTab, viewMode, loadBookmarkedPosts]);
+
+  // Toggle between explore and profile views
+  const toggleViewMode = () => {
+    setViewMode(viewMode === 'explore' ? 'profile' : 'explore');
+  };
+
+  // Helper function to get the primary image URL from a post
+  const getPostImageUrl = (post: any): string => {
+    // If the post has the new images array and it's not empty, use the first image
+    if (post.images && post.images.length > 0) {
+      // Sort by order if multiple images
+      const sortedImages = [...post.images].sort((a, b) => a.order - b.order);
+      return sortedImages[0].imageUrl;
+    }
+    // Fall back to the old imageUrl field if it exists
+    if (post.imageUrl) {
+      return post.imageUrl;
+    }
+    // Return a placeholder image URL instead of null
+    return "/images/placeholder.jpg";
+  };
 
   // Render functions
   const renderSearchBar = () => (
@@ -287,7 +343,8 @@ const ProfilesView = () => {
           size="small"
           startIcon={isFollowing(profile) ? <PersonRemoveIcon /> : <PersonAddIcon />}
           onClick={(e) => handleFollowToggle(e, profile)}
-          disabled={isLoading || session?.user?.email === profile.user.email}
+          disabled={session?.user?.email === profile.user.email}
+          sx={{ mr: 1 }}
         >
           {isFollowing(profile) ? "Nesledovať" : "Sledovať"}
         </Button>
@@ -319,41 +376,118 @@ const ProfilesView = () => {
     </Box>
   );
 
+  // Update the renderRecentPosts function to handle both image structures
   const renderRecentPosts = (profile: ProfileWithUser) => (
-    <>
-      <Divider sx={{ mb: 2 }} />
-      <Typography variant="subtitle2" sx={{ mb: 1 }}>
-        <GridViewIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
+    <Box sx={{ mt: 4 }}>
+      <Typography variant="h6" sx={{ mb: 2 }}>
         Nedávne príspevky
       </Typography>
-      <ImageList cols={3} gap={2}>
-        {profile.user.posts.map((post: ProfilePost) => (
+      <ImageList cols={3} gap={8}>
+        {profile.user.posts.map((post: any) => (
           <ImageListItem 
-            key={post.id}
-            sx={{ 
-              aspectRatio: '1/1',
-              position: 'relative',
-              '&:hover': { opacity: 0.8 },
-              overflow: 'hidden',
-            }}
+            key={post.id} 
+            sx={{ height: '120px', cursor: 'pointer' }}
+            onClick={() => router.push(`/prispevok/${post.id}`)}
           >
-            <Image
-              src={post.imageUrl}
-              alt={post.caption || ""}
-              fill
-              sizes="(max-width: 600px) 33vw, 200px"
-              style={{ 
-                objectFit: 'cover',
-              }}
-            />
+            {post.images && post.images.length > 0 ? (
+              // Use the carousel for multiple images
+              <PostImageCarousel 
+                images={post.images}
+                aspectRatio="1/1"
+              />
+            ) : post.imageUrl ? (
+              // Use a regular Image component for the old structure
+              <Image
+                src={post.imageUrl}
+                alt={post.caption || "Post image"}
+                fill
+                sizes="(max-width: 600px) 33vw, 200px"
+                style={{ objectFit: 'cover' }}
+              />
+            ) : (
+              // No image placeholder
+              <Box 
+                sx={{ 
+                  backgroundColor: 'grey.200', 
+                  height: '100%', 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center' 
+                }}
+              >
+                <Typography variant="caption" color="text.secondary">
+                  Žiadny obrázok
+                </Typography>
+              </Box>
+            )}
           </ImageListItem>
         ))}
       </ImageList>
-    </>
+    </Box>
+  );
+
+  // Update the renderBookmarkedPosts function to handle both image structures
+  const renderBookmarkedPosts = () => (
+    <Box sx={{ mt: 4 }}>
+      <Typography variant="h6" sx={{ mb: 2 }}>
+        Uložené príspevky
+      </Typography>
+      {bookmarkedPosts.length > 0 ? (
+        <ImageList cols={3} gap={8}>
+          {bookmarkedPosts.map((post) => (
+            <ImageListItem 
+              key={post.id} 
+              sx={{ height: '120px', cursor: 'pointer' }}
+              onClick={() => router.push(`/prispevok/${post.id}`)}
+            >
+              {post.images && post.images.length > 0 ? (
+                // Use the carousel for multiple images
+                <PostImageCarousel 
+                  images={post.images}
+                  aspectRatio="1/1"
+                />
+              ) : post.imageUrl ? (
+                // Use a regular Image component for the old structure
+                <Image
+                  src={post.imageUrl}
+                  alt={post.caption || "Post image"}
+                  fill
+                  sizes="(max-width: 600px) 33vw, 200px"
+                  style={{ objectFit: 'cover' }}
+                />
+              ) : (
+                // No image placeholder
+                <Box 
+                  sx={{ 
+                    backgroundColor: 'grey.200', 
+                    height: '100%', 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center' 
+                  }}
+                >
+                  <Typography variant="caption" color="text.secondary">
+                    Žiadny obrázok
+                  </Typography>
+                </Box>
+              )}
+            </ImageListItem>
+          ))}
+        </ImageList>
+      ) : (
+        <Typography 
+          align="center" 
+          color="text.secondary"
+          sx={{ mt: 4 }}
+        >
+          Zatiaľ žiadne záložky
+        </Typography>
+      )}
+    </Box>
   );
 
   // Main render
-  if (isLoading) {
+  if (isLoading && profiles.length === 0) {
     return (
       <Container maxWidth="md">
         <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
@@ -371,32 +505,8 @@ const ProfilesView = () => {
             Prihláste sa
           </Typography>
           <Typography variant="body1">
-            Pre zobrazenie profilu sa musíte prihlásiť.
+            Pre zobrazenie profilov sa musíte prihlásiť.
           </Typography>
-        </Paper>
-      </Container>
-    );
-  }
-
-  if (!profile) {
-    return (
-      <Container maxWidth="md">
-        <Paper elevation={3} sx={{ p: 4, mt: 4, textAlign: 'center' }}>
-          <Typography variant="h5" gutterBottom>
-            Profil sa nenašiel
-          </Typography>
-          <Typography variant="body1" paragraph>
-            Vytvorte si svoj profil, aby ste mohli zdieľať viac informácií o sebe.
-          </Typography>
-          <Button 
-            component={Link} 
-            href="/profil/upravit" 
-            variant="contained" 
-            color="primary"
-            startIcon={<PersonAddIcon />}
-          >
-            Vytvoriť profil
-          </Button>
         </Paper>
       </Container>
     );
@@ -404,147 +514,194 @@ const ProfilesView = () => {
 
   return (
     <Container sx={{ mt: 4, mb: 10, maxWidth: "md" }}>
-      {renderSearchBar()}
-
-      {!isLoading && profiles.length === 0 && searchTerm && (
-        <Typography align="center" sx={{ my: 4 }} color="text.secondary">
-          Žiadne výsledky pre &quot;{searchTerm}&quot;
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
+        <Typography variant="h5">
+          {viewMode === 'explore' ? 'Objaviť profily' : 'Môj profil'}
         </Typography>
-      )}
-
-      {!isLoading && profiles.map((profile) => (
-        <Card 
-          key={profile.id}
-          sx={{ 
-            mb: 4,
-            cursor: 'pointer',
-            boxShadow: 'none',
-            '&:hover': {
-              bgcolor: 'action.hover',
-            },
-          }}
-          onClick={() => handleProfileClick(profile.id)}
-        >
-          <CardContent>
-            <Box sx={{ display: 'flex', mb: 3 }}>
-              <Avatar
-                src={profile.avatarUrl || undefined}
-                sx={{ width: 80, height: 80, mr: 3 }}
-              >
-                {profile.user.name?.[0] || "U"}
-              </Avatar>
-              
-              {renderProfileInfo(profile)}
-            </Box>
-
-            {renderRecentPosts(profile)}
-
-            <Stack 
-              direction="row" 
-              spacing={1} 
-              sx={{ mt: 2 }}
-              onClick={(e) => e.stopPropagation()}
+        <Box>
+          <Button 
+            onClick={toggleViewMode} 
+            startIcon={viewMode === 'explore' ? <AccountCircleIcon /> : <ExploreIcon />}
+            variant="outlined"
+            sx={{ mr: 1 }}
+          >
+            {viewMode === 'explore' ? 'Môj profil' : 'Objaviť'}
+          </Button>
+          {viewMode === 'profile' && (
+            <Button 
+              component={Link} 
+              href="/profil/upravit" 
+              variant="contained" 
+              startIcon={<EditIcon />}
             >
-              <IconButton size="small">
-                <FavoriteIcon />
-              </IconButton>
-              <IconButton size="small">
-                <ChatBubbleOutlineIcon />
-              </IconButton>
-            </Stack>
-          </CardContent>
-        </Card>
-      ))}
-
-      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
-        <Button 
-          component={Link} 
-          href="/profil/upravit" 
-          variant="outlined" 
-          startIcon={<EditIcon />}
-        >
-          Upraviť profil
-        </Button>
+              Upraviť profil
+            </Button>
+          )}
+        </Box>
       </Box>
 
-      <Tabs
-        value={activeTab}
-        onChange={(_, newValue) => setActiveTab(newValue)}
-        centered
-        sx={{ mb: 2 }}
-      >
-        <Tab icon={<GridViewIcon />} label="Príspevky" />
-        <Tab icon={<BookmarkIcon />} label="Záložky" />
-      </Tabs>
-
-      {activeTab === 0 ? (
-        profile?.user?.posts && profile.user.posts.length > 0 ? (
-          <ImageList cols={3} gap={2}>
-            {profile.user.posts.map((post: any) => (
-              <ImageListItem 
-                key={post.id}
-                sx={{ 
-                  aspectRatio: '1/1',
-                  cursor: 'pointer',
-                  '&:hover': { opacity: 0.8 },
-                  position: 'relative',
-                }}
-                onClick={() => router.push(`/prispevok/${post.id}`)}
-              >
-                <Image
-                  src={post.imageUrl}
-                  alt={post.caption || ""}
-                  fill
-                  sizes="(max-width: 768px) 33vw, 25vw"
-                  style={{ objectFit: 'cover' }}
-                />
-              </ImageListItem>
-            ))}
-          </ImageList>
-        ) : (
-          <Typography 
-            align="center" 
-            color="text.secondary"
-            sx={{ mt: 4 }}
-          >
-            Zatiaľ žiadne príspevky
-          </Typography>
-        )
-      ) : (
+      {viewMode === 'explore' ? (
+        // EXPLORE MODE - Show all profiles
         <>
-          {bookmarkedPosts && bookmarkedPosts.length > 0 ? (
-            <ImageList cols={3} gap={2}>
-              {bookmarkedPosts.map((post: any) => (
-                <ImageListItem 
-                  key={post.id}
-                  sx={{ 
-                    aspectRatio: '1/1',
-                    cursor: 'pointer',
-                    '&:hover': { opacity: 0.8 },
-                    position: 'relative',
-                  }}
-                  onClick={() => router.push(`/prispevok/${post.id}`)}
-                >
-                  <Image
-                    src={post.imageUrl}
-                    alt={post.caption || ""}
-                    fill
-                    sizes="(max-width: 768px) 33vw, 25vw"
-                    style={{ objectFit: 'cover' }}
-                  />
-                </ImageListItem>
-              ))}
-            </ImageList>
-          ) : (
-            <Typography 
-              align="center" 
-              color="text.secondary"
-              sx={{ mt: 4 }}
-            >
-              Zatiaľ žiadne záložky
+          {renderSearchBar()}
+
+          {!isLoading && profiles.length === 0 && searchTerm && (
+            <Typography align="center" sx={{ my: 4 }} color="text.secondary">
+              Žiadne výsledky pre &quot;{searchTerm}&quot;
             </Typography>
           )}
+
+          {profiles.map((profile) => (
+            <Card 
+              key={profile.id}
+              sx={{ 
+                mb: 4,
+                cursor: 'pointer',
+                '&:hover': {
+                  bgcolor: 'action.hover',
+                },
+              }}
+              onClick={() => handleProfileClick(profile.id)}
+            >
+              <CardContent>
+                <Box sx={{ display: 'flex', mb: 3 }}>
+                  <Avatar
+                    src={profile.avatarUrl || undefined}
+                    sx={{ width: 80, height: 80, mr: 3 }}
+                  >
+                    {profile.user.name?.[0] || "U"}
+                  </Avatar>
+                  
+                  {renderProfileInfo(profile)}
+                </Box>
+
+                {renderRecentPosts(profile)}
+              </CardContent>
+            </Card>
+          ))}
         </>
+      ) : (
+        // PROFILE MODE - Show current user's profile
+        profileLoading ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
+            <CircularProgress />
+          </Box>
+        ) : !userProfile ? (
+          <Paper elevation={3} sx={{ p: 4, mt: 4, textAlign: 'center' }}>
+            <Typography variant="h5" gutterBottom>
+              Profil sa nenašiel
+            </Typography>
+            <Typography variant="body1" paragraph>
+              Vytvorte si svoj profil, aby ste mohli zdieľať viac informácií o sebe.
+            </Typography>
+            <Button 
+              component={Link} 
+              href="/profil/upravit" 
+              variant="contained" 
+              color="primary"
+              startIcon={<PersonAddIcon />}
+            >
+              Vytvoriť profil
+            </Button>
+          </Paper>
+        ) : (
+          <>
+            {/* User profile card */}
+            <Card sx={{ mb: 4 }}>
+              <CardContent>
+                <Box sx={{ display: 'flex', mb: 3 }}>
+                  <Avatar
+                    src={userProfile.avatarUrl || undefined}
+                    sx={{ width: 100, height: 100, mr: 3 }}
+                  >
+                    {userProfile.user?.name?.[0] || "U"}
+                  </Avatar>
+                  
+                  <Box sx={{ flexGrow: 1 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                      <Typography variant="h5" sx={{ mr: 2 }}>
+                        {userProfile.user?.name || "Neznámy používateľ"}
+                      </Typography>
+                    </Box>
+
+                    <Stack direction="row" spacing={3} sx={{ mb: 2 }}>
+                      <Typography variant="body1">
+                        <strong>{userProfile.user?.posts?.length || 0}</strong> príspevkov
+                      </Typography>
+                      <Typography variant="body1">
+                        <strong>{userProfile.user?.followers?.length || 0}</strong> sledovateľov
+                      </Typography>
+                      <Typography variant="body1">
+                        <strong>{userProfile.user?.following?.length || 0}</strong> sledovaných
+                      </Typography>
+                    </Stack>
+
+                    {userProfile.bio && (
+                      <Typography variant="body1" sx={{ mb: 1 }}>
+                        {userProfile.bio}
+                      </Typography>
+                    )}
+                    
+                    {userProfile.location && (
+                      <Typography variant="body2" color="text.secondary">
+                        📍 {userProfile.location}
+                      </Typography>
+                    )}
+                  </Box>
+                </Box>
+              </CardContent>
+            </Card>
+
+            <Tabs
+              value={activeTab}
+              onChange={(_, newValue) => setActiveTab(newValue)}
+              centered
+              sx={{ mb: 2 }}
+            >
+              <Tab icon={<GridViewIcon />} label="Príspevky" />
+              <Tab icon={<BookmarkIcon />} label="Záložky" />
+            </Tabs>
+
+            {activeTab === 0 ? (
+              userProfile?.user?.posts && userProfile.user.posts.length > 0 ? (
+                <ImageList cols={3} gap={2}>
+                  {userProfile.user.posts.map((post: any) => (
+                    <ImageListItem 
+                      key={post.id}
+                      sx={{ 
+                        aspectRatio: '1/1',
+                        cursor: 'pointer',
+                        '&:hover': { opacity: 0.8 },
+                        position: 'relative',
+                      }}
+                      onClick={() => router.push(`/prispevok/${post.id}`)}
+                    >
+                      <Image
+                        src={getPostImageUrl(post) || "/images/placeholder.jpg"}
+                        alt={post.caption || ""}
+                        fill
+                        sizes="(max-width: 768px) 33vw, 25vw"
+                        style={{ objectFit: 'cover' }}
+                      />
+                    </ImageListItem>
+                  ))}
+                </ImageList>
+              ) : (
+                <Typography 
+                  align="center" 
+                  color="text.secondary"
+                  sx={{ mt: 4 }}
+                >
+                  Zatiaľ žiadne príspevky
+                </Typography>
+              )
+            ) : (
+              <>
+                {renderBookmarkedPosts()}
+              </>
+            )}
+          </>
+        )
       )}
 
       <Snackbar

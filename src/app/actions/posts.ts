@@ -40,6 +40,7 @@ type PrismaPostWithDetails = Prisma.PostGetPayload<{
         user: true;
       };
     };
+    images: true; // Include post images
   };
 }>;
 
@@ -63,6 +64,7 @@ export type PostWithDetails = Prisma.PostGetPayload<{
         user: true;
       }
     };
+    images: true; // Include post images
   }
 }>;
 
@@ -106,6 +108,11 @@ export const fetchPosts = async (): Promise<PrismaPostWithDetails[]> => {
             user: true,
           },
         },
+        images: {
+          orderBy: {
+            order: "asc", // Order images by their specified order
+          },
+        },
       },
     });
 
@@ -138,6 +145,11 @@ export const fetchPostsByUserId = async (userId: string): Promise<Post[]> => {
           include: {
             user: true
           }
+        },
+        images: {
+          orderBy: {
+            order: "asc"
+          }
         }
       }
     });
@@ -149,8 +161,8 @@ export const fetchPostsByUserId = async (userId: string): Promise<Post[]> => {
   }
 };
 
-// Create a new post with image and optional caption
-export async function createPost(caption: string, imageUrl: string) {
+// Create a new post with images and optional caption
+export async function createPost(caption: string, imageUrls: string[]) {
   const session = await getServerSession(authOptions);
 
   if (!session?.user?.id) {
@@ -161,8 +173,13 @@ export async function createPost(caption: string, imageUrl: string) {
     const post = await prisma.post.create({
       data: {
         caption,
-        imageUrl,
         userId: session.user.id,
+        images: {
+          create: imageUrls.map((imageUrl, index) => ({
+            imageUrl,
+            order: index
+          }))
+        }
       },
       include: {
         user: {
@@ -174,7 +191,8 @@ export async function createPost(caption: string, imageUrl: string) {
         },
         likes: true,
         comments: true,
-        bookmarks: true, // Include bookmarks to match your Post type
+        bookmarks: true,
+        images: true, // Include images
       },
     });
 
@@ -247,6 +265,7 @@ export const createComment = async (postId: string, content: string): Promise<Pr
             user: true,
           },
         },
+        images: true,
       },
     });
 
@@ -340,6 +359,7 @@ export const deleteComment = async (commentId: string): Promise<PrismaPostWithDe
             user: true,
           },
         },
+        images: true,
       },
     });
 
@@ -431,6 +451,7 @@ export const toggleLike = async (postId: string): Promise<PrismaPostWithDetails>
             user: true,
           },
         },
+        images: true,
       },
     });
 
@@ -515,6 +536,7 @@ export async function toggleBookmark(postId: string) {
             user: true,
           },
         },
+        images: true,
       },
     });
 
@@ -567,6 +589,7 @@ export async function fetchBookmarkedPosts() {
               user: true,
             },
           },
+          images: true,
         },
       },
     },

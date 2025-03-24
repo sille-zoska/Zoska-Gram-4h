@@ -66,8 +66,8 @@ export const fetchProfilesCursor = async ({
   searchTerm = "",
 }: FetchProfilesCursorParams): Promise<FetchProfilesCursorResult> => {
   try {
-    const whereClause: Prisma.ProfileWhereInput = searchTerm.trim()
-      ? {
+  const whereClause: Prisma.ProfileWhereInput = searchTerm.trim()
+    ? {
         OR: [
           {
             user: {
@@ -80,10 +80,10 @@ export const fetchProfilesCursor = async ({
           { interests: { has: searchTerm } },
         ],
       }
-      : {};
+    : {};
 
     const profiles = await prisma.profile.findMany({
-      where: whereClause,
+    where: whereClause,
       include: {
         user: {
           include: {
@@ -117,7 +117,7 @@ export const fetchProfilesCursor = async ({
           }
         }
       },
-      orderBy: { createdAt: "desc" },
+    orderBy: { createdAt: "desc" },
     });
 
     return {

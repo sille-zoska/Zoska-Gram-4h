@@ -1,14 +1,14 @@
 {
   "users": [
-    {
-      "name": "Dr. Pete Steuber",
-      "email": "Pierre_Bogisich86@yahoo.com",
-      "emailVerified": "2025-03-19T20:21:49.612Z",
+  {
+    "name": "Dr. Pete Steuber",
+    "email": "Pierre_Bogisich86@yahoo.com",
+    "emailVerified": "2025-03-19T20:21:49.612Z",
       "image": "https://i.pravatar.cc/150?u=Pierre_Bogisich86",
       "createdAt": "2023-12-15T08:29:33.887Z",
-      "updatedAt": "2025-01-14T08:29:33.887Z",
-      "id": "a4ec5b2a-8bba-4169-9735-260453bbcf5f",
-      "profile": {
+    "updatedAt": "2025-01-14T08:29:33.887Z",
+    "id": "a4ec5b2a-8bba-4169-9735-260453bbcf5f",
+    "profile": {
         "bio": "Študent SPŠE Zochova so záujmom o webové technológie a programovanie. Milujem React a Next.js!",
         "avatarUrl": "https://i.pravatar.cc/300?u=a4ec5b2a-profile",
         "location": "Bratislava",
@@ -18,12 +18,12 @@
           "TypeScript"
         ],
         "createdAt": "2023-12-15T08:29:33.887Z",
-        "updatedAt": "2025-02-21T01:14:58.255Z",
-        "id": "6e2e777f-9385-4932-956a-8f34eca57a21",
-        "userId": "a4ec5b2a-8bba-4169-9735-260453bbcf5f"
-      },
-      "posts": [
-        {
+      "updatedAt": "2025-02-21T01:14:58.255Z",
+      "id": "6e2e777f-9385-4932-956a-8f34eca57a21",
+      "userId": "a4ec5b2a-8bba-4169-9735-260453bbcf5f"
+    },
+    "posts": [
+      {
           "imageUrl": "https://picsum.photos/seed/post1/640/640",
           "caption": "Moja prvá aplikácia v Next.js! #coding #nextjs #programming",
           "createdAt": "2024-03-15T21:31:07.461Z",
@@ -33,10 +33,10 @@
             "nextjs",
             "programming"
           ],
-          "id": "5331339d-7a59-43a5-b1fb-fa5475063b28",
-          "userId": "a4ec5b2a-8bba-4169-9735-260453bbcf5f"
-        },
-        {
+        "id": "5331339d-7a59-43a5-b1fb-fa5475063b28",
+        "userId": "a4ec5b2a-8bba-4169-9735-260453bbcf5f"
+      },
+      {
           "imageUrl": "https://picsum.photos/seed/post2/640/640",
           "caption": "Práca na školskom projekte ZoškaGram! #spse #zochova #project",
           "createdAt": "2024-04-10T19:49:55.535Z",
@@ -46,16 +46,16 @@
             "zochova",
             "project"
           ],
-          "id": "f437a164-405c-4993-bf28-1370e6688f49",
-          "userId": "a4ec5b2a-8bba-4169-9735-260453bbcf5f"
-        },
-        {
-          "imageUrl": "https://picsum.photos/seed/GQQUjMeycU/640/480",
-          "caption": "Volaticus antea strenuus eos textus urbanus et vilis amissio.",
-          "updatedAt": "2024-05-07T19:32:59.433Z",
-          "id": "8bf3f273-61c6-4119-9575-633a0e435e58",
-          "userId": "a4ec5b2a-8bba-4169-9735-260453bbcf5f"
-        }
+        "id": "f437a164-405c-4993-bf28-1370e6688f49",
+        "userId": "a4ec5b2a-8bba-4169-9735-260453bbcf5f"
+      },
+      {
+        "imageUrl": "https://picsum.photos/seed/GQQUjMeycU/640/480",
+        "caption": "Volaticus antea strenuus eos textus urbanus et vilis amissio.",
+        "updatedAt": "2024-05-07T19:32:59.433Z",
+        "id": "8bf3f273-61c6-4119-9575-633a0e435e58",
+        "userId": "a4ec5b2a-8bba-4169-9735-260453bbcf5f"
+      }
       ],
       "comments": [
         {
@@ -66,17 +66,17 @@
           "id": "c42a6924-d18d-4a17-90d9-e74b85c6b711",
           "userId": "a4ec5b2a-8bba-4169-9735-260453bbcf5f"
         }
-      ]
-    },
-    {
-      "name": "Dr. Opal Murray",
-      "email": "Ocie_Steuber78@yahoo.com",
-      "emailVerified": "2025-05-13T20:35:09.108Z",
+    ]
+  },
+  {
+    "name": "Dr. Opal Murray",
+    "email": "Ocie_Steuber78@yahoo.com",
+    "emailVerified": "2025-05-13T20:35:09.108Z",
       "image": "https://i.pravatar.cc/150?u=Ocie_Steuber78",
       "createdAt": "2023-12-15T08:29:33.887Z",
-      "updatedAt": "2025-06-15T02:18:19.711Z",
-      "id": "c6844753-1afa-46c9-81a1-4549da9a279d",
-      "profile": {
+    "updatedAt": "2025-06-15T02:18:19.711Z",
+    "id": "c6844753-1afa-46c9-81a1-4549da9a279d",
+    "profile": {
         "bio": "Učiteľka informatiky na SPŠE Zochova. Milujem učiť a zdieľať vedomosti o technológiách.",
         "avatarUrl": "https://i.pravatar.cc/300?u=c6844753-profile",
         "location": "Bratislava, Zochova",
@@ -86,24 +86,24 @@
           "Web Development"
         ],
         "createdAt": "2023-12-15T08:29:33.887Z",
-        "updatedAt": "2024-11-30T02:12:04.495Z",
-        "id": "68fffe38-6ffd-4690-bb7a-446d6b86ac40",
-        "userId": "c6844753-1afa-46c9-81a1-4549da9a279d"
-      },
-      "posts": [
-        {
+      "updatedAt": "2024-11-30T02:12:04.495Z",
+      "id": "68fffe38-6ffd-4690-bb7a-446d6b86ac40",
+      "userId": "c6844753-1afa-46c9-81a1-4549da9a279d"
+    },
+    "posts": [
+      {
           "imageUrl": "https://picsum.photos/seed/post3/640/640",
           "caption": "Dnešná prednáška o React komponentoch bola veľmi produktívna! #teaching #react",
           "createdAt": "2024-01-29T09:48:12.756Z",
-          "updatedAt": "2024-01-29T09:48:12.756Z",
+        "updatedAt": "2024-01-29T09:48:12.756Z",
           "tags": [
             "teaching",
             "react"
           ],
-          "id": "3ec6aa65-4323-4be7-9b3f-f91f58aa5f42",
-          "userId": "c6844753-1afa-46c9-81a1-4549da9a279d"
-        },
-        {
+        "id": "3ec6aa65-4323-4be7-9b3f-f91f58aa5f42",
+        "userId": "c6844753-1afa-46c9-81a1-4549da9a279d"
+      },
+      {
           "imageUrl": "https://picsum.photos/seed/post4/640/640",
           "caption": "Študenti pracujú na svojich záverečných projektoch. Som na nich hrdá! #projects #students",
           "createdAt": "2024-02-13T23:25:59.595Z",
@@ -112,16 +112,16 @@
             "projects",
             "students"
           ],
-          "id": "8929ce8c-e1ea-4bef-87e9-d89b2527267b",
-          "userId": "c6844753-1afa-46c9-81a1-4549da9a279d"
-        },
-        {
-          "imageUrl": "https://picsum.photos/seed/IfpFm8ux/640/480",
-          "caption": "Vulariter agnitio victoria cibo sumptus argentum.",
-          "updatedAt": "2024-07-09T01:02:31.044Z",
-          "id": "5ff88d13-badf-4c4a-9af0-03b974b47685",
-          "userId": "c6844753-1afa-46c9-81a1-4549da9a279d"
-        }
+        "id": "8929ce8c-e1ea-4bef-87e9-d89b2527267b",
+        "userId": "c6844753-1afa-46c9-81a1-4549da9a279d"
+      },
+      {
+        "imageUrl": "https://picsum.photos/seed/IfpFm8ux/640/480",
+        "caption": "Vulariter agnitio victoria cibo sumptus argentum.",
+        "updatedAt": "2024-07-09T01:02:31.044Z",
+        "id": "5ff88d13-badf-4c4a-9af0-03b974b47685",
+        "userId": "c6844753-1afa-46c9-81a1-4549da9a279d"
+      }
       ],
       "comments": [
         {
@@ -137,12 +137,12 @@
     {
       "name": "Kristína Novotná",
       "email": "kristina.novotna@example.com",
-      "emailVerified": "2024-01-10T21:02:38.122Z",
+    "emailVerified": "2024-01-10T21:02:38.122Z",
       "image": "https://i.pravatar.cc/150?u=kristina.novotna",
       "createdAt": "2023-12-15T08:29:33.887Z",
-      "updatedAt": "2024-04-24T21:58:41.044Z",
-      "id": "43f5a8dc-315d-4ae5-9ac5-192abe5428cd",
-      "profile": {
+    "updatedAt": "2024-04-24T21:58:41.044Z",
+    "id": "43f5a8dc-315d-4ae5-9ac5-192abe5428cd",
+    "profile": {
         "bio": "Študentka SPŠE Zochova, odbor Informačné technológie. Rada programujem a fotím.",
         "avatarUrl": "https://i.pravatar.cc/300?u=43f5a8dc-profile",
         "location": "Bratislava",
@@ -152,12 +152,12 @@
           "Mobile Apps"
         ],
         "createdAt": "2023-12-15T08:29:33.887Z",
-        "updatedAt": "2024-07-02T21:05:37.958Z",
-        "id": "94862c09-d388-403e-9295-57471434006e",
-        "userId": "43f5a8dc-315d-4ae5-9ac5-192abe5428cd"
-      },
-      "posts": [
-        {
+      "updatedAt": "2024-07-02T21:05:37.958Z",
+      "id": "94862c09-d388-403e-9295-57471434006e",
+      "userId": "43f5a8dc-315d-4ae5-9ac5-192abe5428cd"
+    },
+    "posts": [
+      {
           "imageUrl": "https://picsum.photos/seed/post5/640/640",
           "caption": "Môj nový projekt - aplikácia pre zdieľanie fotiek zo školských akcií #photo #app",
           "createdAt": "2024-03-31T16:08:38.786Z",
@@ -166,28 +166,28 @@
             "photo",
             "app"
           ],
-          "id": "271762c5-6c9f-4a69-bf98-65bd09c6700a",
-          "userId": "43f5a8dc-315d-4ae5-9ac5-192abe5428cd"
-        },
-        {
+        "id": "271762c5-6c9f-4a69-bf98-65bd09c6700a",
+        "userId": "43f5a8dc-315d-4ae5-9ac5-192abe5428cd"
+      },
+      {
           "imageUrl": "https://picsum.photos/seed/post6/640/640",
           "caption": "Západ slnka nad Bratislavou z okna našej triedy #sunset #bratislava",
           "createdAt": "2024-03-05T21:01:22.458Z",
-          "updatedAt": "2024-03-05T21:01:22.458Z",
+        "updatedAt": "2024-03-05T21:01:22.458Z",
           "tags": [
             "sunset",
             "bratislava"
           ],
-          "id": "732ca0da-8897-44c4-872d-0832b3f2ba3f",
-          "userId": "43f5a8dc-315d-4ae5-9ac5-192abe5428cd"
-        },
-        {
-          "imageUrl": "https://picsum.photos/seed/cfqTGkNqN/640/480",
-          "caption": "Canonicus autus adsuesco templum accusamus clarus allatus pectus clementia.",
-          "updatedAt": "2025-09-15T19:56:56.759Z",
-          "id": "73bc981e-054b-44f9-8285-7c35385641d5",
-          "userId": "43f5a8dc-315d-4ae5-9ac5-192abe5428cd"
-        }
+        "id": "732ca0da-8897-44c4-872d-0832b3f2ba3f",
+        "userId": "43f5a8dc-315d-4ae5-9ac5-192abe5428cd"
+      },
+      {
+        "imageUrl": "https://picsum.photos/seed/cfqTGkNqN/640/480",
+        "caption": "Canonicus autus adsuesco templum accusamus clarus allatus pectus clementia.",
+        "updatedAt": "2025-09-15T19:56:56.759Z",
+        "id": "73bc981e-054b-44f9-8285-7c35385641d5",
+        "userId": "43f5a8dc-315d-4ae5-9ac5-192abe5428cd"
+      }
       ],
       "comments": [
         {
@@ -203,12 +203,12 @@
     {
       "name": "Jakub Kováč",
       "email": "jakub.kovac@example.com",
-      "emailVerified": "2024-05-08T12:54:32.807Z",
+    "emailVerified": "2024-05-08T12:54:32.807Z",
       "image": "https://i.pravatar.cc/150?u=jakub.kovac",
       "createdAt": "2023-12-15T08:29:33.887Z",
-      "updatedAt": "2024-08-15T01:09:36.541Z",
-      "id": "d91b10cf-e945-43c8-a1a9-b401ddd52986",
-      "profile": {
+    "updatedAt": "2024-08-15T01:09:36.541Z",
+    "id": "d91b10cf-e945-43c8-a1a9-b401ddd52986",
+    "profile": {
         "bio": "Tretiak na SPŠE Zochova, zameranie na sieťové technológie a backend. Voľný čas trávim programovaním a hraním hier.",
         "avatarUrl": "https://i.pravatar.cc/300?u=d91b10cf-profile",
         "location": "Bratislava - Petržalka",
@@ -218,12 +218,12 @@
           "Networks"
         ],
         "createdAt": "2023-12-15T08:29:33.887Z",
-        "updatedAt": "2023-12-28T03:19:39.464Z",
-        "id": "bf338cc3-bffa-4e5d-932c-ccc7ca91faf8",
-        "userId": "d91b10cf-e945-43c8-a1a9-b401ddd52986"
-      },
-      "posts": [
-        {
+      "updatedAt": "2023-12-28T03:19:39.464Z",
+      "id": "bf338cc3-bffa-4e5d-932c-ccc7ca91faf8",
+      "userId": "d91b10cf-e945-43c8-a1a9-b401ddd52986"
+    },
+    "posts": [
+      {
           "imageUrl": "https://picsum.photos/seed/post7/640/640",
           "caption": "Konečne som dokončil môj Node.js backend pre školský projekt! #nodejs #backend",
           "createdAt": "2024-02-18T08:19:16.694Z",
@@ -232,10 +232,10 @@
             "nodejs",
             "backend"
           ],
-          "id": "8f1e0f5d-5d8a-4cf6-829b-2b6b6af98104",
-          "userId": "d91b10cf-e945-43c8-a1a9-b401ddd52986"
-        },
-        {
+        "id": "8f1e0f5d-5d8a-4cf6-829b-2b6b6af98104",
+        "userId": "d91b10cf-e945-43c8-a1a9-b401ddd52986"
+      },
+      {
           "imageUrl": "https://picsum.photos/seed/post8/640/640",
           "caption": "LAN párty v škole! #gaming #lanparty #friends",
           "createdAt": "2024-03-31T07:16:02.332Z",
@@ -245,10 +245,10 @@
             "lanparty",
             "friends"
           ],
-          "id": "9af22348-d5f8-47fe-ae87-9cc3b2e1d6a3",
-          "userId": "d91b10cf-e945-43c8-a1a9-b401ddd52986"
-        },
-        {
+        "id": "9af22348-d5f8-47fe-ae87-9cc3b2e1d6a3",
+        "userId": "d91b10cf-e945-43c8-a1a9-b401ddd52986"
+      },
+      {
           "imageUrl": "https://picsum.photos/seed/96awwkK/640/480",
           "caption": "Molestiae debeo sodalitas error curriculum praesentium antiquus utilis contego molestias.",
           "updatedAt": "2024-08-12T13:53:51.815Z",
@@ -263,19 +263,19 @@
           "createdAt": "2024-03-06T15:55:33.424Z",
           "updatedAt": "2024-03-06T15:55:33.424Z",
           "id": "d3bf4562-0e8a-4f7f-9c1e-14fb41ad6789",
-          "userId": "d91b10cf-e945-43c8-a1a9-b401ddd52986"
-        }
-      ]
-    },
-    {
+        "userId": "d91b10cf-e945-43c8-a1a9-b401ddd52986"
+      }
+    ]
+  },
+  {
       "name": "Natália Horváthová",
       "email": "natalia.horvathova@example.com",
-      "emailVerified": "2024-08-20T13:25:55.970Z",
+    "emailVerified": "2024-08-20T13:25:55.970Z",
       "image": "https://i.pravatar.cc/150?u=natalia.horvathova",
       "createdAt": "2023-12-15T08:29:33.887Z",
-      "updatedAt": "2024-01-22T01:47:21.054Z",
-      "id": "38c5b651-4004-4b92-87ca-07368eabc184",
-      "profile": {
+    "updatedAt": "2024-01-22T01:47:21.054Z",
+    "id": "38c5b651-4004-4b92-87ca-07368eabc184",
+    "profile": {
         "bio": "Študentka SPŠE Zochova, nadšenkyňa UX/UI dizajnu. Rada kreslím a tvorím grafiku.",
         "avatarUrl": "https://i.pravatar.cc/300?u=38c5b651-profile",
         "location": "Bratislava - Dúbravka",
@@ -285,25 +285,25 @@
           "Drawing"
         ],
         "createdAt": "2023-12-15T08:29:33.887Z",
-        "updatedAt": "2025-01-20T13:13:26.412Z",
-        "id": "5af82ac5-b377-419a-a928-c3250eee585f",
-        "userId": "38c5b651-4004-4b92-87ca-07368eabc184"
-      },
-      "posts": [
-        {
+      "updatedAt": "2025-01-20T13:13:26.412Z",
+      "id": "5af82ac5-b377-419a-a928-c3250eee585f",
+      "userId": "38c5b651-4004-4b92-87ca-07368eabc184"
+    },
+    "posts": [
+      {
           "imageUrl": "https://picsum.photos/seed/post9/640/640",
           "caption": "Moje prvé UI návrhy pre mobilnú aplikáciu #ui #design #mobile",
           "createdAt": "2023-12-29T23:41:07.135Z",
-          "updatedAt": "2023-12-29T23:41:07.135Z",
+        "updatedAt": "2023-12-29T23:41:07.135Z",
           "tags": [
             "ui",
             "design",
             "mobile"
           ],
-          "id": "0c2e3a0a-547e-4eeb-a5e4-65669c3b228c",
-          "userId": "38c5b651-4004-4b92-87ca-07368eabc184"
-        },
-        {
+        "id": "0c2e3a0a-547e-4eeb-a5e4-65669c3b228c",
+        "userId": "38c5b651-4004-4b92-87ca-07368eabc184"
+      },
+      {
           "imageUrl": "https://picsum.photos/seed/post10/640/640",
           "caption": "Výstava študentských prác na SPŠE Zochova #exhibition #art #school",
           "createdAt": "2024-04-11T00:43:59.128Z",
@@ -313,8 +313,8 @@
             "art",
             "school"
           ],
-          "id": "de6b5f8a-246f-46fd-b58d-8af972871bbe",
-          "userId": "38c5b651-4004-4b92-87ca-07368eabc184"
+        "id": "de6b5f8a-246f-46fd-b58d-8af972871bbe",
+        "userId": "38c5b651-4004-4b92-87ca-07368eabc184"
         }
       ],
       "comments": [
@@ -324,9 +324,9 @@
           "createdAt": "2024-02-19T23:40:13.260Z",
           "updatedAt": "2024-02-19T23:40:13.260Z",
           "id": "87a4c6d9-7b2a-4f1e-93c5-15a8eb97a2d0",
-          "userId": "38c5b651-4004-4b92-87ca-07368eabc184"
-        }
-      ]
+        "userId": "38c5b651-4004-4b92-87ca-07368eabc184"
+      }
+    ]
     }
   ],
   "follows": [

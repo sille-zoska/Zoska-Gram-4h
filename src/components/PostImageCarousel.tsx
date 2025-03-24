@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Image from 'next/image';
 import { Box, IconButton, MobileStepper, useTheme } from '@mui/material';
 import { KeyboardArrowLeft, KeyboardArrowRight } from '@mui/icons-material';
-import SwipeableViews from 'react-swipeable-views';
+import { useSwipeable } from 'react-swipeable';
 
 type PostImage = {
   id: string;
@@ -29,16 +29,18 @@ const PostImageCarousel = ({ images, aspectRatio = "1/1" }: PostImageCarouselPro
   const sortedImages = [...images].sort((a, b) => a.order - b.order);
 
   const handleNext = () => {
-    setActiveStep((prevActiveStep) => prevActiveStep + 1);
+    setActiveStep((prevActiveStep) => Math.min(prevActiveStep + 1, maxSteps - 1));
   };
 
   const handleBack = () => {
-    setActiveStep((prevActiveStep) => prevActiveStep - 1);
+    setActiveStep((prevActiveStep) => Math.max(prevActiveStep - 1, 0));
   };
 
-  const handleStepChange = (step: number) => {
-    setActiveStep(step);
-  };
+  const swipeHandlers = useSwipeable({
+    onSwipedLeft: handleNext,
+    onSwipedRight: handleBack,
+    trackMouse: true,
+  });
 
   // If there's only one image, render it without carousel controls
   if (maxSteps <= 1) {
@@ -62,12 +64,21 @@ const PostImageCarousel = ({ images, aspectRatio = "1/1" }: PostImageCarouselPro
   }
 
   return (
-    <Box sx={{ position: 'relative', width: '100%' }}>
-      <SwipeableViews
-        axis={theme.direction === 'rtl' ? 'x-reverse' : 'x'}
-        index={activeStep}
-        onChangeIndex={handleStepChange}
-        enableMouseEvents
+    <Box 
+      {...swipeHandlers}
+      sx={{ 
+        position: 'relative', 
+        width: '100%',
+        touchAction: 'pan-y pinch-zoom'
+      }}
+    >
+      <Box
+        sx={{
+          display: 'flex',
+          width: '100%',
+          transform: `translateX(-${activeStep * 100}%)`,
+          transition: 'transform 0.3s ease-out',
+        }}
       >
         {sortedImages.map((image, index) => (
           <Box
@@ -75,22 +86,21 @@ const PostImageCarousel = ({ images, aspectRatio = "1/1" }: PostImageCarouselPro
             sx={{
               position: 'relative',
               width: '100%',
+              flexShrink: 0,
               aspectRatio,
               overflow: 'hidden',
             }}
           >
-            {Math.abs(activeStep - index) <= 2 ? (
-              <Image
-                src={image.imageUrl}
-                alt={`Post image ${index + 1}`}
-                fill
-                style={{ objectFit: 'cover' }}
-                sizes="(max-width: 600px) 100vw, 600px"
-              />
-            ) : null}
+            <Image
+              src={image.imageUrl}
+              alt={`Post image ${index + 1}`}
+              fill
+              style={{ objectFit: 'cover' }}
+              sizes="(max-width: 600px) 100vw, 600px"
+            />
           </Box>
         ))}
-      </SwipeableViews>
+      </Box>
 
       {/* Left navigation button */}
       {activeStep > 0 && (

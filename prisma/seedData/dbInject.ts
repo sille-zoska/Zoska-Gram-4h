@@ -12,7 +12,6 @@ async function seed() {
   const users = seedData.users || [];
   const follows = seedData.follows || [];
   const likes = seedData.likes || [];
-  const commentLikes = seedData.commentLikes || [];
   const bookmarks = seedData.bookmarks || [];
 
   console.log(`Starting database seed with ${users.length} users...`);
@@ -110,48 +109,6 @@ async function seed() {
           }
         }
       }
-
-      // Create comments
-      if (item.comments && item.comments.length > 0) {
-        console.log(`Creating ${item.comments.length} comments for: ${item.name}`);
-        for (const comment of item.comments) {
-          // Check if the referenced post exists
-          try {
-            const postExists = await prisma.post.findUnique({
-              where: { id: comment.postId }
-            });
-
-            if (postExists) {
-              await prisma.comment.upsert({
-                where: { id: comment.id },
-                update: {
-                  content: comment.content,
-                  postId: comment.postId,
-                  updatedAt: new Date(comment.updatedAt)
-                },
-                create: {
-                  id: comment.id,
-                  userId: item.id,
-                  postId: comment.postId,
-                  content: comment.content,
-                  createdAt: new Date(comment.createdAt || new Date()),
-                  updatedAt: new Date(comment.updatedAt),
-                  edited: comment.edited || false,
-                  parentId: comment.parentId || null
-                }
-              });
-            } else {
-              console.log(`Skipping comment ${comment.id} - referenced post ${comment.postId} doesn't exist`);
-            }
-          } catch (error: unknown) {
-            if (error instanceof Error) {
-              console.log(`Error creating comment ${comment.id}: ${error.message}`);
-            } else {
-              console.log(`Error creating comment ${comment.id}: Unknown error occurred`);
-            }
-          }
-        }
-      }
     }
 
     // Create follows
@@ -193,28 +150,6 @@ async function seed() {
             userId: like.userId,
             postId: like.postId,
             createdAt: new Date(like.createdAt || new Date())
-          }
-        });
-      }
-    }
-
-    // Create comment likes
-    if (commentLikes.length > 0) {
-      console.log(`Creating ${commentLikes.length} comment likes...`);
-      for (const commentLike of commentLikes) {
-        await prisma.commentLike.upsert({
-          where: {
-            userId_commentId: {
-              userId: commentLike.userId,
-              commentId: commentLike.commentId
-            }
-          },
-          update: {},
-          create: {
-            id: commentLike.id,
-            userId: commentLike.userId,
-            commentId: commentLike.commentId,
-            createdAt: new Date(commentLike.createdAt || new Date())
           }
         });
       }

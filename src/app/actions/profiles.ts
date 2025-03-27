@@ -90,7 +90,15 @@ export const fetchProfilesCursor = async ({
             posts: {
               orderBy: {
                 createdAt: 'desc'
-              }
+              },
+              include: {
+                images: {
+                  orderBy: {
+                    order: 'asc'
+                  }
+                }
+              },
+              take: 3
             },
             followers: {
               include: {
@@ -133,14 +141,26 @@ export const fetchProfilesCursor = async ({
 // Fetch a single profile by ID with user details and posts
 export const fetchProfileById = async (
   profileId: string
-): Promise<ProfileWithUser> => {
+): Promise<ProfileWithUser | null> => {
   try {
-    const profile = await prisma.profile.findUnique({
+    // First, try to find a profile by ID
+    let profile = await prisma.profile.findUnique({
       where: { id: profileId },
       include: {
         user: {
           include: {
-            posts: true,
+            posts: {
+              include: {
+                images: {
+                  orderBy: {
+                    order: 'asc'
+                  }
+                }
+              },
+              orderBy: {
+                createdAt: 'desc'
+              }
+            },
             followers: {
               include: {
                 follower: {
@@ -168,14 +188,122 @@ export const fetchProfileById = async (
       },
     });
 
+    // If not found by profile ID, try to find by user ID
     if (!profile) {
-      throw new Error("Profile not found");
+      const user = await prisma.user.findUnique({
+        where: { id: profileId },
+      });
+
+      if (user) {
+        // Check if the user has a profile
+        profile = await prisma.profile.findUnique({
+          where: { userId: user.id },
+          include: {
+            user: {
+              include: {
+                posts: {
+                  include: {
+                    images: {
+                      orderBy: {
+                        order: 'asc'
+                      }
+                    }
+                  },
+                  orderBy: {
+                    createdAt: 'desc'
+                  }
+                },
+                followers: {
+                  include: {
+                    follower: {
+                      select: {
+                        id: true,
+                        email: true,
+                        name: true,
+                      }
+                    }
+                  }
+                },
+                following: {
+                  include: {
+                    following: {
+                      select: {
+                        id: true,
+                        email: true,
+                        name: true,
+                      }
+                    }
+                  }
+                }
+              },
+            },
+          },
+        });
+
+        // If user exists but no profile, create a default profile
+        if (!profile && user) {
+          profile = await prisma.profile.create({
+            data: {
+              userId: user.id,
+              bio: "",
+              location: "",
+              avatarUrl: user.image,
+              interests: [],
+            },
+            include: {
+              user: {
+                include: {
+                  posts: {
+                    include: {
+                      images: {
+                        orderBy: {
+                          order: 'asc'
+                        }
+                      }
+                    },
+                    orderBy: {
+                      createdAt: 'desc'
+                    }
+                  },
+                  followers: {
+                    include: {
+                      follower: {
+                        select: {
+                          id: true,
+                          email: true,
+                          name: true,
+                        }
+                      }
+                    }
+                  },
+                  following: {
+                    include: {
+                      following: {
+                        select: {
+                          id: true,
+                          email: true,
+                          name: true,
+                        }
+                      }
+                    }
+                  }
+                },
+              },
+            },
+          });
+        }
+      }
+    }
+
+    if (!profile) {
+      console.log("Profile not found for ID:", profileId);
+      return null;
     }
 
     return profile;
   } catch (error) {
     console.error("Error fetching profile:", error);
-    throw new Error("Could not fetch profile");
+    return null;
   }
 };
 
@@ -206,6 +334,11 @@ export const getCurrentUserProfile = async (): Promise<ProfileWithUser | null> =
                 likes: true,
                 comments: true,
                 bookmarks: true,
+                images: {
+                  orderBy: {
+                    order: 'asc'
+                  }
+                }
               },
               orderBy: {
                 createdAt: 'desc',

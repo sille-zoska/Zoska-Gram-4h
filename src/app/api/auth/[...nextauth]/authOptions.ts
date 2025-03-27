@@ -55,7 +55,7 @@ export const authOptions: NextAuthOptions = {
     signOut: '/auth/odhlasenie',
     verifyRequest: "/auth/overenie", // Used for email verification
     error: "/auth/prihlasenie", // Error page
-    newUser: "/profil/upravit", // Redirect new users to profile edit page
+    newUser: "/profily/upravit", // Redirect new users to profile edit page
   },
   session: {
     strategy: "jwt",
@@ -83,13 +83,13 @@ export const authOptions: NextAuthOptions = {
 
       // Handle new user redirect
       if (url.includes('?newUser=true')) {
-        return `${baseUrl}/profil/upravit`;
+        return `${baseUrl}/profily/upravit`;
       }
 
       // For regular sign-in, redirect to feed page
-      // Only redirect to /prispevok if it's a sign-in operation
+      // Only redirect to /prispevky if it's a sign-in operation
       if (url.includes('/api/auth/callback') || url.includes('/api/auth/signin')) {
-        return `${baseUrl}/prispevok`;
+        return `${baseUrl}/prispevky`;
       }
 
       // For all other cases, don't redirect

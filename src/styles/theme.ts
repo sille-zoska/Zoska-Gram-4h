@@ -8,16 +8,31 @@ const colors = {
     main: '#FF385C', // Vibrant pink-red (Instagram-like)
     light: '#FF6B88',
     dark: '#D32F2F',
+    contrastText: '#FFFFFF',
   },
   secondary: {
     main: '#1DA1F2', // Twitter blue
     light: '#4DB5F5',
     dark: '#1976D2',
+    contrastText: '#FFFFFF',
+  },
+  error: {
+    main: '#FF4D4F',
+    light: '#FF7875',
+    dark: '#D9363E',
+    contrastText: '#FFFFFF',
+  },
+  warning: {
+    main: '#FAAD14',
+    light: '#FFC53D',
+    dark: '#D48806',
+    contrastText: '#000000',
   },
   success: {
     main: '#34D399', // Modern green
     light: '#6EE7B7',
     dark: '#059669',
+    contrastText: '#FFFFFF',
   },
   grey: {
     50: '#F9FAFB',
@@ -41,19 +56,43 @@ const baseThemeOptions: ThemeOptions = {
       fontSize: '2.5rem',
       fontWeight: 700,
       letterSpacing: '-0.02em',
+      lineHeight: 1.2,
     },
     h2: {
       fontSize: '2rem',
       fontWeight: 600,
       letterSpacing: '-0.01em',
+      lineHeight: 1.3,
     },
     h3: {
-      fontSize: '1.5rem',
+      fontSize: '1.75rem',
       fontWeight: 600,
+      lineHeight: 1.4,
     },
     h4: {
+      fontSize: '1.5rem',
+      fontWeight: 600,
+      lineHeight: 1.4,
+    },
+    h5: {
       fontSize: '1.25rem',
       fontWeight: 600,
+      lineHeight: 1.4,
+    },
+    h6: {
+      fontSize: '1rem',
+      fontWeight: 600,
+      lineHeight: 1.4,
+    },
+    subtitle1: {
+      fontSize: '1rem',
+      fontWeight: 500,
+      lineHeight: 1.5,
+    },
+    subtitle2: {
+      fontSize: '0.875rem',
+      fontWeight: 500,
+      lineHeight: 1.5,
     },
     body1: {
       fontSize: '1rem',
@@ -65,7 +104,17 @@ const baseThemeOptions: ThemeOptions = {
     },
     button: {
       textTransform: 'none' as const,
+      fontWeight: 600,
+      fontSize: '0.875rem',
+    },
+    caption: {
+      fontSize: '0.75rem',
+      lineHeight: 1.5,
+    },
+    overline: {
+      fontSize: '0.75rem',
       fontWeight: 500,
+      lineHeight: 1.5,
     },
   },
   shape: {
@@ -75,26 +124,47 @@ const baseThemeOptions: ThemeOptions = {
     MuiButton: {
       styleOverrides: {
         root: {
-          borderRadius: '8px',
-          padding: '8px 16px',
+          borderRadius: 50,
+          padding: '8px 24px',
           transition: 'all 0.2s ease-in-out',
           '&:hover': {
             transform: 'translateY(-1px)',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
           },
         },
         contained: {
+          background: 'linear-gradient(45deg, #FF385C, #1DA1F2)',
           boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)',
+          '&:hover': {
+            background: 'linear-gradient(45deg, #D32F2F, #1976D2)',
+          },
+        },
+        outlined: {
+          borderWidth: 2,
+          '&:hover': {
+            borderWidth: 2,
+          },
         },
       },
     },
     MuiCard: {
       styleOverrides: {
         root: {
-          borderRadius: '16px',
-          transition: 'transform 0.2s ease-in-out',
+          borderRadius: 16,
+          boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
+          transition: 'all 0.2s ease-in-out',
           '&:hover': {
+            boxShadow: '0 8px 30px rgba(0,0,0,0.1)',
             transform: 'translateY(-2px)',
           },
+        },
+      },
+    },
+    MuiPaper: {
+      styleOverrides: {
+        root: {
+          borderRadius: 16,
+          boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
         },
       },
     },
@@ -102,8 +172,37 @@ const baseThemeOptions: ThemeOptions = {
       styleOverrides: {
         root: {
           '& .MuiOutlinedInput-root': {
-            borderRadius: '8px',
+            borderRadius: 12,
+            '&:hover .MuiOutlinedInput-notchedOutline': {
+              borderColor: 'primary.main',
+            },
           },
+        },
+      },
+    },
+    MuiDialog: {
+      styleOverrides: {
+        paper: {
+          borderRadius: 24,
+          padding: 24,
+        },
+      },
+    },
+    MuiIconButton: {
+      styleOverrides: {
+        root: {
+          transition: 'all 0.2s ease-in-out',
+          '&:hover': {
+            transform: 'scale(1.1)',
+          },
+        },
+      },
+    },
+    MuiAvatar: {
+      styleOverrides: {
+        root: {
+          border: '2px solid',
+          borderColor: 'primary.main',
         },
       },
     },
@@ -146,9 +245,11 @@ const lightTheme = createTheme({
     mode: 'light',
     primary: colors.primary,
     secondary: colors.secondary,
+    error: colors.error,
+    warning: colors.warning,
     success: colors.success,
     background: {
-      default: '#F9FAFB',
+      default: colors.grey[50],
       paper: '#FFFFFF',
     },
     text: {
@@ -167,6 +268,8 @@ const darkTheme = createTheme({
     mode: 'dark',
     primary: colors.primary,
     secondary: colors.secondary,
+    error: colors.error,
+    warning: colors.warning,
     success: colors.success,
     background: {
       default: colors.grey[900],

@@ -138,6 +138,8 @@ interface ProfilePost {
   }[];
 }
 
+import { getAvatarUrl } from "@/utils/avatar";
+
 /**
  * ProfilesView Component
  * 
@@ -250,7 +252,12 @@ const ProfilesView = () => {
 
   // Navigate to profile detail page
   const handleProfileClick = (profileId: string) => {
-    router.push(`/profil/${profileId}`);
+    router.push(`/profily/${profileId}`);
+  };
+
+  // Update post navigation
+  const handlePostClick = (postId: string) => {
+    router.push(`/prispevky/${postId}`);
   };
 
   const handleSearchClear = () => {
@@ -297,7 +304,9 @@ const ProfilesView = () => {
       return post.imageUrl;
     }
     // Return a placeholder image URL instead of null
-    return "/images/placeholder.jpg";
+    // return "/images/placeholder.jpg";
+    // Instead of using a static placeholder.jpg, you could use:
+    return `https://api.dicebear.com/7.x/initials/svg?seed=${post.user.name || '?'}&backgroundColor=FF385C,1DA1F2`;
   };
 
   // Render functions
@@ -382,47 +391,55 @@ const ProfilesView = () => {
       <Typography variant="h6" sx={{ mb: 2 }}>
         Nedávne príspevky
       </Typography>
-      <ImageList cols={3} gap={8}>
-        {profile.user.posts.map((post: any) => (
-          <ImageListItem 
-            key={post.id} 
-            sx={{ height: '120px', cursor: 'pointer' }}
-            onClick={() => router.push(`/prispevok/${post.id}`)}
-          >
-            {post.images && post.images.length > 0 ? (
-              // Use the carousel for multiple images
-              <PostImageCarousel 
-                images={post.images}
-                aspectRatio="1/1"
-              />
-            ) : post.imageUrl ? (
-              // Use a regular Image component for the old structure
-              <Image
-                src={post.imageUrl}
-                alt={post.caption || "Post image"}
-                fill
-                sizes="(max-width: 600px) 33vw, 200px"
-                style={{ objectFit: 'cover' }}
-              />
-            ) : (
-              // No image placeholder
-              <Box 
-                sx={{ 
-                  backgroundColor: 'grey.200', 
-                  height: '100%', 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'center' 
-                }}
-              >
-                <Typography variant="caption" color="text.secondary">
-                  Žiadny obrázok
-                </Typography>
-              </Box>
-            )}
-          </ImageListItem>
-        ))}
-      </ImageList>
+      {profile.user.posts.length > 0 ? (
+        <ImageList cols={3} gap={8}>
+          {profile.user.posts.slice(0, 3).map((post: any) => (
+            <ImageListItem 
+              key={post.id} 
+              sx={{ 
+                height: '120px', 
+                cursor: 'pointer',
+                overflow: 'hidden',
+                borderRadius: 2
+              }}
+              onClick={() => handlePostClick(post.id)}
+            >
+              {post.images && post.images.length > 0 ? (
+                <PostImageCarousel 
+                  images={post.images}
+                  aspectRatio="1/1"
+                />
+              ) : post.imageUrl ? (
+                <Image
+                  src={post.imageUrl}
+                  alt={post.caption || "Post image"}
+                  fill
+                  sizes="(max-width: 600px) 33vw, 200px"
+                  style={{ objectFit: 'cover' }}
+                />
+              ) : (
+                <Box 
+                  sx={{ 
+                    backgroundColor: 'grey.200', 
+                    height: '100%', 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center' 
+                  }}
+                >
+                  <Typography variant="caption" color="text.secondary">
+                    Žiadny obrázok
+                  </Typography>
+                </Box>
+              )}
+            </ImageListItem>
+          ))}
+        </ImageList>
+      ) : (
+        <Typography variant="body2" color="text.secondary" align="center">
+          Zatiaľ žiadne príspevky
+        </Typography>
+      )}
     </Box>
   );
 
@@ -438,7 +455,7 @@ const ProfilesView = () => {
             <ImageListItem 
               key={post.id} 
               sx={{ height: '120px', cursor: 'pointer' }}
-              onClick={() => router.push(`/prispevok/${post.id}`)}
+              onClick={() => handlePostClick(post.id)}
             >
               {post.images && post.images.length > 0 ? (
                 // Use the carousel for multiple images
@@ -514,7 +531,7 @@ const ProfilesView = () => {
 
   return (
     <Container sx={{ mt: 4, mb: 10, maxWidth: "md" }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
+      {/* <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
         <Typography variant="h5">
           {viewMode === 'explore' ? 'Objaviť profily' : 'Môj profil'}
         </Typography>
@@ -530,7 +547,7 @@ const ProfilesView = () => {
           {viewMode === 'profile' && (
             <Button 
               component={Link} 
-              href="/profil/upravit" 
+              href="/profily/upravit" 
               variant="contained" 
               startIcon={<EditIcon />}
             >
@@ -538,7 +555,7 @@ const ProfilesView = () => {
             </Button>
           )}
         </Box>
-      </Box>
+      </Box> */}
 
       {viewMode === 'explore' ? (
         // EXPLORE MODE - Show all profiles
@@ -566,8 +583,14 @@ const ProfilesView = () => {
               <CardContent>
                 <Box sx={{ display: 'flex', mb: 3 }}>
                   <Avatar
-                    src={profile.avatarUrl || undefined}
-                    sx={{ width: 80, height: 80, mr: 3 }}
+                    src={getAvatarUrl(profile.user.name, profile.avatarUrl)}
+                    alt={profile.user.name || "Používateľ"}
+                    sx={{
+                      width: 56,
+                      height: 56,
+                      border: '2px solid white',
+                      background: 'linear-gradient(45deg, #FF385C, #1DA1F2)',
+                    }}
                   >
                     {profile.user.name?.[0] || "U"}
                   </Avatar>
@@ -596,7 +619,7 @@ const ProfilesView = () => {
             </Typography>
             <Button 
               component={Link} 
-              href="/profil/upravit" 
+              href="/profily/upravit" 
               variant="contained" 
               color="primary"
               startIcon={<PersonAddIcon />}
@@ -611,10 +634,16 @@ const ProfilesView = () => {
               <CardContent>
                 <Box sx={{ display: 'flex', mb: 3 }}>
                   <Avatar
-                    src={userProfile.avatarUrl || undefined}
-                    sx={{ width: 100, height: 100, mr: 3 }}
+                    src={getAvatarUrl(userProfile?.user?.name, userProfile.avatarUrl)}
+                    alt={userProfile?.user?.name || "Používateľ"}
+                    sx={{
+                      width: 56,
+                      height: 56,
+                      border: '2px solid white',
+                      background: 'linear-gradient(45deg, #FF385C, #1DA1F2)',
+                    }}
                   >
-                    {userProfile.user?.name?.[0] || "U"}
+                    {userProfile?.user?.name?.[0] || "U"}
                   </Avatar>
                   
                   <Box sx={{ flexGrow: 1 }}>
@@ -674,10 +703,10 @@ const ProfilesView = () => {
                         '&:hover': { opacity: 0.8 },
                         position: 'relative',
                       }}
-                      onClick={() => router.push(`/prispevok/${post.id}`)}
+                      onClick={() => handlePostClick(post.id)}
                     >
                       <Image
-                        src={getPostImageUrl(post) || "/images/placeholder.jpg"}
+                        src={getPostImageUrl(post) || `https://api.dicebear.com/7.x/initials/svg?seed=${post.user.name || '?'}&backgroundColor=FF385C,1DA1F2`}
                         alt={post.caption || ""}
                         fill
                         sizes="(max-width: 768px) 33vw, 25vw"

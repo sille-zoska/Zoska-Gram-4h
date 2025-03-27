@@ -3,63 +3,111 @@
 "use client";
 
 // React imports
-import { ReactNode } from "react";
+import { ReactNode, useEffect } from "react";
 
 // Next.js imports
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 
 // NextAuth imports
 import { useSession } from "next-auth/react";
 
-// MUI imports
-import CircularProgress from "@mui/material/CircularProgress";
-import Box from "@mui/material/Box";
+// MUI Component imports
+import { Box, CircularProgress, Typography, useTheme } from "@mui/material";
 
-// TypeScript interfaces
+// MUI Icon imports
+import LockIcon from "@mui/icons-material/Lock";
+
+// Types
 interface AuthGuardProps {
   children: ReactNode;
   redirectPath: string;
 }
 
-// Authentication guard component that protects routes
+/**
+ * AuthGuard Component
+ * 
+ * Protects routes by requiring authentication.
+ * Features:
+ * - Smooth loading transitions
+ * - Redirect handling
+ * - Session persistence
+ * - Post-login redirect
+ * - Animated loading state
+ */
 const AuthGuard = ({ children, redirectPath }: AuthGuardProps) => {
   const { data: session, status } = useSession();
   const router = useRouter();
-  
-  // Check for the from=signout parameter in the URL
-  const isFromSignout = typeof window !== 'undefined' && 
-    window.location.search.includes('from=signout');
+  const pathname = usePathname();
+  const theme = useTheme();
 
-  // Show loading spinner while checking authentication
-  if (status === "loading") {
+  useEffect(() => {
+    if (status === 'loading') return;
+
+    if (!session) {
+      // Store the attempted URL for post-login redirect
+      sessionStorage.setItem('redirectAfterLogin', pathname);
+      router.push(redirectPath);
+    } else if (session && pathname === '/auth/prihlasenie') {
+      // If logged in and trying to access login page, redirect to feed
+      router.push('/prispevky');
+    }
+  }, [session, status, router, pathname, redirectPath]);
+
+  if (status === 'loading') {
     return (
       <Box
+        className="fade-in"
         sx={{
           display: "flex",
+          flexDirection: "column",
           justifyContent: "center",
           alignItems: "center",
           minHeight: "100vh",
+          gap: 2,
+          background: `linear-gradient(135deg, ${theme.palette.primary.main}15, ${theme.palette.secondary.main}15)`,
         }}
       >
-        <CircularProgress color="secondary" />
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: 3,
+            p: 4,
+            borderRadius: 2,
+            backgroundColor: theme.palette.background.paper,
+            boxShadow: theme.shadows[4],
+            animation: "float 3s ease-in-out infinite",
+          }}
+        >
+          <LockIcon
+            sx={{
+              fontSize: 48,
+              color: theme.palette.primary.main,
+              animation: "spin 10s linear infinite",
+            }}
+          />
+          <CircularProgress
+            color="secondary"
+            size={24}
+            thickness={4}
+            sx={{
+              animation: "pulse 2s ease-in-out infinite",
+            }}
+          />
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            sx={{
+              opacity: 0.8,
+              animation: "fade 2s ease-in-out infinite",
+            }}
+          >
+            Overujem prihlásenie...
+          </Typography>
+        </Box>
       </Box>
     );
-  }
-
-  // If user just signed out, don't redirect them again
-  if (isFromSignout && !session) {
-    // Remove the parameter and stay on the current page
-    if (typeof window !== 'undefined') {
-      const newUrl = window.location.pathname;
-      window.history.replaceState({}, '', newUrl);
-    }
-    return null; // Let the public page handle the rendering
-  }
-
-  // Redirect to specified path if not authenticated
-  if (!session) {
-    router.push(redirectPath);
-    return null;
   }
 
   return <>{children}</>;

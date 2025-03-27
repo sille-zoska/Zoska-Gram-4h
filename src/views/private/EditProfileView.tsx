@@ -7,6 +7,7 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Image from "next/image";
+import Link from "next/link";
 
 // MUI imports
 import {
@@ -93,6 +94,9 @@ type LoadingState = {
   save: boolean;
 };
 
+// Utils
+import { getAvatarUrl } from "@/utils/avatar";
+
 /**
  * EditProfileView Component
  * 
@@ -138,12 +142,23 @@ const EditProfileView = () => {
     const loadProfile = async () => {
       if (session?.user?.email) {
         try {
-          // Pass the email to fetch profile as a workaround if id is missing
+          console.log('Loading profile with session:', {
+            userName: session.user.name,
+            userImage: session.user.image,
+            userEmail: session.user.email
+          });
+          
           const userProfile = await getCurrentUserProfile();
+          console.log('Loaded profile:', userProfile);
           
           if (userProfile) {
-            // Existing profile - load its data
             setProfile(userProfile);
+            console.log('Setting form data with:', {
+              name: userProfile.user.name,
+              avatarUrl: userProfile.avatarUrl,
+              existingProfile: true
+            });
+            
             setFormData({
               name: userProfile.user.name || "",
               bio: userProfile.bio || "",
@@ -153,7 +168,11 @@ const EditProfileView = () => {
             setInterestsString(userProfile.interests ? userProfile.interests.join(', ') : '');
             setIsNewProfile(false);
           } else {
-            // New profile - start with empty form but prefill avatar with user's image
+            console.log('Creating new profile with session data:', {
+              name: session.user.name,
+              image: session.user.image
+            });
+            
             setFormData({
               name: session.user.name || "",
               bio: "",
@@ -197,40 +216,28 @@ const EditProfileView = () => {
   };
 
   // Event handlers
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
     
-    // Validate form before submission
     if (!validateForm()) {
       return;
     }
     
     setLoading(prev => ({ ...prev, save: true }));
-    setError(null);
-    
+
     try {
       if (isNewProfile) {
-        const newProfile = await createProfile(formData);
-        setProfile(newProfile);
+        // Create new profile
+        await createProfile(formData);
       } else {
-        const updatedProfile = await updateProfile(formData);
-        setProfile(updatedProfile);
+        // Update existing profile
+        await updateProfile(formData);
       }
-      
       setSuccess(true);
-      setIsEditing(false);
-      
-      // Refresh the page to update the navigation bar avatar
-      router.refresh();
-      
-      // Add 1.5 second delay then redirect to feed page
-      setTimeout(() => {
-        router.push('/prispevok');
-      }, 1500);
-      
+      router.push(`/profily/${session?.user?.id}`);
     } catch (error) {
-      console.error("Failed to save profile:", error);
-      setError("Nepodarilo sa uložiť zmeny");
+      console.error(`Failed to ${isNewProfile ? 'create' : 'update'} profile:`, error);
+      setError(`Nepodarilo sa ${isNewProfile ? 'vytvoriť' : 'aktualizovať'} profil. Skúste to znova neskôr.`);
     } finally {
       setLoading(prev => ({ ...prev, save: false }));
     }
@@ -247,15 +254,21 @@ const EditProfileView = () => {
     const file = event.target.files?.[0];
     if (!file) return;
 
+    console.log('Starting avatar upload with file:', {
+      fileName: file.name,
+      fileType: file.type,
+      fileSize: file.size
+    });
+
     setIsAvatarUploading(true);
     setError(null);
 
     try {
-      // Upload the avatar to Vercel Blob
       const formData = new FormData();
       formData.append("file", file);
       formData.append("folder", "avatars");
 
+      console.log('Sending upload request to /api/images');
       const response = await fetch("/api/images", {
         method: "POST",
         body: formData,
@@ -267,12 +280,18 @@ const EditProfileView = () => {
       }
 
       const { url: avatarUrl } = await response.json();
+      console.log('Received avatar URL from upload:', avatarUrl);
 
-      // Update the form data with the new avatar URL
-      setFormData(prev => ({
-        ...prev,
-        avatarUrl
-      }));
+      setFormData(prev => {
+        console.log('Updating form data with new avatar URL:', {
+          oldUrl: prev.avatarUrl,
+          newUrl: avatarUrl
+        });
+        return {
+          ...prev,
+          avatarUrl
+        };
+      });
     } catch (error) {
       console.error("Failed to upload avatar:", error);
       setError(error instanceof Error ? error.message : "Failed to upload avatar");
@@ -294,60 +313,77 @@ const EditProfileView = () => {
       return post.imageUrl;
     }
     // Return a placeholder image URL as fallback
-    return "/images/placeholder.jpg";
+    // return "/images/placeholder.jpg";
+    // Instead of using a static placeholder.jpg, you could use:
+    return `https://api.dicebear.com/7.x/initials/svg?seed=${formData.name || '?'}&backgroundColor=FF385C,1DA1F2`;
   };
 
   // Render functions
-  const renderProfileHeader = () => (
-    <Box sx={{ display: 'flex', mb: 4 }}>
-      <Avatar
-        src={formData.avatarUrl || undefined}
-        sx={{ width: 100, height: 100, mr: 4 }}
-      >
-        {formData.name?.[0] || "U"}
-      </Avatar>
+  const renderProfileHeader = () => {
+    console.log('Rendering profile header with:', {
+      sessionUserName: session?.user?.name,
+      formDataAvatarUrl: formData.avatarUrl,
+      profileAvatarUrl: profile?.avatarUrl
+    });
+    
+    return (
+      <Box sx={{ display: 'flex', mb: 4 }}>
+        <Avatar
+          src={getAvatarUrl(session?.user?.name, formData.avatarUrl)}
+          alt={session?.user?.name || "Používateľ"}
+          sx={{
+            width: { xs: 120, sm: 150 },
+            height: { xs: 120, sm: 150 },
+            border: '4px solid white',
+            boxShadow: (theme) => `0 0 20px ${theme.palette.primary.main}15`,
+            background: 'linear-gradient(45deg, #FF385C, #1DA1F2)',
+          }}
+        >
+          {session?.user?.name?.[0] || "U"}
+        </Avatar>
 
-      <Box sx={{ flexGrow: 1 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-          <Typography variant="h5" sx={{ mr: 2 }}>
-            {formData.name || "Neznámy používateľ"}
-          </Typography>
-          <Button
-            variant="contained"
-            size="small"
-            startIcon={<EditIcon />}
-            onClick={() => setIsEditing(true)}
-          >
-            Upraviť profil
-          </Button>
+        <Box sx={{ flexGrow: 1 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+            <Typography variant="h5" sx={{ mr: 2 }}>
+              {formData.name || "Neznámy používateľ"}
+            </Typography>
+            <Button
+              variant="contained"
+              size="small"
+              startIcon={<EditIcon />}
+              onClick={() => setIsEditing(true)}
+            >
+              Upraviť profil
+            </Button>
+          </Box>
+
+          <Box sx={{ display: 'flex', gap: 4, mb: 2 }}>
+            <Typography>
+              <strong>{profile?.user.posts?.length || 0}</strong> príspevkov
+            </Typography>
+            <Typography>
+              <strong>{profile?.user.followers?.length || 0}</strong> sledovateľov
+            </Typography>
+            <Typography>
+              <strong>{profile?.user.following?.length || 0}</strong> sledovaných
+            </Typography>
+          </Box>
+
+          {formData.bio && (
+            <Typography variant="body1" sx={{ mb: 1 }}>
+              {formData.bio}
+            </Typography>
+          )}
+
+          {formData.location && (
+            <Typography variant="body2" color="text.secondary">
+              📍 {formData.location}
+            </Typography>
+          )}
         </Box>
-
-        <Box sx={{ display: 'flex', gap: 4, mb: 2 }}>
-          <Typography>
-            <strong>{profile?.user.posts?.length || 0}</strong> príspevkov
-          </Typography>
-          <Typography>
-            <strong>{profile?.user.followers?.length || 0}</strong> sledovateľov
-          </Typography>
-          <Typography>
-            <strong>{profile?.user.following?.length || 0}</strong> sledovaných
-          </Typography>
-        </Box>
-
-        {formData.bio && (
-          <Typography variant="body1" sx={{ mb: 1 }}>
-            {formData.bio}
-          </Typography>
-        )}
-
-        {formData.location && (
-          <Typography variant="body2" color="text.secondary">
-            📍 {formData.location}
-          </Typography>
-        )}
       </Box>
-    </Box>
-  );
+    );
+  };
 
   const renderPostsGrid = () => (
     <>
@@ -403,113 +439,127 @@ const EditProfileView = () => {
     </>
   );
 
-  const renderEditForm = () => (
-    <Paper sx={{ p: 3 }}>
-      <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h5" sx={{ flexGrow: 1 }}>
-          {isNewProfile ? "Vytvoriť profil" : "Upraviť profil"}
-        </Typography>
-        {!isNewProfile && (
-          <Button
-            variant="outlined"
-            onClick={() => setIsEditing(false)}
-            sx={{ mr: 1 }}
-          >
-            Zrušiť
-          </Button>
-        )}
-      </Box>
-
-      <Box component="form" onSubmit={handleSubmit}>
-        <Box sx={{ display: "flex", justifyContent: "center", mb: 4 }}>
-          <Box sx={{ position: "relative" }}>
-            <Avatar
-              src={formData.avatarUrl || undefined}
-              sx={{ width: 120, height: 120 }}
+  const renderEditForm = () => {
+    console.log('Rendering edit form with:', {
+      sessionUserName: session?.user?.name,
+      formDataAvatarUrl: formData.avatarUrl,
+      isNewProfile
+    });
+    
+    return (
+      <Paper sx={{ p: 3 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+          <Typography variant="h5" sx={{ flexGrow: 1 }}>
+            {isNewProfile ? "Vytvoriť profil" : "Upraviť profil"}
+          </Typography>
+          {!isNewProfile && (
+            <Button
+              variant="outlined"
+              onClick={() => setIsEditing(false)}
+              sx={{ mr: 1 }}
             >
-              {formData.name?.[0] || "U"}
-            </Avatar>
-            <IconButton
-              sx={{
-                position: "absolute",
-                bottom: 0,
-                right: 0,
-                backgroundColor: "background.paper",
-              }}
-              onClick={handleAvatarUpload}
-              disabled={isAvatarUploading}
-            >
-              {isAvatarUploading ? (
-                <CircularProgress size={24} />
-              ) : (
-                <PhotoCameraIcon />
-              )}
-            </IconButton>
-            <input
-              type="file"
-              ref={fileInputRef}
-              onChange={handleAvatarFileChange}
-              style={{ display: "none" }}
-              accept="image/*"
-            />
-          </Box>
+              Zrušiť
+            </Button>
+          )}
         </Box>
 
-        <Grid container spacing={2}>
-          <Grid item xs={12}>
-            <TextField
-              fullWidth
-              label="Meno"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              error={!!fieldErrors.name}
-              helperText={fieldErrors.name}
-              required
-            />
+        <Box component="form" onSubmit={handleSubmit}>
+          <Box sx={{ display: "flex", justifyContent: "center", mb: 4 }}>
+            <Box sx={{ position: "relative" }}>
+              <Avatar
+                src={getAvatarUrl(session?.user?.name, formData.avatarUrl)}
+                alt={session?.user?.name || "Používateľ"}
+                sx={{
+                  width: 40,
+                  height: 40,
+                  border: '2px solid white',
+                  background: 'linear-gradient(45deg, #FF385C, #1DA1F2)',
+                }}
+              >
+                {session?.user?.name?.[0] || "U"}
+              </Avatar>
+              <IconButton
+                sx={{
+                  position: "absolute",
+                  bottom: 0,
+                  right: 0,
+                  backgroundColor: "background.paper",
+                }}
+                onClick={handleAvatarUpload}
+                disabled={isAvatarUploading}
+              >
+                {isAvatarUploading ? (
+                  <CircularProgress size={24} />
+                ) : (
+                  <PhotoCameraIcon />
+                )}
+              </IconButton>
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleAvatarFileChange}
+                style={{ display: "none" }}
+                accept="image/*"
+              />
+            </Box>
+          </Box>
+
+          <Grid container spacing={2}>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Meno"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                error={!!fieldErrors.name}
+                helperText={fieldErrors.name}
+                required
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Bio"
+                multiline
+                rows={4}
+                value={formData.bio}
+                onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
+                error={!!fieldErrors.bio}
+                helperText={fieldErrors.bio || `${formData.bio.length}/500`}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Lokalita"
+                value={formData.location}
+                onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                error={!!fieldErrors.location}
+                helperText={fieldErrors.location}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <Button
+                fullWidth
+                variant="contained"
+                type="submit"
+                disabled={loading.save}
+                startIcon={loading.save ? <CircularProgress size={20} /> : <SaveIcon />}
+              >
+                {loading.save ? "Ukladá sa..." : isNewProfile ? "Vytvoriť profil" : "Uložiť zmeny"}
+              </Button>
+            </Grid>
           </Grid>
-          <Grid item xs={12}>
-            <TextField
-              fullWidth
-              label="Bio"
-              multiline
-              rows={4}
-              value={formData.bio}
-              onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
-              error={!!fieldErrors.bio}
-              helperText={fieldErrors.bio || `${formData.bio.length}/500`}
-            />
-          </Grid>
-          <Grid item xs={12}>
-            <TextField
-              fullWidth
-              label="Lokalita"
-              value={formData.location}
-              onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-              error={!!fieldErrors.location}
-              helperText={fieldErrors.location}
-            />
-          </Grid>
-          <Grid item xs={12}>
-            <Button
-              fullWidth
-              variant="contained"
-              type="submit"
-              disabled={loading.save}
-              startIcon={loading.save ? <CircularProgress size={20} /> : <SaveIcon />}
-            >
-              {loading.save ? "Ukladá sa..." : isNewProfile ? "Vytvoriť profil" : "Uložiť zmeny"}
-            </Button>
-          </Grid>
-        </Grid>
-        
-        {error && (
-          <Alert severity="error" sx={{ mt: 2 }}>
-            {error}
-          </Alert>
-        )}
-      </Box>
-    </Paper>
-  );
+          
+          {error && (
+            <Alert severity="error" sx={{ mt: 2 }}>
+              {error}
+            </Alert>
+          )}
+        </Box>
+      </Paper>
+    );
+  };
 
   // Loading and error states
   if (loading.initial) {
@@ -566,6 +616,16 @@ const EditProfileView = () => {
           Profil bol úspešne aktualizovaný
         </Alert>
       </Snackbar>
+
+      <Button
+        component={Link}
+        href={`/profily/${session?.user?.id}`}
+        variant="outlined"
+        color="primary"
+        startIcon={<ArrowBackIcon />}
+      >
+        Späť na profil
+      </Button>
     </Container>
   );
 };

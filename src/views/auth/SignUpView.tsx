@@ -2,394 +2,379 @@
 
 "use client";
 
-// React imports
+// React and Next.js imports
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { signIn } from "next-auth/react";
 import Link from "next/link";
 
-// MUI imports
+// NextAuth imports
+import { signIn } from "next-auth/react";
+
+// Material-UI imports
 import {
   Box,
   Typography,
-  TextField,
   Button,
-  InputAdornment,
-  IconButton,
   Divider,
   Paper,
   CircularProgress,
   Alert,
-  Checkbox,
+  Fade,
+  Zoom,
   FormControlLabel,
+  Checkbox,
+  FormHelperText,
 } from "@mui/material";
+
+// Material-UI Icons
 import {
-  Visibility,
-  VisibilityOff,
-  Person as PersonIcon,
-  Email as EmailIcon,
-  Lock as LockIcon,
   School as SchoolIcon,
   Google as GoogleIcon,
 } from "@mui/icons-material";
 
-// Custom imports
-import GoogleSignButton from "../../components/auth/GoogleSignButton";
-import GithubSignButton from "../../components/auth/GithubSignButton";
-import SignInUpViewLink from "../../components/CustomLink";
+// Custom components
+import GoogleSignButton from "./GoogleSignButton";
 
-// Zod imports
-import { z } from "zod";
+// Types
+interface FormData {
+  email: string;
+  password: string;
+  confirmPassword: string;
+}
 
-// Validation schema
-const signUpSchema = z.object({
-  acceptedTerms: z.literal(true, {
-    errorMap: () => ({ message: "Musíte súhlasiť s GDPR a podmienkami používania." }),
-  }),
-  // Uncomment for credentials registration
-  // name: z.string().min(2, "Meno musí mať aspoň 2 znaky"),
-  // email: z.string().email("Zadajte platný email"),
-  // password: z.string().min(8, "Heslo musí mať aspoň 8 znakov"),
-});
+interface FormError {
+  field: keyof FormData;
+  message: string;
+}
 
+// Error message mapping
+const ERROR_MESSAGES = {
+  OAuthSignin: "Nastal problém s registráciou cez Google. Skúste to znova.",
+  OAuthCallback: "Nastal problém s registráciou cez Google. Skúste to znova.",
+  OAuthCreateAccount: "Nastal problém s vytvorením účtu. Skúste to znova.",
+  EmailSignin: "Nastal problém s odoslaním registračného odkazu. Skúste to znova.",
+  Callback: "Neplatný registračný odkaz alebo vypršala jeho platnosť.",
+  CredentialsSignin: "Registrácia zlyhala. Skúste to znova.",
+  TermsNotAccepted: "Pre registráciu musíte súhlasiť s GDPR a podmienkami používania.",
+  default: "Registrácia zlyhala. Skúste to znova.",
+} as const;
+
+/**
+ * SignUpView Component
+ * 
+ * Handles user registration through Google OAuth.
+ * Provides a clean and intuitive interface for users to create an account.
+ */
 const SignUpView = () => {
+  // Hooks
   const router = useRouter();
   const searchParams = useSearchParams();
-  const error = searchParams?.get("error");
   
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    password: "",
-  });
-  const [isChecked, setIsChecked] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
+  // State
   const [loading, setLoading] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+  const [showError, setShowError] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [termsError, setTermsError] = useState(false);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+  // Get error from URL params
+  const error = searchParams?.get("error");
+
+  /**
+   * Handle Google sign-in error
+   */
+  const handleGoogleSignInError = (err: Error) => {
+    setFormError(ERROR_MESSAGES.OAuthSignin);
+    setShowError(true);
+    setLoading(false);
   };
 
-  const handleCheckboxChange = () => {
-    setIsChecked(!isChecked);
-    if (formError) {
-      setFormError(null); // Clear error when checkbox is toggled
+  /**
+   * Handle Google sign-in start
+   */
+  const handleGoogleSignInStart = () => {
+    if (!termsAccepted) {
+      setTermsError(true);
+      setFormError(ERROR_MESSAGES.TermsNotAccepted);
+      setShowError(true);
+      return false; // Prevent sign-in
     }
-  };
-
-  const validateForm = () => {
-    try {
-      signUpSchema.parse({ 
-        acceptedTerms: isChecked,
-        // Uncomment for credentials registration
-        // name: formData.name,
-        // email: formData.email,
-        // password: formData.password
-      });
-      return true;
-    } catch (e) {
-      if (e instanceof z.ZodError) {
-        setFormError(e.errors[0].message);
-      }
-      return false;
-    }
-  };
-
-  const handleGoogleSignUp = async () => {
-    if (!validateForm()) return;
     
+    setTermsError(false);
     setLoading(true);
-    try {
-      await signIn("google", { callbackUrl: "/prispevok" });
-    } catch (err) {
-      setFormError("Registrácia cez Google zlyhala. Skúste to znova.");
-      setLoading(false);
-    }
+    setFormError(null);
+    setShowError(false);
+    return true; // Allow sign-in
   };
 
-  // Currently commented out as we're only using Google OAuth
-  /*
-  const handleCredentialsSignUp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!validateForm()) return;
-    
-    setLoading(true);
-    try {
-      // Here would be the code to register the user with credentials
-      // 1. API call to create user in database
-      // 2. Send verification email using SendGrid
-      // 3. Redirect to verification page or sign in
-      
-      // Example:
-      // const response = await fetch('/api/auth/register', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify(formData)
-      // });
-      //
-      // if (!response.ok) {
-      //   const data = await response.json();
-      //   throw new Error(data.message || 'Registration failed');
-      // }
-      //
-      // router.push('/auth/overenie');
-    } catch (err) {
-      setFormError(err instanceof Error ? err.message : "Registrácia zlyhala. Skúste to znova.");
-    } finally {
-      setLoading(false);
-    }
+  /**
+   * Gets user-friendly error message based on error code
+   */
+  const getErrorMessage = (errorCode: string): string => {
+    return ERROR_MESSAGES[errorCode as keyof typeof ERROR_MESSAGES] || ERROR_MESSAGES.default;
   };
-  */
 
-  // Map NextAuth error codes to user-friendly messages
-  const getErrorMessage = (errorCode: string) => {
-    switch (errorCode) {
-      case "OAuthSignin":
-      case "OAuthCallback":
-      case "OAuthCreateAccount":
-        return "Nastal problém s registráciou cez Google. Skúste to znova.";
-      default:
-        return "Registrácia zlyhala. Skúste to znova.";
+  const handleTermsChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setTermsAccepted(event.target.checked);
+    if (event.target.checked) {
+      setTermsError(false);
+      setShowError(false);
     }
   };
 
   return (
-    <Box sx={{ width: "100%" }}>
-      <Box
-        sx={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          mb: 4,
+    <Fade in timeout={500}>
+      <Box 
+        sx={{ 
+          width: "100%",
+          maxWidth: "480px",
+          mx: "auto",
+          px: 2,
+          py: 4,
         }}
       >
-        <SchoolIcon
-          sx={{
-            fontSize: 50,
-            mb: 2,
-            color: "primary.main",
-          }}
-        />
-        <Typography
-          variant="h4"
-          sx={{
-            fontWeight: 700,
-            background: "linear-gradient(45deg, #FF385C, #1DA1F2)",
-            backgroundClip: "text",
-            WebkitBackgroundClip: "text",
-            color: "transparent",
-            mb: 1,
-          }}
-        >
-          ZoškaGram
-        </Typography>
-        <Typography variant="body1" color="text.secondary" align="center">
-          Vytvorte si účet a pripojte sa k študentskej komunite
-        </Typography>
-      </Box>
-
-      {(error || formError) && (
-        <Alert severity="error" sx={{ mb: 3 }}>
-          {error ? getErrorMessage(error) : formError}
-        </Alert>
-      )}
-
-      <Paper
-        elevation={0}
-        sx={{
-          p: 3,
-          borderRadius: 2,
-          bgcolor: "background.paper",
-          border: "1px solid",
-          borderColor: "divider",
-        }}
-      >
-        {/* Terms and Conditions Checkbox */}
-        <FormControlLabel
-          control={
-            <Checkbox checked={isChecked} onChange={handleCheckboxChange} />
-          }
-          label={
-            <>
-              Súhlasím s{" "}
-              <Link href="/gdpr" passHref>
-                <Typography
-                  component="span"
-                  variant="body2"
-                  sx={{
-                    fontWeight: 600,
-                    color: "primary.main",
-                    textDecoration: "none",
-                    "&:hover": {
-                      textDecoration: "underline",
-                    },
-                  }}
-                >
-                  GDPR
-                </Typography>
-              </Link>{" "}
-              a{" "}
-              <Link href="/podmienky" passHref>
-                <Typography
-                  component="span"
-                  variant="body2"
-                  sx={{
-                    fontWeight: 600,
-                    color: "primary.main",
-                    textDecoration: "none",
-                    "&:hover": {
-                      textDecoration: "underline",
-                    },
-                  }}
-                >
-                  podmienkami používania
-                </Typography>
-              </Link>
-              .
-            </>
-          }
-          sx={{ mb: 3 }}
-        />
-
-        {/* Google Sign Up Button */}
-        <Button
-          fullWidth
-          variant="outlined"
-          onClick={handleGoogleSignUp}
-          disabled={loading}
-          startIcon={<GoogleIcon />}
-          sx={{
-            py: 1.2,
-            borderRadius: 50,
-            mb: 2,
-            borderColor: "divider",
-            "&:hover": {
-              borderColor: "primary.main",
-              bgcolor: "background.paper",
-            },
-          }}
-        >
-          Registrovať sa cez Google
-        </Button>
-
-        {/* Credentials Sign Up Form - Commented out for now */}
-        {/*
-        <Divider sx={{ my: 2 }}>
-          <Typography variant="body2" color="text.secondary">
-            alebo
-          </Typography>
-        </Divider>
-
-        <Box component="form" onSubmit={handleCredentialsSignUp}>
-          <TextField
-            fullWidth
-            label="Meno a priezvisko"
-            name="name"
-            value={formData.name}
-            onChange={handleChange}
-            required
-            margin="normal"
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <PersonIcon color="action" />
-                </InputAdornment>
-              ),
-            }}
-          />
-
-          <TextField
-            fullWidth
-            label="Email"
-            name="email"
-            type="email"
-            value={formData.email}
-            onChange={handleChange}
-            required
-            margin="normal"
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <EmailIcon color="action" />
-                </InputAdornment>
-              ),
-            }}
-          />
-
-          <TextField
-            fullWidth
-            label="Heslo"
-            name="password"
-            type={showPassword ? "text" : "password"}
-            value={formData.password}
-            onChange={handleChange}
-            required
-            margin="normal"
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <LockIcon color="action" />
-                </InputAdornment>
-              ),
-              endAdornment: (
-                <InputAdornment position="end">
-                  <IconButton
-                    onClick={() => setShowPassword(!showPassword)}
-                    edge="end"
-                  >
-                    {showPassword ? <VisibilityOff /> : <Visibility />}
-                  </IconButton>
-                </InputAdornment>
-              ),
-            }}
-          />
-
-          <Button
-            fullWidth
-            type="submit"
-            variant="contained"
-            disabled={loading}
-            startIcon={loading ? <CircularProgress size={20} /> : <PersonIcon />}
+        {/* Logo and Title Section */}
+        <Zoom in timeout={500} style={{ transitionDelay: "100ms" }}>
+          <Box
             sx={{
-              mt: 3,
-              mb: 2,
-              py: 1.2,
-              borderRadius: 50,
-              fontWeight: 600,
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              mb: 4,
             }}
           >
-            {loading ? "Registrácia..." : "Zaregistrovať sa"}
-          </Button>
-        </Box>
-        */}
-      </Paper>
-
-      <Box sx={{ mt: 3, textAlign: "center" }}>
-        <Typography variant="body2" color="text.secondary">
-          Už máte účet?{" "}
-          <Link href="/auth/prihlasenie" passHref>
-            <Typography
-              component="span"
-              variant="body2"
+            <Box
               sx={{
-                fontWeight: 600,
-                color: "primary.main",
-                textDecoration: "none",
-                "&:hover": {
-                  textDecoration: "underline",
-                },
+                position: "relative",
+                mb: 2,
               }}
             >
-              Prihláste sa
+              <SchoolIcon
+                sx={{
+                  fontSize: 60,
+                  color: "primary.main",
+                  filter: "drop-shadow(0 4px 8px rgba(0,0,0,0.1))",
+                  animation: "float 3s ease-in-out infinite",
+                }}
+                aria-label="ZoškaGram Logo"
+              />
+              <Box
+                sx={{
+                  position: "absolute",
+                  top: -8,
+                  right: -8,
+                  width: 24,
+                  height: 24,
+                  borderRadius: "50%",
+                  bgcolor: "secondary.main",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+                }}
+              >
+                <Typography
+                  variant="caption"
+                  sx={{
+                    color: "white",
+                    fontWeight: 700,
+                    fontSize: "0.75rem",
+                  }}
+                >
+                  BETA
+                </Typography>
+              </Box>
+            </Box>
+            <Typography
+              variant="h4"
+              className="gradient-text"
+              sx={{
+                mb: 1,
+                textAlign: "center",
+                fontWeight: 700,
+              }}
+            >
+              ZoškaGram
             </Typography>
-          </Link>
-        </Typography>
+            <Typography 
+              variant="body1" 
+              color="text.secondary" 
+              align="center"
+              sx={{
+                maxWidth: "80%",
+              }}
+            >
+              Vytvorte si nový účet a začnite zdieľať
+            </Typography>
+          </Box>
+        </Zoom>
+
+        {/* Error Alert */}
+        {(error || formError) && (
+          <Fade in={showError || !!error} timeout={300}>
+            <Alert 
+              severity="error" 
+              sx={{ 
+                mb: 3,
+                borderRadius: 2,
+                "& .MuiAlert-icon": {
+                  fontSize: 28,
+                },
+              }}
+              onClose={() => setShowError(false)}
+            >
+              {error ? getErrorMessage(error) : formError}
+            </Alert>
+          </Fade>
+        )}
+
+        {/* Sign Up Form */}
+        <Zoom in timeout={500} style={{ transitionDelay: "200ms" }}>
+          <Paper
+            elevation={0}
+            sx={{
+              p: 4,
+              borderRadius: 3,
+              bgcolor: "background.paper",
+              border: "1px solid",
+              borderColor: "divider",
+              boxShadow: "0 4px 20px rgba(0,0,0,0.05)",
+              transition: "all 0.3s ease",
+              "&:hover": {
+                boxShadow: "0 8px 30px rgba(0,0,0,0.1)",
+                transform: "translateY(-2px)",
+              },
+            }}
+          >
+            {/* GDPR and Terms Checkbox */}
+            <Box sx={{ mb: 3 }}>
+              <FormControlLabel
+                control={
+                  <Checkbox 
+                    checked={termsAccepted} 
+                    onChange={handleTermsChange} 
+                    name="termsAccepted"
+                    color="primary"
+                  />
+                }
+                label={
+                  <Typography variant="body2">
+                    Súhlasím s{" "}
+                    <Link href="/gdpr" passHref>
+                      <Typography
+                        component="span"
+                        variant="body2"
+                        sx={{
+                          fontWeight: 600,
+                          color: "primary.main",
+                          textDecoration: "none",
+                          "&:hover": {
+                            textDecoration: "underline",
+                          },
+                        }}
+                      >
+                        GDPR
+                      </Typography>
+                    </Link>
+                    {" "}a{" "}
+                    <Link href="/podmienky" passHref>
+                      <Typography
+                        component="span"
+                        variant="body2"
+                        sx={{
+                          fontWeight: 600,
+                          color: "primary.main",
+                          textDecoration: "none",
+                          "&:hover": {
+                            textDecoration: "underline",
+                          },
+                        }}
+                      >
+                        podmienkami používania
+                      </Typography>
+                    </Link>
+                  </Typography>
+                }
+              />
+              {termsError && (
+                <FormHelperText error>
+                  Pre registráciu musíte súhlasiť s GDPR a podmienkami používania
+                </FormHelperText>
+              )}
+            </Box>
+
+            {/* Google Sign Up Button */}
+            <GoogleSignButton 
+              text="Registrovať sa cez Google"
+              callbackUrl="/prispevky"
+              disabled={loading}
+              onSignInStart={() => {
+                const canProceed = handleGoogleSignInStart();
+                return canProceed;
+              }}
+              onSignInError={handleGoogleSignInError}
+            />
+
+            {/* Divider */}
+            <Divider sx={{ my: 3 }}>
+              <Typography 
+                variant="body2" 
+                color="text.secondary"
+                sx={{
+                  px: 2,
+                  fontWeight: 500,
+                }}
+              >
+                alebo
+              </Typography>
+            </Divider>
+
+            {/* Credentials form remains commented out */}
+          </Paper>
+        </Zoom>
+
+        {/* Sign In Link */}
+        <Zoom in timeout={500} style={{ transitionDelay: "300ms" }}>
+          <Box 
+            sx={{ 
+              mt: 4, 
+              textAlign: "center",
+              p: 3,
+              borderRadius: 2,
+              bgcolor: "background.paper",
+              border: "1px solid",
+              borderColor: "divider",
+              transition: "all 0.2s ease",
+              "&:hover": {
+                boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
+              },
+            }}
+          >
+            <Typography variant="body2" color="text.secondary">
+              Už máte účet?{" "}
+              <Link href="/auth/prihlasenie" passHref>
+                <Typography
+                  component="span"
+                  variant="body2"
+                  sx={{
+                    fontWeight: 600,
+                    color: "primary.main",
+                    textDecoration: "none",
+                    transition: "all 0.2s ease",
+                    "&:hover": {
+                      color: "primary.dark",
+                      textDecoration: "underline",
+                    },
+                  }}
+                >
+                  Prihláste sa
+                </Typography>
+              </Link>
+            </Typography>
+          </Box>
+        </Zoom>
       </Box>
-    </Box>
+    </Fade>
   );
 };
 

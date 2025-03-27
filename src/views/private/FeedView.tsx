@@ -61,6 +61,9 @@ import { Post, Comment, Bookmark, PostImage } from "@/types/post";
 // Import PostImageCarousel component
 import PostImageCarousel from "@/components/PostImageCarousel";
 
+// Import getAvatarUrl utility
+import { getAvatarUrl } from "@/utils/avatar";
+
 // Type for optimistic UI updates
 type OptimisticUpdate = {
   id: string;
@@ -108,13 +111,13 @@ const FeedView = () => {
   }, []);
 
   // Data fetching
-  const loadPosts = async () => {
-    try {
+    const loadPosts = async () => {
+      try {
       setLoading(true);
       const fetchedPosts = await fetchPosts();
       setPosts(fetchedPosts as unknown as Post[]);
-    } catch (error) {
-      console.error("Failed to fetch posts:", error);
+      } catch (error) {
+        console.error("Failed to fetch posts:", error);
     } finally {
       setLoading(false);
     }
@@ -133,7 +136,9 @@ const FeedView = () => {
       return post.imageUrl;
     }
     // Return a placeholder image URL as fallback
-    return "/images/placeholder.jpg";
+    // return "/images/placeholder.jpg";
+    // Instead of using a static placeholder.jpg, you could use:
+    return `https://api.dicebear.com/7.x/initials/svg?seed=${post.user.name || '?'}&backgroundColor=FF385C,1DA1F2`;
   };
 
   // Helper functions
@@ -428,7 +433,17 @@ const FeedView = () => {
     return (
       <Container maxWidth="sm" sx={{ py: 4 }}>
         {[1, 2].map((skeleton) => (
-          <Card key={skeleton} sx={{ mb: 4, borderRadius: 3, overflow: 'hidden' }}>
+          <Paper
+            key={skeleton}
+            elevation={0}
+            sx={{
+              mb: 4,
+              borderRadius: 3,
+              overflow: 'hidden',
+              border: '1px solid',
+              borderColor: 'divider',
+            }}
+          >
             <CardHeader
               avatar={<Skeleton variant="circular" width={40} height={40} />}
               title={<Skeleton width="60%" />}
@@ -439,7 +454,7 @@ const FeedView = () => {
               <Skeleton width="90%" />
               <Skeleton width="60%" />
             </CardContent>
-          </Card>
+          </Paper>
         ))}
       </Container>
     );
@@ -451,26 +466,57 @@ const FeedView = () => {
       sx={{ 
         mt: 4, 
         mb: 10,
-        px: { xs: 0 },
+        px: { xs: 0, sm: 2 },
       }}
     >
       {/* Posts Feed */}
       {posts.length === 0 ? (
-        <Box sx={{ textAlign: 'center', mt: 8 }}>
-          <Typography variant="h5" gutterBottom>
+        <Paper
+          elevation={0}
+          sx={{
+            textAlign: 'center',
+            mt: 8,
+            p: 4,
+            borderRadius: 3,
+            border: '1px solid',
+            borderColor: 'divider',
+            background: 'linear-gradient(to bottom, rgba(255,56,92,0.02), rgba(29,161,242,0.02))',
+          }}
+        >
+          <Typography
+            variant="h5"
+            gutterBottom
+            sx={{
+              fontWeight: 700,
+              background: 'linear-gradient(45deg, #FF385C, #1DA1F2)',
+              backgroundClip: 'text',
+              WebkitBackgroundClip: 'text',
+              color: 'transparent',
+            }}
+          >
             Zatiaľ tu nie sú žiadne príspevky
           </Typography>
-          <Typography variant="body1" color="text.secondary">
+          <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
             Začni sledovať spolužiakov alebo pridaj svoj prvý príspevok
           </Typography>
           <Button 
-            variant="contained" 
-            href="/prispevok/vytvorit"
-            sx={{ mt: 3, borderRadius: 50, px: 3 }}
+            variant="contained"
+            href="/prispevky/vytvorit"
+            sx={{
+              borderRadius: 50,
+              px: 4,
+              py: 1.5,
+              background: 'linear-gradient(45deg, #FF385C, #1DA1F2)',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+              '&:hover': {
+                background: 'linear-gradient(45deg, #FF385C, #1DA1F2)',
+                opacity: 0.9,
+              },
+            }}
           >
             Pridať príspevok
           </Button>
-        </Box>
+        </Paper>
       ) : (
         posts.map((post) => {
           const allComments = getOptimisticComments(
@@ -479,17 +525,44 @@ const FeedView = () => {
           );
 
           return (
-            <Card key={post.id} sx={{ mb: 4, borderRadius: 3, overflow: 'hidden' }}>
+            <Paper
+              key={post.id}
+              elevation={0}
+              sx={{
+                mb: 4,
+                borderRadius: 3,
+                overflow: 'hidden',
+                border: '1px solid',
+                borderColor: 'divider',
+                transition: 'transform 0.2s',
+                '&:hover': {
+                  transform: 'translateY(-2px)',
+                },
+              }}
+            >
               <CardHeader
                 avatar={
-                  <Avatar>
-                    {post.user.name?.[0] || 'U'}
+                  <Avatar
+                    src={getAvatarUrl(post.user.name)}
+                    alt={post.user.name || "Používateľ"}
+                    sx={{
+                      background: 'linear-gradient(45deg, #FF385C, #1DA1F2)',
+                      border: '2px solid white',
+                    }}
+                  >
+                    {post.user.name?.[0] || "U"}
                   </Avatar>
                 }
                 title={
                   <Typography 
                     variant="subtitle1" 
-                    sx={{ fontWeight: 600, cursor: 'pointer' }}
+                    sx={{ 
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      '&:hover': {
+                        color: 'primary.main',
+                      },
+                    }}
                   >
                     {post.user.name}
                   </Typography>
@@ -503,14 +576,20 @@ const FeedView = () => {
       </Typography>
                 }
                 action={
-                  <IconButton>
+                  <IconButton
+                    sx={{
+                      '&:hover': {
+                        color: 'primary.main',
+                        bgcolor: 'action.hover',
+                      },
+                    }}
+                  >
                     <MoreVertIcon />
                   </IconButton>
                 }
               />
               
               {post.images && post.images.length > 0 ? (
-                // Use PostImageCarousel for multiple images
                 <Box sx={{ aspectRatio: '1/1', position: 'relative' }}>
                   <PostImageCarousel 
                     images={post.images}
@@ -518,9 +597,8 @@ const FeedView = () => {
                   />
                 </Box>
               ) : (
-                // Use standard CardMedia for single image
-                <CardMedia
-                  component="img"
+              <CardMedia
+                component="img"
                   image={getPostImageUrl(post)}
                   alt={post.caption || 'Post image'}
                   sx={{ 
@@ -536,17 +614,48 @@ const FeedView = () => {
                   onClick={() => handleLikeToggle(post.id)}
                   color={isLikedByCurrentUser(post) ? "primary" : "default"}
                   disabled={hasOptimisticLike(post.id)}
+                  sx={{
+                    transition: 'transform 0.2s',
+                    '&:hover': {
+                      transform: 'scale(1.1)',
+                    },
+                  }}
                 >
                   {isLikedByCurrentUser(post) ? <FavoriteIcon /> : <FavoriteBorderIcon />}
                 </IconButton>
-                <IconButton onClick={() => handleCommentClick(post)}>
+                <IconButton 
+                  onClick={() => handleCommentClick(post)}
+                  sx={{
+                    transition: 'transform 0.2s',
+                    '&:hover': {
+                      transform: 'scale(1.1)',
+                      color: 'primary.main',
+                    },
+                  }}
+                >
                   <CommentIcon />
                 </IconButton>
-                <IconButton>
+                <IconButton
+                  sx={{
+                    transition: 'transform 0.2s',
+                    '&:hover': {
+                      transform: 'scale(1.1)',
+                      color: 'primary.main',
+                    },
+                  }}
+                >
                   <SendIcon />
                 </IconButton>
                 <Box flexGrow={1} />
-                <IconButton onClick={() => handleBookmark(post.id)}>
+                <IconButton 
+                  onClick={() => handleBookmark(post.id)}
+                  sx={{
+                    transition: 'transform 0.2s',
+                    '&:hover': {
+                      transform: 'scale(1.1)',
+                    },
+                  }}
+                >
                   {isBookmarked(post) ? (
                     <BookmarkIcon color="primary" />
                   ) : (
@@ -556,13 +665,33 @@ const FeedView = () => {
               </CardActions>
               
               <CardContent sx={{ pt: 1 }}>
-                <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                <Typography 
+                  variant="subtitle2" 
+                  sx={{ 
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    display: 'inline-block',
+                    '&:hover': {
+                      color: 'primary.main',
+                    },
+                  }}
+                >
                   {post.likes.length} To sa páči
                 </Typography>
                 
                 {post.caption && (
                   <Typography variant="body2" sx={{ mt: 1 }}>
-                    <Typography component="span" fontWeight={600} mr={0.5}>
+                    <Typography 
+                      component="span" 
+                      sx={{ 
+                        fontWeight: 600,
+                        mr: 0.5,
+                        cursor: 'pointer',
+                        '&:hover': {
+                          color: 'primary.main',
+                        },
+                      }}
+                    >
                       {post.user.name}
                     </Typography>
                     {post.caption}
@@ -575,7 +704,13 @@ const FeedView = () => {
                       <Typography 
                         variant="body2" 
                         color="text.secondary" 
-                        sx={{ mb: 1, cursor: 'pointer' }}
+                        sx={{ 
+                          mb: 1,
+                          cursor: 'pointer',
+                          '&:hover': {
+                            color: 'primary.main',
+                          },
+                        }}
                         onClick={() => handleCommentClick(post)}
                       >
                         Zobraziť všetky komentáre ({allComments.length})
@@ -585,7 +720,17 @@ const FeedView = () => {
                     {allComments.slice(0, 3).map((comment) => (
                       <Box key={comment.id} sx={{ display: 'flex', alignItems: 'flex-start', mb: 1 }}>
                         <Typography variant="body2" sx={{ flexGrow: 1 }}>
-                          <Typography component="span" fontWeight={600} mr={0.5}>
+                          <Typography 
+                            component="span" 
+                            sx={{ 
+                              fontWeight: 600,
+                              mr: 0.5,
+                              cursor: 'pointer',
+                              '&:hover': {
+                                color: 'primary.main',
+                              },
+                            }}
+                          >
                             {comment.user.name}
                           </Typography>
                           {comment.content}
@@ -596,7 +741,14 @@ const FeedView = () => {
                             <IconButton
                               size="small"
                               onClick={() => handleDeleteComment(post.id, comment.id)}
-                              sx={{ ml: 1, p: 0.5 }}
+                              sx={{ 
+                                ml: 1,
+                                p: 0.5,
+                                '&:hover': {
+                                  color: 'error.main',
+                                  bgcolor: 'error.lighter',
+                                },
+                              }}
                             >
                               <DeleteIcon fontSize="small" />
                             </IconButton>
@@ -623,14 +775,30 @@ const FeedView = () => {
                     }}
                     InputProps={{
                       disableUnderline: true,
-                      sx: { fontSize: '0.9rem' }
+                      sx: { 
+                        fontSize: '0.9rem',
+                        '&:hover': {
+                          bgcolor: 'action.hover',
+                        },
+                        borderRadius: 1,
+                        px: 1,
+                      }
                     }}
                   />
                   
                   {comments[post.id]?.trim() && (
                     <Button
-                      color="primary"
-                      sx={{ ml: 1, minWidth: 'auto', p: 0 }}
+                      sx={{
+                        ml: 1,
+                        minWidth: 'auto',
+                        p: 0,
+                        color: 'primary.main',
+                        fontWeight: 600,
+                        '&:hover': {
+                          bgcolor: 'transparent',
+                          opacity: 0.8,
+                        },
+                      }}
                       onClick={() => handleSubmitComment(post.id)}
                       disabled={submittingComment[post.id]}
                     >
@@ -643,7 +811,7 @@ const FeedView = () => {
                   )}
                 </Box>
               </CardContent>
-            </Card>
+            </Paper>
           );
         })
       )}
@@ -654,22 +822,53 @@ const FeedView = () => {
         onClose={() => setCommentDialogOpen(false)}
         fullWidth
         maxWidth="sm"
+        PaperProps={{
+          elevation: 0,
+          sx: {
+            borderRadius: 3,
+            border: '1px solid',
+            borderColor: 'divider',
+          }
+        }}
       >
-        <DialogTitle>Komentáre</DialogTitle>
-        <DialogContent dividers>
+        <DialogTitle sx={{ 
+          borderBottom: '1px solid',
+          borderColor: 'divider',
+          background: 'linear-gradient(45deg, #FF385C, #1DA1F2)',
+          backgroundClip: 'text',
+          WebkitBackgroundClip: 'text',
+          color: 'transparent',
+          fontWeight: 700,
+        }}>
+          Komentáre
+        </DialogTitle>
+        <DialogContent>
           {selectedPost && (
-            <List>
-              {/* Filter out deleted comments in the dialog view */}
+            <List sx={{ pt: 2 }}>
               {selectedPost.comments
                 .filter(comment => !isCommentDeleted(comment.id))
                 .map((comment) => (
-                  <ListItem key={comment.id} 
+                  <ListItem 
+                    key={comment.id}
+                    sx={{
+                      borderRadius: 2,
+                      mb: 1,
+                      '&:hover': {
+                        bgcolor: 'action.hover',
+                      },
+                    }}
                     secondaryAction={
                       comment.user.email === session?.user?.email && (
                         <IconButton 
                           edge="end" 
                           onClick={() => handleDeleteComment(selectedPost.id, comment.id)}
                           size="small"
+                          sx={{
+                            '&:hover': {
+                              color: 'error.main',
+                              bgcolor: 'error.lighter',
+                            },
+                          }}
                         >
                           <DeleteIcon />
                         </IconButton>
@@ -677,12 +876,30 @@ const FeedView = () => {
                     }
                   >
                     <ListItemAvatar>
-                      <Avatar>
-                        {comment.user.name ? comment.user.name[0] : 'U'}
+                      <Avatar 
+                        sx={{
+                          background: 'linear-gradient(45deg, #FF385C, #1DA1F2)',
+                          border: '2px solid white',
+                        }}
+                      >
+                        {comment.user.name?.[0] || "U"}
                       </Avatar>
                     </ListItemAvatar>
                     <ListItemText
-                      primary={comment.user.name}
+                      primary={
+                        <Typography 
+                          sx={{ 
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                            display: 'inline-block',
+                            '&:hover': {
+                              color: 'primary.main',
+                            },
+                          }}
+                        >
+                          {comment.user.name}
+                        </Typography>
+                      }
                       secondary={comment.content}
                     />
                   </ListItem>
@@ -690,7 +907,12 @@ const FeedView = () => {
             </List>
           )}
         </DialogContent>
-        <DialogActions sx={{ flexDirection: 'column', p: 2 }}>
+        <DialogActions sx={{ 
+          flexDirection: 'column',
+          p: 2,
+          borderTop: '1px solid',
+          borderColor: 'divider',
+        }}>
           <TextField
             fullWidth
             placeholder="Pridať komentár..."
@@ -698,12 +920,16 @@ const FeedView = () => {
             onChange={(e) => setNewComment(e.target.value)}
             variant="outlined"
             size="small"
+            sx={{
+              '& .MuiOutlinedInput-root': {
+                borderRadius: 2,
+              }
+            }}
           />
           <Button 
             fullWidth 
             onClick={() => {
               if (selectedPost && newComment.trim() && session?.user) {
-                // Directly call the createComment server action
                 createComment(selectedPost.id, newComment.trim())
                   .then(updatedPost => {
                     setPosts(prevPosts => 
@@ -720,7 +946,21 @@ const FeedView = () => {
               }
             }}
             disabled={!newComment.trim() || !selectedPost}
-            sx={{ mt: 1 }}
+            sx={{ 
+              mt: 2,
+              borderRadius: 50,
+              py: 1,
+              background: 'linear-gradient(45deg, #FF385C, #1DA1F2)',
+              color: 'white',
+              '&:hover': {
+                background: 'linear-gradient(45deg, #FF385C, #1DA1F2)',
+                opacity: 0.9,
+              },
+              '&:disabled': {
+                background: 'linear-gradient(45deg, #FF385C, #1DA1F2)',
+                opacity: 0.5,
+              }
+            }}
           >
             Pridať komentár
           </Button>
@@ -737,6 +977,10 @@ const FeedView = () => {
           onClose={() => setNotification(null)} 
           severity={notification?.severity || "error"}
           variant="filled"
+          sx={{
+            borderRadius: 2,
+            boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+          }}
         >
           {notification?.message || ""}
         </Alert>

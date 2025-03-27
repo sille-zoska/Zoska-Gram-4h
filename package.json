@@ -20,6 +20,7 @@
     "@types/react-swipeable-views": "^0.13.6",
     "@vercel/blob": "^0.27.3",
     "date-fns": "^4.1.0",
+    "framer-motion": "^12.6.2",
     "next": "^14.2.24",
     "next-auth": "^4.24.7",
     "react": "^18",

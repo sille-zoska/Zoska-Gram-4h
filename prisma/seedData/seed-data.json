@@ -7,8 +7,8 @@
       "image": "https://i.pravatar.cc/150?u=jan.kovac",
       "createdAt": "2024-01-15T08:29:33.887Z",
       "updatedAt": "2024-03-19T08:29:33.887Z",
-      "id": "a4ec5b2a-8bba-4169-9735-260453bbcf5f",
-      "profile": {
+    "id": "a4ec5b2a-8bba-4169-9735-260453bbcf5f",
+    "profile": {
         "bio": "Študent 3. ročníka SPŠE Zochova, odbor Informačné technológie. Zaujímam sa o webové technológie a programovanie.",
         "avatarUrl": "https://i.pravatar.cc/300?u=a4ec5b2a-profile",
         "location": "Bratislava",
@@ -20,11 +20,11 @@
         ],
         "createdAt": "2024-01-15T08:29:33.887Z",
         "updatedAt": "2024-03-19T08:29:33.887Z",
-        "id": "6e2e777f-9385-4932-956a-8f34eca57a21",
-        "userId": "a4ec5b2a-8bba-4169-9735-260453bbcf5f"
-      },
-      "posts": [
-        {
+      "id": "6e2e777f-9385-4932-956a-8f34eca57a21",
+      "userId": "a4ec5b2a-8bba-4169-9735-260453bbcf5f"
+    },
+    "posts": [
+      {
           "imageUrl": "https://picsum.photos/seed/jan-post1/640/640",
           "caption": "Dnes som dokončil svoj prvý projekt v Next.js! #coding #nextjs #programming",
           "createdAt": "2024-03-15T21:31:07.461Z",
@@ -34,10 +34,10 @@
             "nextjs",
             "programming"
           ],
-          "id": "5331339d-7a59-43a5-b1fb-fa5475063b28",
-          "userId": "a4ec5b2a-8bba-4169-9735-260453bbcf5f"
-        },
-        {
+        "id": "5331339d-7a59-43a5-b1fb-fa5475063b28",
+        "userId": "a4ec5b2a-8bba-4169-9735-260453bbcf5f"
+      },
+      {
           "imageUrl": "https://picsum.photos/seed/jan-post2/640/640",
           "caption": "Pracujeme na školskom projekte ZoškaGram! #spse #zochova #project",
           "createdAt": "2024-03-10T19:49:55.535Z",
@@ -47,20 +47,20 @@
             "zochova",
             "project"
           ],
-          "id": "f437a164-405c-4993-bf28-1370e6688f49",
-          "userId": "a4ec5b2a-8bba-4169-9735-260453bbcf5f"
-        }
-      ]
-    },
-    {
+        "id": "f437a164-405c-4993-bf28-1370e6688f49",
+        "userId": "a4ec5b2a-8bba-4169-9735-260453bbcf5f"
+      }
+    ]
+  },
+  {
       "name": "Eva Novotná",
       "email": "eva.novotna@student.zochova.sk",
       "emailVerified": "2024-03-18T15:35:09.108Z",
       "image": "https://i.pravatar.cc/150?u=eva.novotna",
       "createdAt": "2024-01-15T08:29:33.887Z",
       "updatedAt": "2024-03-18T08:29:33.887Z",
-      "id": "c6844753-1afa-46c9-81a1-4549da9a279d",
-      "profile": {
+    "id": "c6844753-1afa-46c9-81a1-4549da9a279d",
+    "profile": {
         "bio": "Študentka 2. ročníka SPŠE Zochova. Milujem dizajn a UI/UX. Aktívne sa venujem grafickému dizajnu.",
         "avatarUrl": "https://i.pravatar.cc/300?u=c6844753-profile",
         "location": "Bratislava, Zochova",
@@ -72,11 +72,11 @@
         ],
         "createdAt": "2024-01-15T08:29:33.887Z",
         "updatedAt": "2024-03-18T08:29:33.887Z",
-        "id": "68fffe38-6ffd-4690-bb7a-446d6b86ac40",
-        "userId": "c6844753-1afa-46c9-81a1-4549da9a279d"
-      },
-      "posts": [
-        {
+      "id": "68fffe38-6ffd-4690-bb7a-446d6b86ac40",
+      "userId": "c6844753-1afa-46c9-81a1-4549da9a279d"
+    },
+    "posts": [
+      {
           "imageUrl": "https://picsum.photos/seed/eva-post1/640/640",
           "caption": "Moje prvé UI návrhy pre mobilnú aplikáciu #ui #design #mobile",
           "createdAt": "2024-03-15T09:48:12.756Z",
@@ -86,20 +86,20 @@
             "design",
             "mobile"
           ],
-          "id": "3ec6aa65-4323-4be7-9b3f-f91f58aa5f42",
-          "userId": "c6844753-1afa-46c9-81a1-4549da9a279d"
-        }
-      ]
-    },
-    {
+        "id": "3ec6aa65-4323-4be7-9b3f-f91f58aa5f42",
+        "userId": "c6844753-1afa-46c9-81a1-4549da9a279d"
+      }
+    ]
+  },
+  {
       "name": "Martin Hlaváč",
       "email": "martin.hlavac@student.zochova.sk",
       "emailVerified": "2024-03-17T21:02:38.122Z",
       "image": "https://i.pravatar.cc/150?u=martin.hlavac",
       "createdAt": "2024-01-15T08:29:33.887Z",
       "updatedAt": "2024-03-17T08:29:33.887Z",
-      "id": "43f5a8dc-315d-4ae5-9ac5-192abe5428cd",
-      "profile": {
+    "id": "43f5a8dc-315d-4ae5-9ac5-192abe5428cd",
+    "profile": {
         "bio": "Študent 4. ročníka SPŠE Zochova. Zaujímam sa o backend a databázy. Aktívne sa venujem vývoju serverových aplikácií.",
         "avatarUrl": "https://i.pravatar.cc/300?u=43f5a8dc-profile",
         "location": "Bratislava",
@@ -111,11 +111,11 @@
         ],
         "createdAt": "2024-01-15T08:29:33.887Z",
         "updatedAt": "2024-03-17T08:29:33.887Z",
-        "id": "94862c09-d388-403e-9295-57471434006e",
-        "userId": "43f5a8dc-315d-4ae5-9ac5-192abe5428cd"
-      },
-      "posts": [
-        {
+      "id": "94862c09-d388-403e-9295-57471434006e",
+      "userId": "43f5a8dc-315d-4ae5-9ac5-192abe5428cd"
+    },
+    "posts": [
+      {
           "imageUrl": "https://picsum.photos/seed/martin-post1/640/640",
           "caption": "Dnes som dokončil backend pre školský projekt! #nodejs #backend #database",
           "createdAt": "2024-03-16T16:08:38.786Z",
@@ -125,10 +125,10 @@
             "backend",
             "database"
           ],
-          "id": "271762c5-6c9f-4a69-bf98-65bd09c6700a",
-          "userId": "43f5a8dc-315d-4ae5-9ac5-192abe5428cd"
-        },
-        {
+        "id": "271762c5-6c9f-4a69-bf98-65bd09c6700a",
+        "userId": "43f5a8dc-315d-4ae5-9ac5-192abe5428cd"
+      },
+      {
           "imageUrl": "https://picsum.photos/seed/martin-post2/640/640",
           "caption": "Pracujeme na optimalizácii databázových dotazov #performance #database",
           "createdAt": "2024-03-10T21:01:22.458Z",
@@ -137,20 +137,20 @@
             "performance",
             "database"
           ],
-          "id": "732ca0da-8897-44c4-872d-0832b3f2ba3f",
-          "userId": "43f5a8dc-315d-4ae5-9ac5-192abe5428cd"
-        }
-      ]
-    },
-    {
+        "id": "732ca0da-8897-44c4-872d-0832b3f2ba3f",
+        "userId": "43f5a8dc-315d-4ae5-9ac5-192abe5428cd"
+      }
+    ]
+  },
+  {
       "name": "Lucia Kováčová",
       "email": "lucia.kovacova@student.zochova.sk",
       "emailVerified": "2024-03-16T12:54:32.807Z",
       "image": "https://i.pravatar.cc/150?u=lucia.kovacova",
       "createdAt": "2024-01-15T08:29:33.887Z",
       "updatedAt": "2024-03-16T08:29:33.887Z",
-      "id": "d91b10cf-e945-43c8-a1a9-b401ddd52986",
-      "profile": {
+    "id": "d91b10cf-e945-43c8-a1a9-b401ddd52986",
+    "profile": {
         "bio": "Študentka 3. ročníka SPŠE Zochova. Zaujímam sa o mobilné aplikácie a UI dizajn. Aktívne sa venujem vývoju iOS aplikácií.",
         "avatarUrl": "https://i.pravatar.cc/300?u=d91b10cf-profile",
         "location": "Bratislava - Petržalka",
@@ -162,11 +162,11 @@
         ],
         "createdAt": "2024-01-15T08:29:33.887Z",
         "updatedAt": "2024-03-16T08:29:33.887Z",
-        "id": "bf338cc3-bffa-4e5d-932c-ccc7ca91faf8",
-        "userId": "d91b10cf-e945-43c8-a1a9-b401ddd52986"
-      },
-      "posts": [
-        {
+      "id": "bf338cc3-bffa-4e5d-932c-ccc7ca91faf8",
+      "userId": "d91b10cf-e945-43c8-a1a9-b401ddd52986"
+    },
+    "posts": [
+      {
           "imageUrl": "https://picsum.photos/seed/lucia-post1/640/640",
           "caption": "Moja prvá iOS aplikácia je na App Store! #ios #swift #mobile",
           "createdAt": "2024-03-15T08:19:16.694Z",
@@ -176,10 +176,10 @@
             "swift",
             "mobile"
           ],
-          "id": "8f1e0f5d-5d8a-4cf6-829b-2b6b6af98104",
-          "userId": "d91b10cf-e945-43c8-a1a9-b401ddd52986"
-        },
-        {
+        "id": "8f1e0f5d-5d8a-4cf6-829b-2b6b6af98104",
+        "userId": "d91b10cf-e945-43c8-a1a9-b401ddd52986"
+      },
+      {
           "imageUrl": "https://picsum.photos/seed/lucia-post2/640/640",
           "caption": "Pracujeme na novom UI pre školskú aplikáciu #ui #design #mobile",
           "createdAt": "2024-03-10T07:16:02.332Z",
@@ -189,20 +189,20 @@
             "design",
             "mobile"
           ],
-          "id": "9af22348-d5f8-47fe-ae87-9cc3b2e1d6a3",
-          "userId": "d91b10cf-e945-43c8-a1a9-b401ddd52986"
-        }
-      ]
-    },
-    {
+        "id": "9af22348-d5f8-47fe-ae87-9cc3b2e1d6a3",
+        "userId": "d91b10cf-e945-43c8-a1a9-b401ddd52986"
+      }
+    ]
+  },
+  {
       "name": "Peter Horváth",
       "email": "peter.horvath@student.zochova.sk",
       "emailVerified": "2024-03-15T13:25:55.970Z",
       "image": "https://i.pravatar.cc/150?u=peter.horvath",
       "createdAt": "2024-01-15T08:29:33.887Z",
       "updatedAt": "2024-03-15T08:29:33.887Z",
-      "id": "38c5b651-4004-4b92-87ca-07368eabc184",
-      "profile": {
+    "id": "38c5b651-4004-4b92-87ca-07368eabc184",
+    "profile": {
         "bio": "Študent 2. ročníka SPŠE Zochova. Zaujímam sa o sieťové technológie a bezpečnosť. Aktívne sa venujem etickému hackingu.",
         "avatarUrl": "https://i.pravatar.cc/300?u=38c5b651-profile",
         "location": "Bratislava - Dúbravka",
@@ -214,11 +214,11 @@
         ],
         "createdAt": "2024-01-15T08:29:33.887Z",
         "updatedAt": "2024-03-15T08:29:33.887Z",
-        "id": "5af82ac5-b377-419a-a928-c3250eee585f",
-        "userId": "38c5b651-4004-4b92-87ca-07368eabc184"
-      },
-      "posts": [
-        {
+      "id": "5af82ac5-b377-419a-a928-c3250eee585f",
+      "userId": "38c5b651-4004-4b92-87ca-07368eabc184"
+    },
+    "posts": [
+      {
           "imageUrl": "https://picsum.photos/seed/peter-post1/640/640",
           "caption": "Dnes som dokončil certifikáciu CCNA! #networking #cisco #certification",
           "createdAt": "2024-03-15T23:41:07.135Z",
@@ -228,10 +228,10 @@
             "cisco",
             "certification"
           ],
-          "id": "0c2e3a0a-547e-4eeb-a5e4-65669c3b228c",
-          "userId": "38c5b651-4004-4b92-87ca-07368eabc184"
-        },
-        {
+        "id": "0c2e3a0a-547e-4eeb-a5e4-65669c3b228c",
+        "userId": "38c5b651-4004-4b92-87ca-07368eabc184"
+      },
+      {
           "imageUrl": "https://picsum.photos/seed/peter-post2/640/640",
           "caption": "Pracujeme na zabezpečení školského systému #security #networking",
           "createdAt": "2024-03-10T00:43:59.128Z",
@@ -240,8 +240,8 @@
             "security",
             "networking"
           ],
-          "id": "de6b5f8a-246f-46fd-b58d-8af972871bbe",
-          "userId": "38c5b651-4004-4b92-87ca-07368eabc184"
+        "id": "de6b5f8a-246f-46fd-b58d-8af972871bbe",
+        "userId": "38c5b651-4004-4b92-87ca-07368eabc184"
         }
       ]
     }

@@ -601,4 +601,194 @@ export async function fetchBookmarkedPosts() {
   return bookmarks.map(bookmark => bookmark.post);
 }
 
+export async function fetchPostById(postId: string): Promise<PostWithDetails> {
+  try {
+    const post = await prisma.post.findUnique({
+      where: { id: postId },
+      include: {
+        user: true,
+        images: {
+          orderBy: {
+            order: 'asc'
+          }
+        },
+        comments: {
+          include: {
+            user: true,
+            likes: true
+          },
+          orderBy: {
+            createdAt: 'desc'
+          }
+        },
+        likes: {
+          include: {
+            user: true
+          }
+        },
+        bookmarks: {
+          include: {
+            user: true
+          }
+        }
+      }
+    });
+
+    if (!post) {
+      throw new Error("Post not found");
+    }
+
+    return post;
+  } catch (error) {
+    console.error("Error fetching post:", error);
+    throw error;
+  }
+}
+
+export async function likePost(postId: string) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      throw new Error("Not authenticated");
+    }
+
+    const post = await prisma.post.findUnique({
+      where: { id: postId },
+      include: {
+        likes: true
+      }
+    });
+
+    if (!post) {
+      throw new Error("Post not found");
+    }
+
+    const existingLike = post.likes.find(like => like.userId === session.user.id);
+    if (existingLike) {
+      throw new Error("Post already liked");
+    }
+
+    await prisma.like.create({
+      data: {
+        postId,
+        userId: session.user.id
+      }
+    });
+
+    return { success: true };
+  } catch (error) {
+    console.error("Error liking post:", error);
+    throw error;
+  }
+}
+
+export async function unlikePost(postId: string) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      throw new Error("Not authenticated");
+    }
+
+    const post = await prisma.post.findUnique({
+      where: { id: postId },
+      include: {
+        likes: true
+      }
+    });
+
+    if (!post) {
+      throw new Error("Post not found");
+    }
+
+    const existingLike = post.likes.find(like => like.userId === session.user.id);
+    if (!existingLike) {
+      throw new Error("Post not liked");
+    }
+
+    await prisma.like.delete({
+      where: {
+        id: existingLike.id
+      }
+    });
+
+    return { success: true };
+  } catch (error) {
+    console.error("Error unliking post:", error);
+    throw error;
+  }
+}
+
+export async function bookmarkPost(postId: string) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      throw new Error("Not authenticated");
+    }
+
+    const post = await prisma.post.findUnique({
+      where: { id: postId },
+      include: {
+        bookmarks: true
+      }
+    });
+
+    if (!post) {
+      throw new Error("Post not found");
+    }
+
+    const existingBookmark = post.bookmarks.find(bookmark => bookmark.userId === session.user.id);
+    if (existingBookmark) {
+      throw new Error("Post already bookmarked");
+    }
+
+    await prisma.bookmark.create({
+      data: {
+        postId,
+        userId: session.user.id
+      }
+    });
+
+    return { success: true };
+  } catch (error) {
+    console.error("Error bookmarking post:", error);
+    throw error;
+  }
+}
+
+export async function unbookmarkPost(postId: string) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      throw new Error("Not authenticated");
+    }
+
+    const post = await prisma.post.findUnique({
+      where: { id: postId },
+      include: {
+        bookmarks: true
+      }
+    });
+
+    if (!post) {
+      throw new Error("Post not found");
+    }
+
+    const existingBookmark = post.bookmarks.find(bookmark => bookmark.userId === session.user.id);
+    if (!existingBookmark) {
+      throw new Error("Post not bookmarked");
+    }
+
+    await prisma.bookmark.delete({
+      where: {
+        id: existingBookmark.id
+      }
+    });
+
+    return { success: true };
+  } catch (error) {
+    console.error("Error unbookmarking post:", error);
+    throw error;
+  }
+}
+
 

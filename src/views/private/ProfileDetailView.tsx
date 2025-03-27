@@ -1,3 +1,5 @@
+// src/views/private/ProfileDetailView.tsx
+
 "use client";
 
 // React and Next.js imports
@@ -47,6 +49,7 @@ import {
 
 // Components
 import PostImageCarousel from "@/components/PostImageCarousel";
+import { getAvatarUrl } from "@/utils/avatar";
 
 // Types
 type ProfileDetailViewProps = {
@@ -127,7 +130,7 @@ const ProfileDetailView = ({ profileId }: ProfileDetailViewProps) => {
       setProfile(data);
       
       // Check if current user is following this profile
-      if (session?.user?.email) {
+      if (session?.user?.email && data?.user?.followers) {
         const isCurrentUserFollowing = data.user.followers.some(
           follow => follow.follower.email === session.user?.email
         );
@@ -177,10 +180,10 @@ const ProfileDetailView = ({ profileId }: ProfileDetailViewProps) => {
       setProfile(refreshedProfile);
       
       // Update following state based on refreshed data
-      const newFollowingState = refreshedProfile.user.followers.some(
+      const newFollowingState = refreshedProfile?.user.followers.some(
         follow => follow.follower.email === session.user?.email
       );
-      setIsFollowing(newFollowingState);
+      setIsFollowing(newFollowingState ?? false);
     } catch (error) {
       console.error("Failed to toggle follow:", error);
     } finally {
@@ -221,12 +224,46 @@ const ProfileDetailView = ({ profileId }: ProfileDetailViewProps) => {
   if (error || !profile) {
     return (
       <Container maxWidth="md" sx={{ py: 4, textAlign: 'center' }}>
-        <Typography variant="h5" color="error" gutterBottom>
-          {error || "Profil sa nepodarilo načítať"}
-        </Typography>
-        <Button variant="contained" onClick={() => window.location.reload()}>
-          Skúsiť znova
-        </Button>
+        <Paper
+          elevation={0}
+          sx={{
+            p: 4,
+            borderRadius: 3,
+            background: 'linear-gradient(to bottom, rgba(255,56,92,0.03), rgba(29,161,242,0.03))',
+            border: '1px solid',
+            borderColor: 'divider',
+          }}
+        >
+          <Typography variant="h5" gutterBottom>
+            {error || "Profil sa nenašiel"}
+          </Typography>
+          
+          <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
+            {profileId === session?.user?.id 
+              ? "Vyzerá to tak, že ešte nemáte vytvorený profil. Vytvorte si ho teraz pre lepšiu interakciu s ostatnými používateľmi."
+              : "Vyzerá to tak, že tento používateľ ešte nemá vytvorený profil."}
+          </Typography>
+          
+          {profileId === session?.user?.id && (
+            <Button 
+              variant="contained" 
+              href="/profily/upravit"
+              sx={{ 
+                mt: 2,
+                borderRadius: 50,
+                px: 4,
+                py: 1,
+                background: 'linear-gradient(45deg, #FF385C, #1DA1F2)',
+                '&:hover': {
+                  background: 'linear-gradient(45deg, #FF385C, #1DA1F2)',
+                  opacity: 0.9,
+                }
+              }}
+            >
+              Vytvoriť profil
+            </Button>
+          )}
+        </Paper>
       </Container>
     );
   }
@@ -239,14 +276,16 @@ const ProfileDetailView = ({ profileId }: ProfileDetailViewProps) => {
 
   return (
     <Container maxWidth="md" sx={{ py: 4 }}>
-      {/* Profile Header */}
+      {/* Profile Header Card */}
       <Paper 
         elevation={0} 
         sx={{ 
-          p: { xs: 2, md: 4 }, 
+          p: { xs: 3, md: 4 }, 
           mb: 4, 
           borderRadius: 3,
-          background: 'linear-gradient(to bottom, rgba(255,56,92,0.05), rgba(29,161,242,0.05))'
+          background: 'linear-gradient(to bottom, rgba(255,56,92,0.03), rgba(29,161,242,0.03))',
+          border: '1px solid',
+          borderColor: 'divider',
         }}
       >
         <Box 
@@ -257,44 +296,67 @@ const ProfileDetailView = ({ profileId }: ProfileDetailViewProps) => {
             gap: { xs: 3, md: 4 }
           }}
         >
-          {/* Profile Avatar */}
+          {/* Profile Avatar with gradient border */}
           <Avatar
-            src={profile.avatarUrl || undefined}
-            alt={user.name || "User"}
+            src={getAvatarUrl(user.name, profile.avatarUrl)}
+            alt={user.name || "Používateľ"}
             sx={{
-              width: { xs: 120, md: 150 },
-              height: { xs: 120, md: 150 },
+              width: { xs: 150, md: 180 },
+              height: { xs: 150, md: 180 },
               border: '4px solid white',
-              boxShadow: '0 4px 20px rgba(0,0,0,0.1)'
+              boxShadow: (theme) => `0 0 20px ${theme.palette.primary.main}15`,
+              background: 'linear-gradient(45deg, #FF385C, #1DA1F2)',
+              '& img': {
+                border: '4px solid white',
+                borderRadius: '50%',
+              }
             }}
-          />
+          >
+            {user.name?.[0] || "U"}
+          </Avatar>
           
           {/* Profile Info */}
           <Box sx={{ flex: 1, textAlign: { xs: 'center', md: 'left' } }}>
+            {/* Name and Actions */}
             <Box 
               sx={{ 
                 display: 'flex', 
                 alignItems: 'center', 
                 justifyContent: { xs: 'center', md: 'flex-start' },
-                mb: 2
+                flexWrap: 'wrap',
+                gap: 2,
+                mb: 3
               }}
             >
               <Typography 
                 variant="h4" 
-                fontWeight={600}
-                sx={{ mr: 2 }}
+                sx={{
+                  fontWeight: 700,
+                  background: 'linear-gradient(45deg, #FF385C, #1DA1F2)',
+                  backgroundClip: 'text',
+                  WebkitBackgroundClip: 'text',
+                  color: 'transparent',
+                }}
               >
-                {user.name}
+                {user.name || "Neznámy používateľ"}
               </Typography>
               
               {isOwnProfile ? (
                 <Button
-                  variant="outlined"
+                  variant="contained"
                   startIcon={<EditIcon />}
-                  href="/profil/upravit"
+                  href="/profily/upravit"
                   sx={{ 
-                    borderRadius: 6,
-                    fontSize: { xs: '0.8rem', md: '0.9rem' }
+                    borderRadius: 50,
+                    px: 3,
+                    py: 1,
+                    fontSize: { xs: '0.9rem', md: '1rem' },
+                    background: 'linear-gradient(45deg, #FF385C, #1DA1F2)',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                    '&:hover': {
+                      background: 'linear-gradient(45deg, #FF385C, #1DA1F2)',
+                      opacity: 0.9,
+                    }
                   }}
                 >
                   Upraviť profil
@@ -304,54 +366,61 @@ const ProfileDetailView = ({ profileId }: ProfileDetailViewProps) => {
                   variant={isFollowing ? "outlined" : "contained"}
                   onClick={handleFollowToggle}
                   disabled={loading.follow}
+                  startIcon={isFollowing ? <PersonRemoveIcon /> : <PersonAddIcon />}
                   sx={{ 
-                    borderRadius: 6,
-                    minWidth: 110,
-                    fontSize: { xs: '0.8rem', md: '0.9rem' }
+                    borderRadius: 50,
+                    px: 3,
+                    py: 1,
+                    fontSize: { xs: '0.9rem', md: '1rem' },
+                    ...(isFollowing ? {} : {
+                      background: 'linear-gradient(45deg, #FF385C, #1DA1F2)',
+                      '&:hover': {
+                        background: 'linear-gradient(45deg, #FF385C, #1DA1F2)',
+                        opacity: 0.9,
+                      }
+                    })
                   }}
                 >
-                  {isFollowing ? "Nesledovať" : "Sledovať"}
+                  {loading.follow ? "Načítavam..." : (isFollowing ? "Nesledovať" : "Sledovať")}
                 </Button>
-              )}
-              
-              {isOwnProfile && (
-                <IconButton sx={{ ml: 1 }}>
-                  <SettingsIcon />
-                </IconButton>
               )}
             </Box>
             
-            {/* Profile Stats */}
+            {/* Stats */}
             <Box 
               sx={{ 
-                display: 'flex', 
-                gap: { xs: 3, md: 4 },
+                display: 'flex',
+                gap: { xs: 4, md: 6 },
                 justifyContent: { xs: 'center', md: 'flex-start' },
-                mb: 2
+                mb: 3,
+                p: 2,
+                borderRadius: 2,
+                bgcolor: 'background.paper',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
               }}
             >
               <Box sx={{ textAlign: 'center' }}>
-                <Typography variant="h6" fontWeight={600}>
+                <Typography variant="h5" fontWeight={700} color="primary">
                   {postsCount}
                 </Typography>
-                <Typography variant="body2" color="text.secondary">
+                <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
                   príspevkov
                 </Typography>
               </Box>
               <Box sx={{ textAlign: 'center' }}>
-                <Typography variant="h6" fontWeight={600}>
+                <Typography variant="h5" fontWeight={700} color="primary">
                   {followersCount}
                 </Typography>
-                <Typography variant="body2" color="text.secondary">
+                <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
                   sledovateľov
                 </Typography>
               </Box>
               <Box sx={{ textAlign: 'center' }}>
-                <Typography variant="h6" fontWeight={600}>
+                <Typography variant="h5" fontWeight={700} color="primary">
                   {followingCount}
                 </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  sleduje
+                <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                  sledovaných
                 </Typography>
               </Box>
             </Box>
@@ -363,7 +432,9 @@ const ProfileDetailView = ({ profileId }: ProfileDetailViewProps) => {
                 sx={{ 
                   whiteSpace: 'pre-line',
                   textAlign: { xs: 'center', md: 'left' },
-                  mt: 1
+                  mb: 2,
+                  color: 'text.primary',
+                  lineHeight: 1.6
                 }}
               >
                 {profile.bio}
@@ -376,11 +447,11 @@ const ProfileDetailView = ({ profileId }: ProfileDetailViewProps) => {
                   display: 'flex', 
                   alignItems: 'center',
                   justifyContent: { xs: 'center', md: 'flex-start' },
-                  mt: 1
+                  color: 'text.secondary'
                 }}
               >
-                <LocationIcon fontSize="small" color="action" sx={{ mr: 0.5 }} />
-                <Typography variant="body2" color="text.secondary">
+                <LocationIcon fontSize="small" sx={{ mr: 1, color: 'primary.main' }} />
+                <Typography variant="body2">
                   {profile.location}
                 </Typography>
               </Box>
@@ -389,13 +460,29 @@ const ProfileDetailView = ({ profileId }: ProfileDetailViewProps) => {
         </Box>
       </Paper>
       
-      {/* Tabs for content filtering */}
-      <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
+      {/* Content Tabs */}
+      <Paper
+        elevation={0}
+        sx={{
+          borderRadius: 3,
+          overflow: 'hidden',
+          border: '1px solid',
+          borderColor: 'divider',
+        }}
+      >
         <Tabs
           value={activeTab}
           onChange={handleTabChange}
           variant="fullWidth"
-          centered
+          sx={{
+            borderBottom: 1,
+            borderColor: 'divider',
+            '& .MuiTab-root': {
+              py: 2,
+              fontSize: '0.9rem',
+              fontWeight: 600,
+            }
+          }}
         >
           <Tab 
             icon={<GridViewIcon />} 
@@ -408,145 +495,167 @@ const ProfileDetailView = ({ profileId }: ProfileDetailViewProps) => {
             iconPosition="start"
           />
         </Tabs>
-      </Box>
-      
-      {/* Profile Content */}
-      {activeTab === 0 && (
-        postsCount > 0 ? (
-          <Grid container spacing={2}>
-            {user.posts.map((post) => (
-              <Grid item xs={4} key={post.id}>
-                <Box
-                  sx={{
-                    position: 'relative',
-                    pt: '100%', // 1:1 Aspect Ratio
-                    borderRadius: 2,
-                    overflow: 'hidden',
-                    cursor: 'pointer',
-                    '&:hover .overlay': {
-                      opacity: 1,
-                    },
-                  }}
-                >
-                  {post.images && post.images.length > 0 ? (
-                    <PostImageCarousel 
-                      images={post.images}
-                      aspectRatio="1/1" 
-                    />
-                  ) : post.imageUrl ? (
-                    <Image
-                      src={post.imageUrl}
-                      alt={post.caption || 'Post image'}
-                      fill
-                      sizes="(max-width: 768px) 33vw, 25vw"
-                      style={{ objectFit: 'cover' }}
-                    />
-                  ) : (
-                    <Box sx={{ bgcolor: 'grey.200', width: '100%', height: '100%', position: 'absolute' }} />
-                  )}
-                  <Box
-                    className="overlay"
-                    sx={{
-                      position: 'absolute',
-                      top: 0,
-                      left: 0,
-                      right: 0,
-                      bottom: 0,
-                      bgcolor: 'rgba(0, 0, 0, 0.3)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      opacity: 0,
-                      transition: 'opacity 0.2s',
+        
+        {/* Posts Grid */}
+        <Box sx={{ p: { xs: 2, md: 3 } }}>
+          {activeTab === 0 ? (
+            postsCount > 0 ? (
+              <Grid container spacing={2}>
+                {user.posts.map((post) => (
+                  <Grid item xs={4} key={post.id}>
+                    <Paper
+                      elevation={0}
+                      sx={{
+                        position: 'relative',
+                        pt: '100%',
+                        borderRadius: 2,
+                        overflow: 'hidden',
+                        cursor: 'pointer',
+                        transition: 'transform 0.2s',
+                        '&:hover': {
+                          transform: 'scale(1.02)',
+                        },
+                      }}
+                    >
+                      {post.images && post.images.length > 0 ? (
+                        <PostImageCarousel 
+                          images={post.images}
+                          aspectRatio="1/1" 
+                        />
+                      ) : post.imageUrl ? (
+                        <Image
+                          src={post.imageUrl}
+                          alt={post.caption || 'Obrázok príspevku'}
+                          fill
+                          sizes="(max-width: 768px) 33vw, 25vw"
+                          style={{ objectFit: 'cover' }}
+                        />
+                      ) : (
+                        <Box 
+                          sx={{ 
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            bottom: 0,
+                            bgcolor: 'grey.100',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center'
+                          }}
+                        >
+                          <Typography variant="body2" color="text.secondary">
+                            Žiadny obrázok
+                          </Typography>
+                        </Box>
+                      )}
+                    </Paper>
+                  </Grid>
+                ))}
+              </Grid>
+            ) : (
+              <Box sx={{ 
+                py: 8, 
+                textAlign: 'center',
+                bgcolor: 'background.paper',
+                borderRadius: 2
+              }}>
+                <Typography variant="h6" color="text.secondary" gutterBottom>
+                  Zatiaľ tu nie sú žiadne príspevky
+                </Typography>
+                {isOwnProfile && (
+                  <Button 
+                    variant="contained" 
+                    href="/prispevky/vytvorit"
+                    sx={{ 
+                      mt: 2,
+                      borderRadius: 50,
+                      px: 4,
+                      py: 1,
+                      background: 'linear-gradient(45deg, #FF385C, #1DA1F2)',
+                      '&:hover': {
+                        background: 'linear-gradient(45deg, #FF385C, #1DA1F2)',
+                        opacity: 0.9,
+                      }
                     }}
                   >
-                    {/* Likes and Comments count */}
-                  </Box>
+                    Pridať prvý príspevok
+                  </Button>
+                )}
+              </Box>
+            )
+          ) : (
+            // Bookmarked posts with similar styling as posts grid
+            <Grid container spacing={2}>
+              {bookmarkedPosts.length > 0 ? (
+                bookmarkedPosts.map((post) => (
+                  <Grid item xs={4} key={post.id}>
+                    <Paper
+                      elevation={0}
+                      sx={{
+                        position: 'relative',
+                        pt: '100%',
+                        borderRadius: 2,
+                        overflow: 'hidden',
+                        cursor: 'pointer',
+                        transition: 'transform 0.2s',
+                        '&:hover': {
+                          transform: 'scale(1.02)',
+                        },
+                      }}
+                    >
+                      {post.images && post.images.length > 0 ? (
+                        <PostImageCarousel 
+                          images={post.images}
+                          aspectRatio="1/1" 
+                        />
+                      ) : post.imageUrl ? (
+                        <Image
+                          src={post.imageUrl}
+                          alt={post.caption || 'Obrázok príspevku'}
+                          fill
+                          sizes="(max-width: 768px) 33vw, 25vw"
+                          style={{ objectFit: 'cover' }}
+                        />
+                      ) : (
+                        <Box 
+                          sx={{ 
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            bottom: 0,
+                            bgcolor: 'grey.100',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center'
+                          }}
+                        >
+                          <Typography variant="body2" color="text.secondary">
+                            Žiadny obrázok
+                          </Typography>
+                        </Box>
+                      )}
+                    </Paper>
+                  </Grid>
+                ))
+              ) : (
+                <Box sx={{ 
+                  width: '100%',
+                  py: 8, 
+                  textAlign: 'center',
+                  bgcolor: 'background.paper',
+                  borderRadius: 2
+                }}>
+                  <Typography variant="h6" color="text.secondary">
+                    Zatiaľ tu nie sú žiadne uložené príspevky
+                  </Typography>
                 </Box>
-              </Grid>
-            ))}
-          </Grid>
-        ) : (
-          <Box sx={{ textAlign: 'center', py: 8 }}>
-            <Typography variant="h6" sx={{ mb: 2 }}>
-              Zatiaľ tu nie sú žiadne príspevky
-            </Typography>
-            {isOwnProfile && (
-              <Button 
-                variant="contained" 
-                href="/prispevok/vytvorit"
-                sx={{ borderRadius: 50, px: 3 }}
-              >
-                Pridať prvý príspevok
-              </Button>
-            )}
-          </Box>
-        )
-      )}
-      
-      {activeTab === 1 && (
-        bookmarkedPosts.length > 0 ? (
-          <Grid container spacing={2}>
-            {bookmarkedPosts.map((post) => (
-              <Grid item xs={4} key={post.id}>
-                <Box
-                  sx={{
-                    position: 'relative',
-                    pt: '100%', // 1:1 Aspect Ratio
-                    borderRadius: 2,
-                    overflow: 'hidden',
-                    cursor: 'pointer',
-                    '&:hover .overlay': {
-                      opacity: 1,
-                    },
-                  }}
-                >
-                  {post.images && post.images.length > 0 ? (
-                    <PostImageCarousel 
-                      images={post.images}
-                      aspectRatio="1/1" 
-                    />
-                  ) : post.imageUrl ? (
-                    <Image
-                      src={post.imageUrl}
-                      alt={post.caption || 'Post image'}
-                      fill
-                      sizes="(max-width: 768px) 33vw, 25vw"
-                      style={{ objectFit: 'cover' }}
-                    />
-                  ) : (
-                    <Box sx={{ bgcolor: 'grey.200', width: '100%', height: '100%', position: 'absolute' }} />
-                  )}
-                  <Box
-                    className="overlay"
-                    sx={{
-                      position: 'absolute',
-                      top: 0,
-                      left: 0,
-                      right: 0,
-                      bottom: 0,
-                      bgcolor: 'rgba(0, 0, 0, 0.3)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      opacity: 0,
-                      transition: 'opacity 0.2s',
-                    }}
-                  >
-                    {/* Likes and Comments count */}
-                  </Box>
-                </Box>
-              </Grid>
-            ))}
-          </Grid>
-        ) : (
-          <Box sx={{ textAlign: 'center', py: 8 }}>
-            <Typography variant="h6" sx={{ mb: 2 }}>
-              Zatiaľ tu nie sú žiadne uložené príspevky
-            </Typography>
-          </Box>
-        )
-      )}
+              )}
+            </Grid>
+          )}
+        </Box>
+      </Paper>
     </Container>
   );
 };

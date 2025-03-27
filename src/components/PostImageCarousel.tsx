@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import Image from 'next/image';
-import { Box, IconButton, MobileStepper, useTheme } from '@mui/material';
-import { KeyboardArrowLeft, KeyboardArrowRight } from '@mui/icons-material';
+import { Box, IconButton, MobileStepper, useTheme, Fade, Zoom } from '@mui/material';
+import { KeyboardArrowLeft, KeyboardArrowRight, ZoomIn as ZoomInIcon, Close as CloseIcon } from '@mui/icons-material';
 import { useSwipeable } from 'react-swipeable';
 
 type PostImage = {
@@ -18,28 +18,54 @@ interface PostImageCarouselProps {
 }
 
 /**
- * A component that displays multiple post images in a carousel
+ * PostImageCarousel Component
+ * 
+ * A modern image carousel for displaying multiple post images.
+ * Features:
+ * - Smooth transitions between images
+ * - Touch and mouse swipe support
+ * - Keyboard navigation
+ * - Image zoom functionality
+ * - Progress indicators
+ * - Responsive design
+ * - Loading animations
  */
 const PostImageCarousel = ({ images, aspectRatio = "1/1" }: PostImageCarouselProps) => {
   const theme = useTheme();
   const [activeStep, setActiveStep] = useState(0);
+  const [isZoomed, setIsZoomed] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const maxSteps = images.length;
 
   // Sort images by order
   const sortedImages = [...images].sort((a, b) => a.order - b.order);
 
-  const handleNext = () => {
+  const handleNext = useCallback(() => {
     setActiveStep((prevActiveStep) => Math.min(prevActiveStep + 1, maxSteps - 1));
-  };
+  }, [maxSteps]);
 
-  const handleBack = () => {
+  const handleBack = useCallback(() => {
     setActiveStep((prevActiveStep) => Math.max(prevActiveStep - 1, 0));
-  };
+  }, []);
+
+  const handleKeyPress = useCallback((event: KeyboardEvent) => {
+    if (event.key === 'ArrowRight') handleNext();
+    if (event.key === 'ArrowLeft') handleBack();
+    if (event.key === 'Escape' && isZoomed) setIsZoomed(false);
+  }, [handleNext, handleBack, isZoomed]);
+
+  // Add keyboard event listener
+  useEffect(() => {
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, [handleKeyPress]);
 
   const swipeHandlers = useSwipeable({
     onSwipedLeft: handleNext,
     onSwipedRight: handleBack,
     trackMouse: true,
+    delta: 10, // minimum distance in pixels before a swipe is registered
+    swipeDuration: 500, // maximum time in ms to complete a swipe
   });
 
   // If there's only one image, render it without carousel controls
@@ -50,6 +76,9 @@ const PostImageCarousel = ({ images, aspectRatio = "1/1" }: PostImageCarouselPro
           position: 'relative',
           width: '100%',
           aspectRatio,
+          overflow: 'hidden',
+          borderRadius: theme.shape.borderRadius,
+          boxShadow: theme.shadows[4],
         }}
       >
         <Image
@@ -58,6 +87,7 @@ const PostImageCarousel = ({ images, aspectRatio = "1/1" }: PostImageCarouselPro
           fill
           style={{ objectFit: 'cover' }}
           sizes="(max-width: 600px) 100vw, 600px"
+          onLoadingComplete={() => setIsLoading(false)}
         />
       </Box>
     );
@@ -69,7 +99,10 @@ const PostImageCarousel = ({ images, aspectRatio = "1/1" }: PostImageCarouselPro
       sx={{ 
         position: 'relative', 
         width: '100%',
-        touchAction: 'pan-y pinch-zoom'
+        touchAction: isZoomed ? 'none' : 'pan-y pinch-zoom',
+        borderRadius: theme.shape.borderRadius,
+        overflow: 'hidden',
+        boxShadow: theme.shadows[4],
       }}
     >
       <Box
@@ -77,7 +110,7 @@ const PostImageCarousel = ({ images, aspectRatio = "1/1" }: PostImageCarouselPro
           display: 'flex',
           width: '100%',
           transform: `translateX(-${activeStep * 100}%)`,
-          transition: 'transform 0.3s ease-out',
+          transition: 'transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
         }}
       >
         {sortedImages.map((image, index) => (
@@ -89,73 +122,141 @@ const PostImageCarousel = ({ images, aspectRatio = "1/1" }: PostImageCarouselPro
               flexShrink: 0,
               aspectRatio,
               overflow: 'hidden',
+              cursor: isZoomed ? 'zoom-out' : 'zoom-in',
+              transition: 'all 0.3s ease',
+              transform: isZoomed ? 'scale(1.5)' : 'scale(1)',
             }}
+            onClick={() => setIsZoomed(!isZoomed)}
           >
             <Image
               src={image.imageUrl}
               alt={`Post image ${index + 1}`}
               fill
-              style={{ objectFit: 'cover' }}
+              style={{ 
+                objectFit: 'cover',
+                transition: 'opacity 0.3s ease',
+                opacity: isLoading ? 0 : 1,
+              }}
               sizes="(max-width: 600px) 100vw, 600px"
+              onLoadingComplete={() => setIsLoading(false)}
+              priority={index === activeStep}
             />
           </Box>
         ))}
       </Box>
 
-      {/* Left navigation button */}
-      {activeStep > 0 && (
+      {/* Navigation buttons */}
+      <Fade in={!isZoomed}>
+        <Box>
+          {/* Left navigation button */}
+          {activeStep > 0 && (
+            <IconButton
+              sx={{
+                position: 'absolute',
+                left: 8,
+                top: '50%',
+                transform: 'translateY(-50%)',
+                backgroundColor: `${theme.palette.background.paper}CC`,
+                backdropFilter: 'blur(4px)',
+                '&:hover': { 
+                  backgroundColor: theme.palette.background.paper,
+                  transform: 'translateY(-50%) scale(1.1)',
+                },
+                transition: 'all 0.2s ease',
+              }}
+              onClick={handleBack}
+            >
+              <KeyboardArrowLeft />
+            </IconButton>
+          )}
+          
+          {/* Right navigation button */}
+          {activeStep < maxSteps - 1 && (
+            <IconButton
+              sx={{
+                position: 'absolute',
+                right: 8,
+                top: '50%',
+                transform: 'translateY(-50%)',
+                backgroundColor: `${theme.palette.background.paper}CC`,
+                backdropFilter: 'blur(4px)',
+                '&:hover': { 
+                  backgroundColor: theme.palette.background.paper,
+                  transform: 'translateY(-50%) scale(1.1)',
+                },
+                transition: 'all 0.2s ease',
+              }}
+              onClick={handleNext}
+            >
+              <KeyboardArrowRight />
+            </IconButton>
+          )}
+        </Box>
+      </Fade>
+
+      {/* Zoom indicator */}
+      <Zoom in={!isZoomed}>
         <IconButton
           sx={{
             position: 'absolute',
-            left: 8,
-            top: '50%',
-            transform: 'translateY(-50%)',
-            backgroundColor: 'rgba(255, 255, 255, 0.7)',
-            '&:hover': { backgroundColor: 'rgba(255, 255, 255, 0.9)' },
-          }}
-          onClick={handleBack}
-        >
-          <KeyboardArrowLeft />
-        </IconButton>
-      )}
-      
-      {/* Right navigation button */}
-      {activeStep < maxSteps - 1 && (
-        <IconButton
-          sx={{
-            position: 'absolute',
+            top: 8,
             right: 8,
-            top: '50%',
-            transform: 'translateY(-50%)',
-            backgroundColor: 'rgba(255, 255, 255, 0.7)',
-            '&:hover': { backgroundColor: 'rgba(255, 255, 255, 0.9)' },
+            backgroundColor: `${theme.palette.background.paper}CC`,
+            backdropFilter: 'blur(4px)',
+            '&:hover': { 
+              backgroundColor: theme.palette.background.paper,
+            },
           }}
-          onClick={handleNext}
+          onClick={() => setIsZoomed(true)}
         >
-          <KeyboardArrowRight />
+          <ZoomInIcon />
         </IconButton>
-      )}
+      </Zoom>
+
+      {/* Close zoom button */}
+      <Zoom in={isZoomed}>
+        <IconButton
+          sx={{
+            position: 'absolute',
+            top: 8,
+            right: 8,
+            backgroundColor: `${theme.palette.background.paper}CC`,
+            backdropFilter: 'blur(4px)',
+            '&:hover': { 
+              backgroundColor: theme.palette.background.paper,
+            },
+          }}
+          onClick={() => setIsZoomed(false)}
+        >
+          <CloseIcon />
+        </IconButton>
+      </Zoom>
 
       {/* Image indicators */}
-      <MobileStepper
-        steps={maxSteps}
-        position="static"
-        activeStep={activeStep}
-        sx={{
-          position: 'absolute',
-          bottom: 0,
-          width: '100%',
-          backgroundColor: 'rgba(0, 0, 0, 0.3)',
-          '& .MuiMobileStepper-dot': {
-            backgroundColor: 'rgba(255, 255, 255, 0.5)',
-          },
-          '& .MuiMobileStepper-dotActive': {
-            backgroundColor: 'white',
-          },
-        }}
-        nextButton={<Box />}
-        backButton={<Box />}
-      />
+      <Fade in={!isZoomed}>
+        <MobileStepper
+          steps={maxSteps}
+          position="static"
+          activeStep={activeStep}
+          sx={{
+            position: 'absolute',
+            bottom: 0,
+            width: '100%',
+            backgroundColor: `${theme.palette.background.paper}80`,
+            backdropFilter: 'blur(4px)',
+            '& .MuiMobileStepper-dot': {
+              backgroundColor: `${theme.palette.text.secondary}80`,
+              transition: 'all 0.3s ease',
+            },
+            '& .MuiMobileStepper-dotActive': {
+              backgroundColor: theme.palette.primary.main,
+              transform: 'scale(1.2)',
+            },
+          }}
+          nextButton={<Box />}
+          backButton={<Box />}
+        />
+      </Fade>
     </Box>
   );
 };

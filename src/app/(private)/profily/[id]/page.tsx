@@ -1,8 +1,7 @@
-// src/app/(private)/profil/[id]/page.tsx
-
+import { Metadata } from "next";
 import ProfileDetailView from "@/views/private/ProfileDetailView";
 
-export const metadata = { 
+export const metadata: Metadata = {
   title: "Profil používateľa | ZoškaGram",
   description: "Prezrite si profil používateľa, jeho príspevky a aktivitu."
 };
@@ -13,8 +12,6 @@ interface ProfilePageProps {
   };
 }
 
-const ProfilePage = ({ params }: ProfilePageProps) => {
+export default function ProfilePage({ params }: ProfilePageProps) {
   return <ProfileDetailView profileId={params.id} />;
-};
-
-export default ProfilePage;
+} 

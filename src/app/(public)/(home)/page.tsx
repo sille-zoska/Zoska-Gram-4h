@@ -19,7 +19,7 @@ const HomePage = async () => {
 
   if (session) {
     // Redirect authenticated users to the feed page
-    redirect("/prispevok");
+    redirect("/prispevky");
   }
 
   // Render the unauthenticated home view for non-authenticated users

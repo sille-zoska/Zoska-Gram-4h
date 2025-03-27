@@ -2,10 +2,15 @@
 
 "use client";
 
+// React and Next.js imports
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { signIn } from "next-auth/react";
 import Link from "next/link";
+
+// NextAuth imports
+import { signIn } from "next-auth/react";
+
+// Material-UI imports
 import {
   Box,
   Typography,
@@ -17,7 +22,11 @@ import {
   Paper,
   CircularProgress,
   Alert,
+  Fade,
+  Zoom,
 } from "@mui/material";
+
+// Material-UI Icons
 import {
   Visibility,
   VisibilityOff,
@@ -28,18 +37,55 @@ import {
   Google as GoogleIcon,
 } from "@mui/icons-material";
 
+// Custom components
+import GoogleSignButton from "./GoogleSignButton";
+
+// Types
+interface FormData {
+  email: string;
+  password: string;
+}
+
+interface FormError {
+  field: keyof FormData;
+  message: string;
+}
+
+// Error message mapping
+const ERROR_MESSAGES = {
+  OAuthSignin: "Nastal problém s prihlásením cez Google. Skúste to znova.",
+  OAuthCallback: "Nastal problém s prihlásením cez Google. Skúste to znova.",
+  OAuthCreateAccount: "Nastal problém s prihlásením cez Google. Skúste to znova.",
+  EmailSignin: "Nastal problém s odoslaním prihlasovacieho odkazu. Skúste to znova.",
+  Callback: "Neplatný prihlasovací odkaz alebo vypršala jeho platnosť.",
+  CredentialsSignin: "Nesprávny email alebo heslo.",
+  default: "Prihlásenie zlyhalo. Skúste to znova.",
+} as const;
+
+/**
+ * SignInView Component
+ * 
+ * Handles user authentication through Google OAuth and credentials.
+ * Provides a clean and intuitive interface for users to sign in.
+ */
 const SignInView = () => {
+  // Hooks
   const router = useRouter();
   const searchParams = useSearchParams();
-  const error = searchParams?.get("error");
   
+  // State
+  const [loading, setLoading] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [showError, setShowError] = useState(false);
+
+  // Get error from URL params
+  const error = searchParams?.get("error");
+
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
   const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [formError, setFormError] = useState<string | null>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -48,246 +94,225 @@ const SignInView = () => {
     });
   };
 
-  const handleCredentialsSignIn = async (e: React.FormEvent) => {
-    e.preventDefault();
+  /**
+   * Handle Google sign-in error
+   */
+  const handleGoogleSignInError = (err: Error) => {
+    setFormError(ERROR_MESSAGES.OAuthSignin);
+    setShowError(true);
+    setLoading(false);
+  };
+
+  /**
+   * Handle Google sign-in start
+   */
+  const handleGoogleSignInStart = () => {
     setLoading(true);
     setFormError(null);
-
-    try {
-      const result = await signIn("credentials", {
-        redirect: false,
-        email: formData.email,
-        password: formData.password,
-      });
-
-      if (result?.error) {
-        setFormError("Nesprávny email alebo heslo");
-      } else {
-        // Redirect to feed page
-        router.push("/prispevok");
-      }
-    } catch (err) {
-      setFormError("Prihlásenie zlyhalo. Skúste to znova.");
-    } finally {
-      setLoading(false);
-    }
+    setShowError(false);
   };
 
-  const handleGoogleSignIn = async () => {
-    setLoading(true);
-    try {
-      await signIn("google", { callbackUrl: "/prispevok" });
-    } catch (err) {
-      setFormError("Prihlásenie cez Google zlyhalo. Skúste to znova.");
-      setLoading(false);
-    }
-  };
-
-  // Map NextAuth error codes to user-friendly messages
-  const getErrorMessage = (errorCode: string) => {
-    switch (errorCode) {
-      case "OAuthSignin":
-      case "OAuthCallback":
-      case "OAuthCreateAccount":
-        return "Nastal problém s prihlásením cez Google. Skúste to znova.";
-      case "EmailSignin":
-        return "Nastal problém s odoslaním prihlasovacieho odkazu. Skúste to znova.";
-      case "Callback":
-        return "Neplatný prihlasovací odkaz alebo vypršala jeho platnosť.";
-      case "CredentialsSignin":
-        return "Nesprávny email alebo heslo.";
-      default:
-        return "Prihlásenie zlyhalo. Skúste to znova.";
-    }
+  /**
+   * Gets user-friendly error message based on error code
+   */
+  const getErrorMessage = (errorCode: string): string => {
+    return ERROR_MESSAGES[errorCode as keyof typeof ERROR_MESSAGES] || ERROR_MESSAGES.default;
   };
 
   return (
-    <Box sx={{ width: "100%" }}>
-      <Box
-        sx={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          mb: 4,
+    <Fade in timeout={500}>
+      <Box 
+        sx={{ 
+          width: "100%",
+          maxWidth: "480px",
+          mx: "auto",
+          px: 2,
+          py: 4,
         }}
       >
-        <SchoolIcon
-          sx={{
-            fontSize: 50,
-            mb: 2,
-            color: "primary.main",
-          }}
-        />
-        <Typography
-          variant="h4"
-          sx={{
-            fontWeight: 700,
-            background: "linear-gradient(45deg, #FF385C, #1DA1F2)",
-            backgroundClip: "text",
-            WebkitBackgroundClip: "text",
-            color: "transparent",
-            mb: 1,
-          }}
-        >
-          ZoškaGram
-        </Typography>
-        <Typography variant="body1" color="text.secondary" align="center">
-          Vitajte späť! Prihláste sa do svojho účtu
-        </Typography>
-      </Box>
-
-      {(error || formError) && (
-        <Alert severity="error" sx={{ mb: 3 }}>
-          {error ? getErrorMessage(error) : formError}
-        </Alert>
-      )}
-
-      <Paper
-        elevation={0}
-        sx={{
-          p: 3,
-          borderRadius: 2,
-          bgcolor: "background.paper",
-          border: "1px solid",
-          borderColor: "divider",
-        }}
-      >
-        {/* Google Sign In Button */}
-        <Button
-          fullWidth
-          variant="outlined"
-          onClick={handleGoogleSignIn}
-          disabled={loading}
-          startIcon={<GoogleIcon />}
-          sx={{
-            py: 1.2,
-            borderRadius: 50,
-            mb: 2,
-            borderColor: "divider",
-            "&:hover": {
-              borderColor: "primary.main",
-              bgcolor: "background.paper",
-            },
-          }}
-        >
-          Prihlásiť sa cez Google
-        </Button>
-
-        <Divider sx={{ my: 2 }}>
-          <Typography variant="body2" color="text.secondary">
-            alebo
-          </Typography>
-        </Divider>
-
-        {/* Credentials Sign In Form - Commented out for now */}
-        {/* <Box component="form" onSubmit={handleCredentialsSignIn}>
-          <TextField
-            fullWidth
-            label="Email"
-            name="email"
-            type="email"
-            value={formData.email}
-            onChange={handleChange}
-            required
-            margin="normal"
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <EmailIcon color="action" />
-                </InputAdornment>
-              ),
-            }}
-          />
-
-          <TextField
-            fullWidth
-            label="Heslo"
-            name="password"
-            type={showPassword ? "text" : "password"}
-            value={formData.password}
-            onChange={handleChange}
-            required
-            margin="normal"
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <LockIcon color="action" />
-                </InputAdornment>
-              ),
-              endAdornment: (
-                <InputAdornment position="end">
-                  <IconButton
-                    onClick={() => setShowPassword(!showPassword)}
-                    edge="end"
-                  >
-                    {showPassword ? <VisibilityOff /> : <Visibility />}
-                  </IconButton>
-                </InputAdornment>
-              ),
-            }}
-          />
-
-          <Button
-            fullWidth
-            type="submit"
-            variant="contained"
-            disabled={loading}
-            startIcon={loading ? <CircularProgress size={20} /> : <LoginIcon />}
+        {/* Logo and Title Section */}
+        <Zoom in timeout={500} style={{ transitionDelay: "100ms" }}>
+          <Box
             sx={{
-              mt: 3,
-              mb: 2,
-              py: 1.2,
-              borderRadius: 50,
-              fontWeight: 600,
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              mb: 4,
             }}
           >
-            {loading ? "Prihlasovanie..." : "Prihlásiť sa"}
-          </Button>
-
-          <Typography variant="body2" color="text.secondary" align="center" sx={{ mt: 1 }}>
-            <Link href="/auth/zabudnute-heslo" passHref>
-              <Typography
-                component="span"
-                variant="body2"
-                sx={{
-                  fontWeight: 600,
-                  color: "secondary.main",
-                  textDecoration: "none",
-                  "&:hover": {
-                    textDecoration: "underline",
-                  },
-                }}
-              >
-                Zabudli ste heslo?
-              </Typography>
-            </Link>
-          </Typography>
-        </Box> */}
-      </Paper>
-
-      <Box sx={{ mt: 3, textAlign: "center" }}>
-        <Typography variant="body2" color="text.secondary">
-          Nemáte účet?{" "}
-          <Link href="/auth/registracia" passHref>
-            <Typography
-              component="span"
-              variant="body2"
+            <Box
               sx={{
-                fontWeight: 600,
-                color: "primary.main",
-                textDecoration: "none",
-                "&:hover": {
-                  textDecoration: "underline",
-                },
+                position: "relative",
+                mb: 2,
               }}
             >
-              Zaregistrujte sa
+              <SchoolIcon
+                sx={{
+                  fontSize: 60,
+                  color: "primary.main",
+                  filter: "drop-shadow(0 4px 8px rgba(0,0,0,0.1))",
+                  animation: "float 3s ease-in-out infinite",
+                }}
+                aria-label="ZoškaGram Logo"
+              />
+              <Box
+                sx={{
+                  position: "absolute",
+                  top: -8,
+                  right: -8,
+                  width: 24,
+                  height: 24,
+                  borderRadius: "50%",
+                  bgcolor: "secondary.main",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+                }}
+              >
+                <Typography
+                  variant="caption"
+                  sx={{
+                    color: "white",
+                    fontWeight: 700,
+                    fontSize: "0.75rem",
+                  }}
+                >
+                  BETA
+                </Typography>
+              </Box>
+            </Box>
+            <Typography
+              variant="h4"
+              className="gradient-text"
+              sx={{
+                mb: 1,
+                textAlign: "center",
+                fontWeight: 700,
+              }}
+            >
+              ZoškaGram
+            </Typography>
+            <Typography 
+              variant="body1" 
+              color="text.secondary" 
+              align="center"
+              sx={{
+                maxWidth: "80%",
+              }}
+            >
+              Vitajte späť! Prihláste sa do svojho účtu
+            </Typography>
+          </Box>
+        </Zoom>
+
+        {/* Error Alert */}
+        {(error || formError) && (
+          <Fade in={showError || !!error} timeout={300}>
+            <Alert 
+              severity="error" 
+              sx={{ 
+                mb: 3,
+                borderRadius: 2,
+                "& .MuiAlert-icon": {
+                  fontSize: 28,
+                },
+              }}
+              onClose={() => setShowError(false)}
+            >
+              {error ? getErrorMessage(error) : formError}
+            </Alert>
+          </Fade>
+        )}
+
+        {/* Sign In Form */}
+        <Zoom in timeout={500} style={{ transitionDelay: "200ms" }}>
+          <Paper
+            elevation={0}
+            sx={{
+              p: 4,
+              borderRadius: 3,
+              bgcolor: "background.paper",
+              border: "1px solid",
+              borderColor: "divider",
+              boxShadow: "0 4px 20px rgba(0,0,0,0.05)",
+              transition: "all 0.3s ease",
+              "&:hover": {
+                boxShadow: "0 8px 30px rgba(0,0,0,0.1)",
+                transform: "translateY(-2px)",
+              },
+            }}
+          >
+            {/* Google Sign In Button */}
+            <GoogleSignButton 
+              text="Prihlásiť sa cez Google"
+              callbackUrl="/prispevky"
+              disabled={loading}
+              onSignInStart={handleGoogleSignInStart}
+              onSignInError={handleGoogleSignInError}
+            />
+
+            {/* Divider */}
+            <Divider sx={{ my: 3 }}>
+              <Typography 
+                variant="body2" 
+                color="text.secondary"
+                sx={{
+                  px: 2,
+                  fontWeight: 500,
+                }}
+              >
+                alebo
+              </Typography>
+            </Divider>
+
+            {/* Credentials form remains commented out */}
+          </Paper>
+        </Zoom>
+
+        {/* Registration Link */}
+        <Zoom in timeout={500} style={{ transitionDelay: "300ms" }}>
+          <Box 
+            sx={{ 
+              mt: 4, 
+              textAlign: "center",
+              p: 3,
+              borderRadius: 2,
+              bgcolor: "background.paper",
+              border: "1px solid",
+              borderColor: "divider",
+              transition: "all 0.2s ease",
+              "&:hover": {
+                boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
+              },
+            }}
+          >
+            <Typography variant="body2" color="text.secondary">
+              Nemáte účet?{" "}
+              <Link href="/auth/registracia" passHref>
+                <Typography
+                  component="span"
+                  variant="body2"
+                  sx={{
+                    fontWeight: 600,
+                    color: "primary.main",
+                    textDecoration: "none",
+                    transition: "all 0.2s ease",
+                    "&:hover": {
+                      color: "primary.dark",
+                      textDecoration: "underline",
+                    },
+                  }}
+                >
+                  Zaregistrujte sa
     </Typography>
-          </Link>
+              </Link>
     </Typography>
+          </Box>
+        </Zoom>
       </Box>
-    </Box>
-);
+    </Fade>
+  );
 };
 
 export default SignInView;

@@ -18,6 +18,7 @@ import {
   CircularProgress,
   Grid,
   IconButton,
+  Paper,
 } from "@mui/material";
 
 // MUI Icon imports
@@ -178,7 +179,7 @@ const CreatePostView = () => {
       });
       
       // Redirect to feed after successful creation
-      router.push("/prispevok");
+      router.push("/prispevky");
     } catch (error) {
       console.error("Failed to create post:", error);
       setUploadError(error instanceof Error ? error.message : "Failed to create post");
@@ -189,15 +190,31 @@ const CreatePostView = () => {
 
   // Render functions
   const renderImageGrid = () => (
-    <Grid container spacing={2} sx={{ mb: 3 }}>
+    <Grid container spacing={2} sx={{ mb: 4 }}>
       {formState.images.map((image, index) => (
         <Grid item xs={6} sm={4} key={index}>
-          <Card sx={{ position: 'relative' }}>
+          <Paper
+            elevation={0}
+            sx={{ 
+              position: 'relative',
+              borderRadius: 2,
+              overflow: 'hidden',
+              border: '1px solid',
+              borderColor: 'divider',
+              transition: 'transform 0.2s',
+              '&:hover': {
+                transform: 'scale(1.02)',
+              },
+            }}
+          >
             <CardMedia
               component="img"
               image={image.preview}
-              alt={`Image ${index + 1}`}
-              sx={{ aspectRatio: "1/1", objectFit: "cover" }}
+              alt={`Obrázok ${index + 1}`}
+              sx={{ 
+                aspectRatio: "1/1", 
+                objectFit: "cover",
+              }}
             />
             <IconButton
               size="small"
@@ -206,39 +223,60 @@ const CreatePostView = () => {
                 position: 'absolute', 
                 top: 8, 
                 right: 8,
-                backgroundColor: 'rgba(255,255,255,0.7)',
+                backgroundColor: 'rgba(255,255,255,0.9)',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
                 '&:hover': {
-                  backgroundColor: 'rgba(255,255,255,0.9)',
-                }
+                  backgroundColor: 'rgba(255,255,255,1)',
+                  transform: 'scale(1.1)',
+                },
+                transition: 'transform 0.2s',
               }}
               onClick={() => handleRemoveImage(index)}
               disabled={isUploading}
             >
               <DeleteIcon />
             </IconButton>
-          </Card>
+          </Paper>
         </Grid>
       ))}
       
       {formState.images.length < MAX_IMAGES && (
         <Grid item xs={6} sm={4}>
-          <Card 
+          <Paper 
+            elevation={0}
             sx={{ 
               aspectRatio: "1/1", 
               display: "flex", 
               alignItems: "center", 
               justifyContent: "center",
-              backgroundColor: "grey.100",
-              border: '1px dashed grey.300'
+              borderRadius: 2,
+              border: '1px dashed',
+              borderColor: 'divider',
+              background: 'linear-gradient(to bottom, rgba(255,56,92,0.02), rgba(29,161,242,0.02))',
+              transition: 'all 0.2s',
+              '&:hover': {
+                borderColor: 'primary.main',
+                background: 'linear-gradient(to bottom, rgba(255,56,92,0.05), rgba(29,161,242,0.05))',
+              }
             }}
           >
             <Button
               component="label"
               variant="outlined"
-              startIcon={<AddIcon />}
+              startIcon={<CloudUploadIcon />}
               disabled={isUploading}
+              sx={{
+                borderRadius: 50,
+                px: 3,
+                py: 1,
+                borderColor: 'divider',
+                '&:hover': {
+                  borderColor: 'primary.main',
+                  bgcolor: 'background.paper',
+                }
+              }}
             >
-              Add Image
+              Pridať obrázok
               <input
                 type="file"
                 hidden
@@ -247,7 +285,7 @@ const CreatePostView = () => {
                 multiple
               />
             </Button>
-          </Card>
+          </Paper>
         </Grid>
       )}
     </Grid>
@@ -255,58 +293,126 @@ const CreatePostView = () => {
 
   // Main render
   return (
-    <Container sx={{ mt: 4, maxWidth: "sm" }}>
-      <Typography variant="h4" sx={{ mb: 3 }}>
-        Create Post
-      </Typography>
-
-      <Box component="form" onSubmit={handleSubmit} sx={{ mt: 2 }}>
-        {renderImageGrid()}
-
-        <TextField
-          fullWidth
-          multiline
-          rows={4}
-          label="Caption"
-          value={formState.caption}
-          onChange={handleCaptionChange}
-          sx={{ mb: 3 }}
-        />
-
-        {uploadError && (
-          <Alert severity="error" sx={{ mb: 2 }}>
-            {uploadError}
-          </Alert>
-        )}
-
-        <Button
-          fullWidth
-          variant="contained"
-          type="submit"
-          disabled={formState.images.length === 0 || isUploading}
-          sx={{ mb: 2 }}
+    <Container sx={{ mt: 4, mb: 8, maxWidth: "sm" }}>
+      <Box sx={{ 
+        display: 'flex', 
+        flexDirection: 'column',
+        alignItems: 'center',
+        mb: 4 
+      }}>
+        <Typography
+          variant="h4"
+          sx={{
+            fontWeight: 700,
+            background: 'linear-gradient(45deg, #FF385C, #1DA1F2)',
+            backgroundClip: 'text',
+            WebkitBackgroundClip: 'text',
+            color: 'transparent',
+            mb: 1,
+          }}
         >
-          {isUploading ? (
-            <>
-              <CircularProgress size={24} sx={{ mr: 1 }} color="inherit" />
-              Uploading...
-            </>
-          ) : (
-            "Share Post"
-          )}
-        </Button>
+          Nový príspevok
+        </Typography>
+        <Typography variant="body1" color="text.secondary" align="center">
+          Zdieľajte svoje najlepšie momenty s ostatnými
+        </Typography>
+      </Box>
 
-        {formState.images.length > 0 && (
+      <Paper
+        elevation={0}
+        sx={{
+          p: 3,
+          borderRadius: 3,
+          bgcolor: 'background.paper',
+          border: '1px solid',
+          borderColor: 'divider',
+        }}
+      >
+        <Box component="form" onSubmit={handleSubmit}>
+          {renderImageGrid()}
+
+          <TextField
+            fullWidth
+            multiline
+            rows={4}
+            label="Popis príspevku"
+            placeholder="Napíšte niečo o vašom príspevku..."
+            value={formState.caption}
+            onChange={handleCaptionChange}
+            sx={{ 
+              mb: 3,
+              '& .MuiOutlinedInput-root': {
+                borderRadius: 2,
+              }
+            }}
+          />
+
+          {uploadError && (
+            <Alert 
+              severity="error" 
+              sx={{ 
+                mb: 3,
+                borderRadius: 2
+              }}
+            >
+              {uploadError}
+            </Alert>
+          )}
+
           <Button
             fullWidth
-            color="error"
-            onClick={handleClearAll}
-            disabled={isUploading}
+            variant="contained"
+            type="submit"
+            disabled={formState.images.length === 0 || isUploading}
+            sx={{ 
+              mb: 2,
+              py: 1.5,
+              borderRadius: 50,
+              background: 'linear-gradient(45deg, #FF385C, #1DA1F2)',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+              '&:hover': {
+                background: 'linear-gradient(45deg, #FF385C, #1DA1F2)',
+                opacity: 0.9,
+              },
+              '&:disabled': {
+                background: 'linear-gradient(45deg, #FF385C, #1DA1F2)',
+                opacity: 0.5,
+              }
+            }}
           >
-            Clear All Images
+            {isUploading ? (
+              <>
+                <CircularProgress size={24} sx={{ mr: 1 }} color="inherit" />
+                Zdieľam príspevok...
+              </>
+            ) : (
+              "Zdieľať príspevok"
+            )}
           </Button>
-        )}
-      </Box>
+
+          {formState.images.length > 0 && (
+            <Button
+              fullWidth
+              variant="outlined"
+              color="error"
+              onClick={handleClearAll}
+              disabled={isUploading}
+              sx={{ 
+                py: 1.5,
+                borderRadius: 50,
+                borderColor: 'error.main',
+                color: 'error.main',
+                '&:hover': {
+                  borderColor: 'error.dark',
+                  bgcolor: 'error.lighter',
+                }
+              }}
+            >
+              Vymazať všetky obrázky
+            </Button>
+          )}
+        </Box>
+      </Paper>
     </Container>
   );
 };

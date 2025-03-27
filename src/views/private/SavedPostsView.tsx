@@ -49,7 +49,9 @@ const getPostImageUrl = (post: Post): string => {
     return post.imageUrl;
   }
   // Return a placeholder image URL as fallback
-  return "/images/placeholder.jpg";
+  // return "/images/placeholder.jpg";
+  // Instead of using a static placeholder.jpg, you could use:
+  return `https://api.dicebear.com/7.x/initials/svg?seed=${post.user.name || '?'}&backgroundColor=FF385C,1DA1F2`;
 };
 
 /**
@@ -93,7 +95,7 @@ const SavedPostsView = () => {
   
   // Handler for post click
   const handlePostClick = (postId: string) => {
-    router.push(`/prispevok/${postId}`);
+    router.push(`/prispevky/${postId}`);
   };
   
   // Loading state

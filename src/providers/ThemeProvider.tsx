@@ -6,23 +6,26 @@ import React, { createContext, useContext, useState, useEffect } from "react";
 import { ThemeProvider as MUIThemeProvider, CssBaseline, GlobalStyles } from "@mui/material";
 import { darkTheme, lightTheme } from "../styles/theme";
 
-// Create a context for the theme
-const ThemeContext = createContext({
+interface ThemeContextType {
+  toggleTheme: () => void;
+  isDarkMode: boolean;
+}
+
+const ThemeContext = createContext<ThemeContextType>({
   toggleTheme: () => {},
   isDarkMode: false,
 });
 
-// Export a custom hook for easy access to theme context
 export const useTheme = () => useContext(ThemeContext);
 
-// ThemeProvider component
-const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({
-  children,
-}) => {
+interface ThemeProviderProps {
+  children: React.ReactNode;
+}
+
+const ThemeProvider = ({ children }: ThemeProviderProps) => {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [mounted, setMounted] = useState(false);
 
-  // Load theme preference from localStorage
   useEffect(() => {
     setMounted(true);
     const savedTheme = localStorage.getItem("theme");
@@ -33,7 +36,6 @@ const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   }, []);
 
-  // Toggle the theme between dark and light
   const toggleTheme = () => {
     const newTheme = !isDarkMode;
     setIsDarkMode(newTheme);
@@ -51,14 +53,16 @@ const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({
         <GlobalStyles
           styles={{
             '*': {
-              transition: 'background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease',
+              transition: 'background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease',
             },
             body: {
               minHeight: '100vh',
+              background: isDarkMode ? '#121212' : '#F8F9FA',
             },
             'img': {
               maxWidth: '100%',
               height: 'auto',
+              borderRadius: '8px',
             },
             '.fade-enter': {
               opacity: 0,
@@ -73,6 +77,52 @@ const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({
             '.fade-exit-active': {
               opacity: 0,
               transition: 'opacity 200ms ease-out',
+            },
+            '::-webkit-scrollbar': {
+              width: '8px',
+              height: '8px',
+            },
+            '::-webkit-scrollbar-track': {
+              background: isDarkMode ? '#1E1E1E' : '#F1F1F1',
+              borderRadius: '4px',
+            },
+            '::-webkit-scrollbar-thumb': {
+              background: isDarkMode ? '#888' : '#888',
+              borderRadius: '4px',
+              '&:hover': {
+                background: isDarkMode ? '#555' : '#555',
+              },
+            },
+            '.gradient-text': {
+              background: 'linear-gradient(45deg, #FF385C, #1DA1F2)',
+              backgroundClip: 'text',
+              WebkitBackgroundClip: 'text',
+              color: 'transparent',
+              fontWeight: 700,
+            },
+            '.hover-scale': {
+              transition: 'transform 0.2s ease-in-out',
+              '&:hover': {
+                transform: 'scale(1.05)',
+              },
+            },
+            '.glass-effect': {
+              background: isDarkMode 
+                ? 'rgba(30, 30, 30, 0.8)' 
+                : 'rgba(255, 255, 255, 0.8)',
+              backdropFilter: 'blur(10px)',
+              border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'}`,
+            },
+            '@keyframes float': {
+              '0%': {
+                transform: 'translateY(0px)',
+              },
+              '50%': {
+                transform: 'translateY(-10px)',
+              },
+              '100%': {
+                transform: 'translateY(0px)',
+              },
             },
           }}
         />

@@ -11,7 +11,7 @@ import { useRouter } from "next/navigation";
 // NextAuth imports
 import { useSession } from "next-auth/react";
 
-// MUI imports
+// MUI Component imports
 import Box from "@mui/material/Box";
 import BottomNavigation from "@mui/material/BottomNavigation";
 import BottomNavigationAction from "@mui/material/BottomNavigationAction";
@@ -25,7 +25,7 @@ import Divider from "@mui/material/Divider";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import { useTheme as useMuiTheme } from "@mui/material/styles";
 
-// MUI Icons
+// MUI Icon imports
 import HomeIcon from "@mui/icons-material/Home";
 import SearchIcon from "@mui/icons-material/Search";
 import InfoIcon from "@mui/icons-material/Info";
@@ -40,30 +40,47 @@ import SettingsIcon from "@mui/icons-material/Settings";
 import LogoutIcon from "@mui/icons-material/Logout";
 import BookmarkBorderIcon from "@mui/icons-material/BookmarkBorder";
 
-// Custom imports
-import { useTheme } from "../providers/ThemeProvider";
+// Provider imports
+import { useTheme } from "@/providers/ThemeProvider";
+
+// View imports
 import SignOutView from "@/views/auth/SignOutView";
 
-// TypeScript interfaces
+// Utility imports
+import { getAvatarUrl } from "@/utils/avatar";
+
+// Types
 interface NavigationPath {
   label: string;
   value: string;
   icon: JSX.Element;
 }
 
-// Navigation component with theme toggle and profile menu
+/**
+ * NavBar Component
+ * 
+ * Main navigation component that provides:
+ * - Bottom navigation bar for mobile and desktop
+ * - Theme toggle functionality
+ * - User profile menu
+ * - Authentication-aware navigation items
+ * - Responsive design with mobile optimizations
+ * - Smooth transitions and hover effects
+ */
 const NavBar = () => {
+  // State management
   const [value, setValue] = useState("/");
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [signOutDialogOpen, setSignOutDialogOpen] = useState(false);
+
+  // Hooks
   const router = useRouter();
   const { data: session, status } = useSession();
   const { toggleTheme, isDarkMode } = useTheme();
-  const [signOutDialogOpen, setSignOutDialogOpen] = useState(false);
-  
   const muiTheme = useMuiTheme();
   const isMobile = useMediaQuery(muiTheme.breakpoints.down('sm'));
 
-  // Handle navigation and profile menu
+  // Navigation handlers
   const handleNavigation = (event: React.SyntheticEvent, newValue: string) => {
     if (newValue === "/profil") {
       setAnchorEl(event.currentTarget as HTMLElement);
@@ -73,47 +90,58 @@ const NavBar = () => {
     }
   };
 
-  // Close profile menu
   const handleMenuClose = () => setAnchorEl(null);
 
-  // Navigate to profile page
   const handleProfileClick = () => {
     handleMenuClose();
-    router.push("/profil/upravit");
+    router.push("/profily/upravit");
   };
 
-  // Handle user logout
   const handleLogoutClick = () => {
     handleMenuClose();
     setSignOutDialogOpen(true);
   };
 
-  // Handle theme toggle
   const handleThemeToggle = () => {
     toggleTheme();
   };
 
-  // Paths for authenticated users
+  const handleSavedPosts = () => {
+    handleMenuClose();
+    router.push("/prispevky/ulozene");
+  };
+
+  const handleProfileSettings = () => {
+    router.push("/profily/upravit");
+  };
+
+  // Navigation paths configuration
   const privatePaths: NavigationPath[] = [
-    { label: "Feed", value: "/", icon: <HomeIcon /> },
-    { label: "Hľadať", value: "/hladat", icon: <ExploreIcon /> },
-    { label: "Pridať", value: "/prispevok/vytvorit", icon: <AddBoxOutlinedIcon /> },
+    { label: "Feed", value: "/prispevky", icon: <HomeIcon /> },
+    { label: "Hľadať", value: "/profily", icon: <ExploreIcon /> },
+    { label: "Pridať", value: "/prispevky/vytvorit", icon: <AddBoxOutlinedIcon /> },
     {
       label: "Profil",
       value: "/profil",
       icon: session?.user?.image ? (
         <Avatar
-          sx={{ width: 24, height: 24 }}
-          alt={session?.user?.name || "User"}
-          src={session?.user?.image || undefined}
-        />
+          src={getAvatarUrl(session.user.name, session.user.image)}
+          alt={session.user.name || "User"}
+          sx={{
+            width: 32,
+            height: 32,
+            border: '2px solid white',
+            background: 'linear-gradient(45deg, #FF385C, #1DA1F2)',
+          }}
+        >
+          {session.user.name?.[0] || 'U'}
+        </Avatar>
       ) : (
         <AccountCircleOutlinedIcon />
       ),
     },
   ];
 
-  // Paths for non-authenticated users
   const publicPaths: NavigationPath[] = [
     { label: "Domov", value: "/", icon: <HomeIcon /> },
     { label: "O nás", value: "/o-nas", icon: <InfoIcon /> },
@@ -135,63 +163,85 @@ const NavBar = () => {
           width: "100%",
           position: "fixed",
           bottom: 0,
-          backgroundColor: (theme) => theme.palette.background.paper,
-          borderTop: (theme) => `1px solid ${theme.palette.divider}`,
           display: "flex",
           alignItems: "center",
-          justifyContent: "space-between",
+          justifyContent: "center",
           px: 1,
+          pb: 2,
           zIndex: 1000,
-          boxShadow: '0px -2px 10px rgba(0,0,0,0.05)',
         }}
       >
         {/* Navigation Section */}
-        <BottomNavigation
-          showLabels
-          value={value}
-          onChange={handleNavigation}
+        <Box
           sx={{
-            flexGrow: 1,
-            backgroundColor: "transparent",
-            height: 64,
+            width: isMobile ? "90%" : "600px",
+            backgroundColor: (theme) => theme.palette.background.paper,
+            borderRadius: 10,
+            boxShadow: '0px 4px 20px rgba(0,0,0,0.15)',
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            overflow: "hidden",
+            transition: "all 0.3s ease",
+            border: (theme) => `1px solid ${theme.palette.divider}`,
           }}
         >
-          {navigationPaths.map((path) => (
-            <BottomNavigationAction
-              key={path.value}
-              label={isMobile ? undefined : path.label}
-              value={path.value}
-              icon={path.icon}
-              sx={{
-                minWidth: isMobile ? 'auto' : 80,
-                '& .MuiBottomNavigationAction-label': {
-                  fontSize: '0.75rem',
-                },
-                '& .Mui-selected': {
-                  color: 'primary.main',
-                },
-              }}
-            />
-          ))}
-        </BottomNavigation>
-        
-        {/* Theme Toggle Button for non-authenticated users */}
-        {status !== "authenticated" && (
-          <IconButton 
-            onClick={handleThemeToggle} 
-            sx={{ 
-              ml: 1, 
-              mr: 1,
-              color: 'text.secondary',
-              '&:hover': {
-                color: 'primary.main',
-              }
+          <BottomNavigation
+            showLabels
+            value={value}
+            onChange={handleNavigation}
+            sx={{
+              flexGrow: 1,
+              backgroundColor: "transparent",
+              height: 64,
+              width: "100%",
+              justifyContent: "space-around",
             }}
-            aria-label={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
           >
-            {isDarkMode ? <LightModeIcon /> : <DarkModeIcon />}
-          </IconButton>
-        )}
+            {navigationPaths.map((path) => (
+              <BottomNavigationAction
+                key={path.value}
+                label={isMobile ? undefined : path.label}
+                value={path.value}
+                icon={path.icon}
+                sx={{
+                  minWidth: isMobile ? 'auto' : 80,
+                  '& .MuiBottomNavigationAction-label': {
+                    fontSize: '0.75rem',
+                    transition: 'all 0.2s ease',
+                  },
+                  '& .Mui-selected': {
+                    color: 'primary.main',
+                  },
+                  '&.Mui-selected': {
+                    transform: 'translateY(-4px)',
+                  },
+                  transition: 'all 0.2s ease',
+                }}
+              />
+            ))}
+          </BottomNavigation>
+          
+          {/* Theme Toggle Button for non-authenticated users */}
+          {status !== "authenticated" && (
+            <IconButton 
+              onClick={handleThemeToggle} 
+              sx={{ 
+                ml: 1, 
+                mr: 1,
+                color: 'text.secondary',
+                '&:hover': {
+                  color: 'primary.main',
+                  transform: 'rotate(180deg)',
+                },
+                transition: 'all 0.3s ease',
+              }}
+              aria-label={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
+            >
+              {isDarkMode ? <LightModeIcon /> : <DarkModeIcon />}
+            </IconButton>
+          )}
+        </Box>
       </Box>
 
       {/* Profile Menu */}
@@ -223,16 +273,13 @@ const NavBar = () => {
           <ListItemText>Môj profil</ListItemText>
         </MenuItem>
         
-        <MenuItem onClick={() => {
-          handleMenuClose();
-          router.push("/ulozene");
-        }}>
+        <MenuItem onClick={handleSavedPosts}>
           <ListItemIcon>
             <BookmarkBorderIcon fontSize="small" />
           </ListItemIcon>
-          <ListItemText>Uložené</ListItemText>
+          <ListItemText>Uložené príspevky</ListItemText>
         </MenuItem>
-        
+
         <Divider />
         
         <MenuItem onClick={handleThemeToggle}>
@@ -241,22 +288,21 @@ const NavBar = () => {
           </ListItemIcon>
           <ListItemText>{isDarkMode ? "Svetlý režim" : "Tmavý režim"}</ListItemText>
         </MenuItem>
-        
+
         <Divider />
-        
+
         <MenuItem onClick={handleLogoutClick}>
           <ListItemIcon>
-            <LogoutIcon fontSize="small" color="error" />
+            <LogoutIcon fontSize="small" />
           </ListItemIcon>
-          <ListItemText primaryTypographyProps={{ color: 'error' }}>
-            Odhlásiť sa
-          </ListItemText>
+          <ListItemText>Odhlásiť sa</ListItemText>
         </MenuItem>
       </Menu>
 
-      {/* SignOut Dialog */}
-      <SignOutView 
+      {/* Sign Out Dialog */}
+      <SignOutView
         open={signOutDialogOpen}
+        onClose={() => setSignOutDialogOpen(false)}
       />
     </>
   );

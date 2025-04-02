@@ -595,7 +595,9 @@ const ProfilesView = () => {
                     {profile.user.name?.[0] || "U"}
                   </Avatar>
                   
-                  {renderProfileInfo(profile)}
+                  <Box sx={{ flexGrow: 1, ml: 3 }}>
+                    {renderProfileInfo(profile)}
+                  </Box>
                 </Box>
 
                 {renderRecentPosts(profile)}
@@ -646,7 +648,7 @@ const ProfilesView = () => {
                     {userProfile?.user?.name?.[0] || "U"}
                   </Avatar>
                   
-                  <Box sx={{ flexGrow: 1 }}>
+                  <Box sx={{ flexGrow: 1, ml: 3 }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
                       <Typography variant="h5" sx={{ mr: 2 }}>
                         {userProfile.user?.name || "Neznámy používateľ"}

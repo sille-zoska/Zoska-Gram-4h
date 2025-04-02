@@ -68,6 +68,7 @@ model User {
   email              String          @unique
   emailVerified      DateTime?
   image              String?
+  password           String?
   createdAt          DateTime        @default(now())
   updatedAt          DateTime        @updatedAt
   accounts           Account[]
@@ -203,4 +204,14 @@ model Bookmark {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, postId])
+}
+
+model VerificationCode {
+  id        String   @id @default(cuid())
+  email     String
+  code      String
+  expires   DateTime
+  createdAt DateTime @default(now())
+
+  @@unique([email, code])
 }

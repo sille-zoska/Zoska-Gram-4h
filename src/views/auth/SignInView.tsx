@@ -3,9 +3,14 @@
 "use client";
 
 // React and Next.js imports
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+
+// Form and validation
+import { useForm } from "react-hook-form";
+import * as yup from "yup";
+import { yupResolver } from "@hookform/resolvers/yup";
 
 // NextAuth imports
 import { signIn } from "next-auth/react";
@@ -30,26 +35,29 @@ import {
 import {
   Visibility,
   VisibilityOff,
-  Login as LoginIcon,
   Email as EmailIcon,
   Lock as LockIcon,
   School as SchoolIcon,
-  Google as GoogleIcon,
 } from "@mui/icons-material";
 
 // Custom components
 import GoogleSignButton from "./GoogleSignButton";
 
-// Types
+// Types and validation schema
 interface FormData {
   email: string;
   password: string;
 }
 
-interface FormError {
-  field: keyof FormData;
-  message: string;
-}
+const schema = yup.object().shape({
+  email: yup
+    .string()
+    .email("Neplatný formát emailu")
+    .required("Email je povinný"),
+  password: yup
+    .string()
+    .required("Heslo je povinné"),
+});
 
 // Error message mapping
 const ERROR_MESSAGES = {
@@ -58,7 +66,9 @@ const ERROR_MESSAGES = {
   OAuthCreateAccount: "Nastal problém s prihlásením cez Google. Skúste to znova.",
   EmailSignin: "Nastal problém s odoslaním prihlasovacieho odkazu. Skúste to znova.",
   Callback: "Neplatný prihlasovací odkaz alebo vypršala jeho platnosť.",
-  CredentialsSignin: "Nesprávny email alebo heslo.",
+  MISSING_CREDENTIALS: "Vyplňte email a heslo.",
+  INVALID_CREDENTIALS: "Nesprávny email alebo heslo.",
+  EMAIL_NOT_VERIFIED: "Váš email nie je overený. Skontrolujte svoj email alebo požiadajte o nový overovací kód.",
   default: "Prihlásenie zlyhalo. Skúste to znova.",
 } as const;
 
@@ -72,27 +82,32 @@ const SignInView = () => {
   // Hooks
   const router = useRouter();
   const searchParams = useSearchParams();
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    formState: { errors },
+  } = useForm<FormData>({
+    resolver: yupResolver(schema),
+    mode: "onChange",
+  });
   
   // State
   const [loading, setLoading] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [showError, setShowError] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   // Get error from URL params
   const error = searchParams?.get("error");
-
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-  });
-  const [showPassword, setShowPassword] = useState(false);
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
-  };
+  
+  // Pre-fill email if provided in URL
+  useEffect(() => {
+    const emailParam = searchParams?.get("email");
+    if (emailParam) {
+      setValue("email", emailParam);
+    }
+  }, [searchParams, setValue]);
 
   /**
    * Handle Google sign-in error
@@ -117,6 +132,52 @@ const SignInView = () => {
    */
   const getErrorMessage = (errorCode: string): string => {
     return ERROR_MESSAGES[errorCode as keyof typeof ERROR_MESSAGES] || ERROR_MESSAGES.default;
+  };
+
+  /**
+   * Toggle password visibility
+   */
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
+
+  /**
+   * Handle form submission
+   */
+  const onSubmit = async (data: FormData) => {
+    setLoading(true);
+    setFormError(null);
+    setShowError(false);
+    
+    try {
+      const callbackUrl = searchParams?.get("callbackUrl") || "/prispevky";
+      
+      const result = await signIn("credentials", {
+        redirect: false,
+        email: data.email,
+        password: data.password,
+        callbackUrl,
+      });
+      
+      if (result?.error) {
+        if (result.error === "EMAIL_NOT_VERIFIED") {
+          router.push(`/auth/overenie?email=${encodeURIComponent(data.email)}`);
+          return;
+        }
+        throw new Error(result.error);
+      }
+      
+      // On success, redirect to callback URL or feed
+      if (result?.url) {
+        router.replace(result.url);
+      }
+    } catch (error) {
+      console.error("Sign in error:", error);
+      setFormError(getErrorMessage((error as Error).message));
+      setShowError(true);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -207,8 +268,8 @@ const SignInView = () => {
         </Zoom>
 
         {/* Error Alert */}
-        {(error || formError) && (
-          <Fade in={showError || !!error} timeout={300}>
+        {(error || formError) && showError && (
+          <Fade in timeout={300}>
             <Alert 
               severity="error" 
               sx={{ 
@@ -266,7 +327,88 @@ const SignInView = () => {
               </Typography>
             </Divider>
 
-            {/* Credentials form remains commented out */}
+            {/* Email/Password Sign In Form */}
+            <form onSubmit={handleSubmit(onSubmit)} noValidate>
+              <Box sx={{ mb: 3 }}>
+                <TextField
+                  fullWidth
+                  label="Email"
+                  {...register("email")}
+                  error={!!errors.email}
+                  helperText={errors.email?.message}
+                  disabled={loading}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <EmailIcon color="action" />
+                      </InputAdornment>
+                    ),
+                  }}
+                  sx={{
+                    mb: 2,
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: 2,
+                    },
+                  }}
+                />
+
+                <TextField
+                  fullWidth
+                  label="Heslo"
+                  type={showPassword ? "text" : "password"}
+                  {...register("password")}
+                  error={!!errors.password}
+                  helperText={errors.password?.message}
+                  disabled={loading}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <LockIcon color="action" />
+                      </InputAdornment>
+                    ),
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton
+                          aria-label="toggle password visibility"
+                          onClick={togglePasswordVisibility}
+                          edge="end"
+                        >
+                          {showPassword ? <VisibilityOff /> : <Visibility />}
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  }}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: 2,
+                    },
+                  }}
+                />
+              </Box>
+
+              <Button
+                type="submit"
+                fullWidth
+                variant="contained"
+                disabled={loading}
+                sx={{
+                  py: 1.5,
+                  borderRadius: 2,
+                  textTransform: "none",
+                  fontSize: "1rem",
+                  fontWeight: 600,
+                }}
+              >
+                {loading ? (
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <CircularProgress size={20} color="inherit" />
+                    <span>Prihlasovanie...</span>
+                  </Box>
+                ) : (
+                  "Prihlásiť sa"
+                )}
+              </Button>
+            </form>
           </Paper>
         </Zoom>
 
@@ -305,9 +447,9 @@ const SignInView = () => {
                   }}
                 >
                   Zaregistrujte sa
-    </Typography>
+                </Typography>
               </Link>
-    </Typography>
+            </Typography>
           </Box>
         </Zoom>
       </Box>

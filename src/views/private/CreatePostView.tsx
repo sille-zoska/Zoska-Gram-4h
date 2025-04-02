@@ -19,13 +19,18 @@ import {
   Grid,
   IconButton,
   Paper,
+  Fade,
+  Zoom,
+  Tooltip,
 } from "@mui/material";
 
 // MUI Icon imports
 import { 
   CloudUpload as CloudUploadIcon,
   Delete as DeleteIcon,
-  Add as AddIcon
+  Add as AddIcon,
+  Image as ImageIcon,
+  Clear as ClearIcon,
 } from "@mui/icons-material";
 
 // Types
@@ -293,127 +298,214 @@ const CreatePostView = () => {
 
   // Main render
   return (
-    <Container sx={{ mt: 4, mb: 8, maxWidth: "sm" }}>
-      <Box sx={{ 
-        display: 'flex', 
-        flexDirection: 'column',
-        alignItems: 'center',
-        mb: 4 
-      }}>
-        <Typography
-          variant="h4"
-          sx={{
-            fontWeight: 700,
-            background: 'linear-gradient(45deg, #FF385C, #1DA1F2)',
-            backgroundClip: 'text',
-            WebkitBackgroundClip: 'text',
-            color: 'transparent',
-            mb: 1,
-          }}
-        >
-          Nový príspevok
-        </Typography>
-        <Typography variant="body1" color="text.secondary" align="center">
-          Zdieľajte svoje najlepšie momenty s ostatnými
-        </Typography>
-      </Box>
-
-      <Paper
-        elevation={0}
-        sx={{
-          p: 3,
-          borderRadius: 3,
-          bgcolor: 'background.paper',
-          border: '1px solid',
-          borderColor: 'divider',
-        }}
-      >
-        <Box component="form" onSubmit={handleSubmit}>
-          {renderImageGrid()}
-
-          <TextField
-            fullWidth
-            multiline
-            rows={4}
-            label="Popis príspevku"
-            placeholder="Napíšte niečo o vašom príspevku..."
-            value={formState.caption}
-            onChange={handleCaptionChange}
-            sx={{ 
-              mb: 3,
-              '& .MuiOutlinedInput-root': {
-                borderRadius: 2,
-              }
-            }}
-          />
-
-          {uploadError && (
-            <Alert 
-              severity="error" 
-              sx={{ 
-                mb: 3,
-                borderRadius: 2
+    <Fade in timeout={500}>
+      <Container sx={{ mt: 4, mb: 8, maxWidth: "sm" }}>
+        <Zoom in timeout={500} style={{ transitionDelay: '100ms' }}>
+          <Box sx={{ 
+            display: 'flex', 
+            flexDirection: 'column',
+            alignItems: 'center',
+            mb: 4 
+          }}>
+            <Typography
+              variant="h4"
+              sx={{
+                fontWeight: 700,
+                background: 'linear-gradient(45deg, #FF385C, #1DA1F2)',
+                backgroundClip: 'text',
+                WebkitBackgroundClip: 'text',
+                color: 'transparent',
+                mb: 1,
               }}
             >
-              {uploadError}
-            </Alert>
-          )}
+              Nový príspevok
+            </Typography>
+            <Typography variant="body1" color="text.secondary" align="center">
+              Zdieľajte svoje najlepšie momenty s ostatnými
+            </Typography>
+          </Box>
+        </Zoom>
 
-          <Button
-            fullWidth
-            variant="contained"
-            type="submit"
-            disabled={formState.images.length === 0 || isUploading}
-            sx={{ 
-              mb: 2,
-              py: 1.5,
-              borderRadius: 50,
-              background: 'linear-gradient(45deg, #FF385C, #1DA1F2)',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-              '&:hover': {
-                background: 'linear-gradient(45deg, #FF385C, #1DA1F2)',
-                opacity: 0.9,
-              },
-              '&:disabled': {
-                background: 'linear-gradient(45deg, #FF385C, #1DA1F2)',
-                opacity: 0.5,
-              }
-            }}
-          >
-            {isUploading ? (
-              <>
-                <CircularProgress size={24} sx={{ mr: 1 }} color="inherit" />
-                Zdieľam príspevok...
-              </>
+        <Paper
+          elevation={0}
+          sx={{
+            p: 3,
+            borderRadius: 3,
+            bgcolor: 'background.paper',
+            border: '1px solid',
+            borderColor: 'divider',
+            transition: 'transform 0.2s, box-shadow 0.2s',
+            '&:hover': {
+              boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+            },
+          }}
+        >
+          <Box component="form" onSubmit={handleSubmit}>
+            {formState.images.length === 0 ? (
+              <Paper 
+                elevation={0}
+                sx={{ 
+                  p: 6,
+                  mb: 3,
+                  display: "flex", 
+                  flexDirection: "column",
+                  alignItems: "center", 
+                  justifyContent: "center",
+                  borderRadius: 2,
+                  border: '2px dashed',
+                  borderColor: 'divider',
+                  background: 'linear-gradient(to bottom, rgba(255,56,92,0.02), rgba(29,161,242,0.02))',
+                  transition: 'all 0.2s',
+                  '&:hover': {
+                    borderColor: 'primary.main',
+                    background: 'linear-gradient(to bottom, rgba(255,56,92,0.05), rgba(29,161,242,0.05))',
+                  }
+                }}
+              >
+                <ImageIcon sx={{ fontSize: 48, color: 'text.secondary', mb: 2 }} />
+                <Typography variant="h6" color="text.secondary" gutterBottom>
+                  Pridajte fotky
+                </Typography>
+                <Typography variant="body2" color="text.secondary" align="center" sx={{ mb: 3 }}>
+                  Môžete pridať až {MAX_IMAGES} fotiek
+                </Typography>
+                <Button
+                  component="label"
+                  variant="contained"
+                  startIcon={<CloudUploadIcon />}
+                  disabled={isUploading}
+                  sx={{
+                    borderRadius: 50,
+                    px: 3,
+                    py: 1.5,
+                    background: 'linear-gradient(45deg, #FF385C, #1DA1F2)',
+                    '&:hover': {
+                      background: 'linear-gradient(45deg, #FF385C, #1DA1F2)',
+                      opacity: 0.9,
+                    },
+                  }}
+                >
+                  Vybrať fotky
+                  <input
+                    type="file"
+                    hidden
+                    accept="image/*"
+                    onChange={handleImageSelect}
+                    multiple
+                  />
+                </Button>
+              </Paper>
             ) : (
-              "Zdieľať príspevok"
+              renderImageGrid()
             )}
-          </Button>
 
-          {formState.images.length > 0 && (
+            <TextField
+              fullWidth
+              multiline
+              rows={4}
+              label="Popis príspevku"
+              placeholder="Napíšte niečo o vašom príspevku..."
+              value={formState.caption}
+              onChange={handleCaptionChange}
+              sx={{ 
+                mb: 3,
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: 2,
+                }
+              }}
+              InputProps={{
+                endAdornment: formState.caption && (
+                  <Tooltip title="Vymazať popis">
+                    <IconButton 
+                      size="small" 
+                      onClick={() => setFormState(prev => ({ ...prev, caption: "" }))}
+                      sx={{ mr: 1 }}
+                    >
+                      <ClearIcon />
+                    </IconButton>
+                  </Tooltip>
+                ),
+              }}
+            />
+
+            {uploadError && (
+              <Fade in>
+                <Alert 
+                  severity="error" 
+                  sx={{ 
+                    mb: 3,
+                    borderRadius: 2
+                  }}
+                  onClose={() => setUploadError(null)}
+                >
+                  {uploadError}
+                </Alert>
+              </Fade>
+            )}
+
             <Button
               fullWidth
-              variant="outlined"
-              color="error"
-              onClick={handleClearAll}
-              disabled={isUploading}
+              variant="contained"
+              type="submit"
+              disabled={formState.images.length === 0 || isUploading}
               sx={{ 
+                mb: 2,
                 py: 1.5,
                 borderRadius: 50,
-                borderColor: 'error.main',
-                color: 'error.main',
+                background: 'linear-gradient(45deg, #FF385C, #1DA1F2)',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                transition: 'transform 0.2s',
                 '&:hover': {
-                  borderColor: 'error.dark',
-                  bgcolor: 'error.lighter',
+                  background: 'linear-gradient(45deg, #FF385C, #1DA1F2)',
+                  opacity: 0.9,
+                  transform: 'translateY(-2px)',
+                },
+                '&:disabled': {
+                  background: 'linear-gradient(45deg, #FF385C, #1DA1F2)',
+                  opacity: 0.5,
                 }
               }}
             >
-              Vymazať všetky obrázky
+              {isUploading ? (
+                <>
+                  <CircularProgress size={24} sx={{ mr: 1 }} color="inherit" />
+                  Zdieľam príspevok...
+                </>
+              ) : (
+                "Zdieľať príspevok"
+              )}
             </Button>
-          )}
-        </Box>
-      </Paper>
-    </Container>
+
+            {formState.images.length > 0 && (
+              <Fade in>
+                <Button
+                  fullWidth
+                  variant="outlined"
+                  color="error"
+                  onClick={handleClearAll}
+                  disabled={isUploading}
+                  sx={{ 
+                    py: 1.5,
+                    borderRadius: 50,
+                    borderColor: 'error.main',
+                    color: 'error.main',
+                    transition: 'all 0.2s',
+                    '&:hover': {
+                      borderColor: 'error.dark',
+                      bgcolor: 'error.lighter',
+                      transform: 'translateY(-2px)',
+                    }
+                  }}
+                  startIcon={<DeleteIcon />}
+                >
+                  Vymazať všetky obrázky
+                </Button>
+              </Fade>
+            )}
+          </Box>
+        </Paper>
+      </Container>
+    </Fade>
   );
 };
 

@@ -29,6 +29,9 @@ import {
   InputAdornment,
   Snackbar,
   Alert,
+  Fade,
+  Zoom,
+  Tooltip,
 } from "@mui/material";
 
 // MUI Icons
@@ -39,6 +42,9 @@ import {
   LocationOn as LocationIcon,
   ArrowBack as ArrowBackIcon,
   Edit as EditIcon,
+  Person as PersonIcon,
+  Description as DescriptionIcon,
+  Clear as ClearIcon,
 } from "@mui/icons-material";
 
 // Actions
@@ -447,117 +453,253 @@ const EditProfileView = () => {
     });
     
     return (
-      <Paper sx={{ p: 3 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-          <Typography variant="h5" sx={{ flexGrow: 1 }}>
-            {isNewProfile ? "Vytvoriť profil" : "Upraviť profil"}
-          </Typography>
-          {!isNewProfile && (
-            <Button
-              variant="outlined"
-              onClick={() => setIsEditing(false)}
-              sx={{ mr: 1 }}
+      <Box>
+        <Paper
+          elevation={0}
+          sx={{
+            p: 4,
+            borderRadius: 3,
+            bgcolor: 'background.paper',
+            border: '1px solid',
+            borderColor: 'divider',
+            transition: 'transform 0.2s, box-shadow 0.2s',
+            '&:hover': {
+              boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+            },
+          }}
+        >
+          <Box sx={{ display: 'flex', alignItems: 'center', mb: 4 }}>
+            <Typography
+              variant="h4"
+              sx={{
+                flexGrow: 1,
+                fontWeight: 700,
+                background: 'linear-gradient(45deg, #FF385C, #1DA1F2)',
+                backgroundClip: 'text',
+                WebkitBackgroundClip: 'text',
+                color: 'transparent',
+              }}
             >
-              Zrušiť
-            </Button>
-          )}
-        </Box>
-
-        <Box component="form" onSubmit={handleSubmit}>
-          <Box sx={{ display: "flex", justifyContent: "center", mb: 4 }}>
-            <Box sx={{ position: "relative" }}>
-              <Avatar
-                src={getAvatarUrl(session?.user?.name, formData.avatarUrl)}
-                alt={session?.user?.name || "Používateľ"}
-                sx={{
-                  width: 40,
-                  height: 40,
-                  border: '2px solid white',
-                  background: 'linear-gradient(45deg, #FF385C, #1DA1F2)',
+              {isNewProfile ? "Vytvoriť profil" : "Upraviť profil"}
+            </Typography>
+            {!isNewProfile && (
+              <Button
+                variant="outlined"
+                onClick={() => setIsEditing(false)}
+                sx={{ 
+                  borderRadius: 50,
+                  px: 3,
                 }}
+                startIcon={<ClearIcon />}
               >
-                {session?.user?.name?.[0] || "U"}
-              </Avatar>
-              <IconButton
-                sx={{
-                  position: "absolute",
-                  bottom: 0,
-                  right: 0,
-                  backgroundColor: "background.paper",
-                }}
-                onClick={handleAvatarUpload}
-                disabled={isAvatarUploading}
-              >
-                {isAvatarUploading ? (
-                  <CircularProgress size={24} />
-                ) : (
-                  <PhotoCameraIcon />
-                )}
-              </IconButton>
-              <input
-                type="file"
-                ref={fileInputRef}
-                onChange={handleAvatarFileChange}
-                style={{ display: "none" }}
-                accept="image/*"
-              />
-            </Box>
+                Zrušiť
+              </Button>
+            )}
           </Box>
 
-          <Grid container spacing={2}>
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label="Meno"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                error={!!fieldErrors.name}
-                helperText={fieldErrors.name}
-                required
-              />
+          <Box component="form" onSubmit={handleSubmit}>
+            <Box sx={{ display: "flex", justifyContent: "center", mb: 4 }}>
+              <Box sx={{ position: "relative" }}>
+                <Avatar
+                  src={getAvatarUrl(session?.user?.name, formData.avatarUrl)}
+                  alt={session?.user?.name || "Používateľ"}
+                  sx={{
+                    width: 120,
+                    height: 120,
+                    border: '4px solid white',
+                    boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+                    background: 'linear-gradient(45deg, #FF385C, #1DA1F2)',
+                    transition: 'transform 0.2s',
+                    '&:hover': {
+                      transform: 'scale(1.05)',
+                    },
+                  }}
+                >
+                  {session?.user?.name?.[0] || "U"}
+                </Avatar>
+                <Tooltip title="Zmeniť profilovú fotku">
+                  <IconButton
+                    sx={{
+                      position: "absolute",
+                      bottom: 0,
+                      right: 0,
+                      backgroundColor: "background.paper",
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                      '&:hover': {
+                        backgroundColor: "background.paper",
+                        transform: 'scale(1.1)',
+                      },
+                      transition: 'transform 0.2s',
+                    }}
+                    onClick={handleAvatarUpload}
+                    disabled={isAvatarUploading}
+                  >
+                    {isAvatarUploading ? (
+                      <CircularProgress size={24} />
+                    ) : (
+                      <PhotoCameraIcon />
+                    )}
+                  </IconButton>
+                </Tooltip>
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleAvatarFileChange}
+                  style={{ display: "none" }}
+                  accept="image/*"
+                />
+              </Box>
+            </Box>
+
+            <Grid container spacing={3}>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Meno"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  error={!!fieldErrors.name}
+                  helperText={fieldErrors.name}
+                  required
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <PersonIcon color="action" />
+                      </InputAdornment>
+                    ),
+                    endAdornment: formData.name && (
+                      <InputAdornment position="end">
+                        <Tooltip title="Vymazať meno">
+                          <IconButton
+                            size="small"
+                            onClick={() => setFormData({ ...formData, name: "" })}
+                          >
+                            <ClearIcon />
+                          </IconButton>
+                        </Tooltip>
+                      </InputAdornment>
+                    ),
+                  }}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: 2,
+                    }
+                  }}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Bio"
+                  multiline
+                  rows={4}
+                  value={formData.bio}
+                  onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
+                  error={!!fieldErrors.bio}
+                  helperText={fieldErrors.bio || `${formData.bio.length}/500`}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <DescriptionIcon color="action" />
+                      </InputAdornment>
+                    ),
+                    endAdornment: formData.bio && (
+                      <InputAdornment position="end">
+                        <Tooltip title="Vymazať bio">
+                          <IconButton
+                            size="small"
+                            onClick={() => setFormData({ ...formData, bio: "" })}
+                          >
+                            <ClearIcon />
+                          </IconButton>
+                        </Tooltip>
+                      </InputAdornment>
+                    ),
+                  }}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: 2,
+                    }
+                  }}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Lokalita"
+                  value={formData.location}
+                  onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                  error={!!fieldErrors.location}
+                  helperText={fieldErrors.location}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <LocationIcon color="action" />
+                      </InputAdornment>
+                    ),
+                    endAdornment: formData.location && (
+                      <InputAdornment position="end">
+                        <Tooltip title="Vymazať lokalitu">
+                          <IconButton
+                            size="small"
+                            onClick={() => setFormData({ ...formData, location: "" })}
+                          >
+                            <ClearIcon />
+                          </IconButton>
+                        </Tooltip>
+                      </InputAdornment>
+                    ),
+                  }}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: 2,
+                    }
+                  }}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <Button
+                  fullWidth
+                  variant="contained"
+                  type="submit"
+                  disabled={loading.save}
+                  startIcon={loading.save ? <CircularProgress size={20} /> : <SaveIcon />}
+                  sx={{
+                    py: 1.5,
+                    borderRadius: 50,
+                    background: 'linear-gradient(45deg, #FF385C, #1DA1F2)',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                    transition: 'transform 0.2s',
+                    '&:hover': {
+                      background: 'linear-gradient(45deg, #FF385C, #1DA1F2)',
+                      opacity: 0.9,
+                      transform: 'translateY(-2px)',
+                    },
+                    '&:disabled': {
+                      background: 'linear-gradient(45deg, #FF385C, #1DA1F2)',
+                      opacity: 0.5,
+                    }
+                  }}
+                >
+                  {loading.save ? "Ukladá sa..." : isNewProfile ? "Vytvoriť profil" : "Uložiť zmeny"}
+                </Button>
+              </Grid>
             </Grid>
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label="Bio"
-                multiline
-                rows={4}
-                value={formData.bio}
-                onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
-                error={!!fieldErrors.bio}
-                helperText={fieldErrors.bio || `${formData.bio.length}/500`}
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label="Lokalita"
-                value={formData.location}
-                onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                error={!!fieldErrors.location}
-                helperText={fieldErrors.location}
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <Button
-                fullWidth
-                variant="contained"
-                type="submit"
-                disabled={loading.save}
-                startIcon={loading.save ? <CircularProgress size={20} /> : <SaveIcon />}
-              >
-                {loading.save ? "Ukladá sa..." : isNewProfile ? "Vytvoriť profil" : "Uložiť zmeny"}
-              </Button>
-            </Grid>
-          </Grid>
-          
-          {error && (
-            <Alert severity="error" sx={{ mt: 2 }}>
-              {error}
-            </Alert>
-          )}
-        </Box>
-      </Paper>
+            
+            {error && (
+              <Fade in>
+                <Alert 
+                  severity="error" 
+                  sx={{ mt: 3 }}
+                  onClose={() => setError(null)}
+                >
+                  {error}
+                </Alert>
+              </Fade>
+            )}
+          </Box>
+        </Paper>
+      </Box>
     );
   };
 
@@ -601,31 +743,49 @@ const EditProfileView = () => {
   return (
     <Container sx={{ mt: 4, mb: 10 }}>
       {isEditing ? renderEditForm() : (
-        <>
+        <Box>
           {renderProfileHeader()}
           {renderPostsGrid()}
-        </>
+        </Box>
       )}
 
       <Snackbar
         open={success}
         autoHideDuration={6000}
         onClose={() => setSuccess(false)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
       >
-        <Alert severity="success">
-          Profil bol úspešne aktualizovaný
+        <Alert 
+          severity="success"
+          variant="filled"
+          sx={{ width: '100%' }}
+        >
+          {isNewProfile ? "Profil bol úspešne vytvorený" : "Profil bol úspešne aktualizovaný"}
         </Alert>
       </Snackbar>
 
-      <Button
-        component={Link}
-        href={`/profily/${session?.user?.id}`}
-        variant="outlined"
-        color="primary"
-        startIcon={<ArrowBackIcon />}
-      >
-        Späť na profil
-      </Button>
+      <Box sx={{ mt: 3 }}>
+        <Fade in timeout={500}>
+          <Button
+            component={Link}
+            href={`/profily/${session?.user?.id}`}
+            variant="outlined"
+            color="primary"
+            startIcon={<ArrowBackIcon />}
+            sx={{ 
+              borderRadius: 50,
+              px: 3,
+              py: 1,
+              transition: 'transform 0.2s',
+              '&:hover': {
+                transform: 'translateX(-4px)',
+              }
+            }}
+          >
+            Späť na profil
+          </Button>
+        </Fade>
+      </Box>
     </Container>
   );
 };

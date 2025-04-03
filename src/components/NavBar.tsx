@@ -166,17 +166,16 @@ const NavBar = () => {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          px: 1,
-          pb: 2,
+          px: { xs: 1, sm: 2 },
+          pb: { xs: 1, sm: 2 },
           zIndex: 1000,
         }}
       >
-        {/* Navigation Section */}
         <Box
           sx={{
-            width: isMobile ? "90%" : "600px",
+            width: { xs: "100%", sm: "90%", md: "600px" },
             backgroundColor: (theme) => theme.palette.background.paper,
-            borderRadius: 10,
+            borderRadius: { xs: '16px 16px 0 0', sm: 10 },  // Flat bottom on mobile
             boxShadow: '0px 4px 20px rgba(0,0,0,0.15)',
             display: "flex",
             alignItems: "center",
@@ -184,6 +183,7 @@ const NavBar = () => {
             overflow: "hidden",
             transition: "all 0.3s ease",
             border: (theme) => `1px solid ${theme.palette.divider}`,
+            py: { xs: 0.5, sm: 0 },  // Extra padding on mobile for touch
           }}
         >
           <BottomNavigation
@@ -193,9 +193,35 @@ const NavBar = () => {
             sx={{
               flexGrow: 1,
               backgroundColor: "transparent",
-              height: 64,
+              height: { xs: 56, sm: 64 },  // Smaller height on mobile
               width: "100%",
               justifyContent: "space-around",
+              '& .MuiBottomNavigationAction-root': {
+                minWidth: { xs: 'auto', sm: 80 },
+                padding: { xs: '6px 8px', sm: '8px 12px' },
+                '& .MuiBottomNavigationAction-label': {
+                  fontSize: {
+                    xs: '0.7rem',
+                    sm: '0.75rem'
+                  },
+                  transition: 'all 0.2s ease',
+                  '&.Mui-selected': {
+                    fontSize: {
+                      xs: '0.75rem',
+                      sm: '0.8rem'
+                    }
+                  }
+                },
+                '& .MuiSvgIcon-root': {
+                  fontSize: {
+                    xs: '1.5rem',
+                    sm: '1.75rem'
+                  }
+                },
+                '&.Mui-selected': {
+                  color: 'primary.main'
+                }
+              }
             }}
           >
             {navigationPaths.map((path) => (
@@ -205,7 +231,7 @@ const NavBar = () => {
                 value={path.value}
                 icon={path.icon}
                 sx={{
-                  minWidth: isMobile ? 'auto' : 80,
+                  minWidth: { xs: 'auto', sm: 80 },
                   '& .MuiBottomNavigationAction-label': {
                     fontSize: '0.75rem',
                     transition: 'all 0.2s ease',
@@ -214,7 +240,7 @@ const NavBar = () => {
                     color: 'primary.main',
                   },
                   '&.Mui-selected': {
-                    transform: 'translateY(-4px)',
+                    transform: { xs: 'translateY(-2px)', sm: 'translateY(-4px)' },
                   },
                   transition: 'all 0.2s ease',
                 }}
@@ -227,8 +253,8 @@ const NavBar = () => {
             <IconButton 
               onClick={handleThemeToggle} 
               sx={{ 
-                ml: 1, 
-                mr: 1,
+                ml: { xs: 0.5, sm: 1 }, 
+                mr: { xs: 0.5, sm: 1 },
                 color: 'text.secondary',
                 '&:hover': {
                   color: 'primary.main',

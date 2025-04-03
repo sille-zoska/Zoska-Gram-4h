@@ -147,15 +147,8 @@ const SignVerifyView = () => {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
     >
-      <Paper
-        elevation={0}
+      <Box
         sx={{
-          p: 4,
-          borderRadius: 3,
-          bgcolor: "background.paper",
-          border: "1px solid",
-          borderColor: "divider",
-          boxShadow: "0 4px 20px rgba(0,0,0,0.05)",
           maxWidth: "480px",
           mx: "auto",
           mb: 4,
@@ -327,7 +320,7 @@ const SignVerifyView = () => {
             </Typography>
           </Link>
         </Box>
-      </Paper>
+      </Box>
     </motion.div>
   );
 };

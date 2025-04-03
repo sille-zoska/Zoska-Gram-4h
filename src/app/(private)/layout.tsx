@@ -1,6 +1,5 @@
 // src/app/(private)/layout.tsx
 
-
 // Next.js imports
 import { Metadata } from "next";
 
@@ -14,6 +13,9 @@ import { Box, Container } from "@mui/material";
 import LoadingScreen from "@/components/LoadingScreen";
 import AuthGuard from "@/components/AuthGuard";
 
+// Style imports
+import { containerStyles, contentBoxStyles } from "@/styles/layouts/privateLayout.styles";
+
 // Types
 type PrivateLayoutProps = {
   children: React.ReactNode;
@@ -26,16 +28,9 @@ export const metadata: Metadata = {
   robots: "noindex, nofollow", // Private pages should not be indexed
 };
 
-/**
- * PrivateLayout Component
- * 
- * Layout wrapper for authenticated routes.
- * Features:
- * - Authentication guard
- * - Loading screen for suspense
- * - Gradient background effect
- * - Glass-effect container
- * - Responsive design
+/** Private Layout Component
+ * @param {PrivateLayoutProps} props - Component props
+ * @returns {JSX.Element} Private layout with responsive container
  */
 const PrivateLayout = ({ children }: PrivateLayoutProps) => {
   return (
@@ -64,28 +59,11 @@ const PrivateLayout = ({ children }: PrivateLayoutProps) => {
         >
           <Container
             maxWidth="lg"
-            sx={{
-              flex: 1,
-              position: "relative",
-              zIndex: 1,
-              py: { xs: 2, sm: 3, md: 4 },
-              px: { xs: 2, sm: 3 },
-            }}
+            sx={containerStyles}
           >
             <Box
               className="glass-effect"
-              sx={{
-                borderRadius: 3,
-                p: { xs: 2, sm: 3, md: 4 },
-                minHeight: "calc(100vh - 200px)",
-                display: "flex",
-                flexDirection: "column",
-                boxShadow: "0 4px 20px rgba(0,0,0,0.05)",
-                transition: "all 0.3s ease",
-                "&:hover": {
-                  boxShadow: "0 8px 30px rgba(0,0,0,0.1)",
-                },
-              }}
+              sx={contentBoxStyles}
             >
               {children}
             </Box>

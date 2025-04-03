@@ -1,6 +1,6 @@
 // src/styles/theme.ts
 
-import { createTheme, type Theme, type ThemeOptions } from '@mui/material/styles';
+import { createTheme, type Theme, type ThemeOptions, responsiveFontSizes } from '@mui/material/styles';
 
 // Custom colors
 const colors = {
@@ -53,68 +53,70 @@ const baseThemeOptions: ThemeOptions = {
   typography: {
     fontFamily: '"Inter", "Roboto", "Arial", sans-serif',
     h1: {
-      fontSize: '2.5rem',
+      fontSize: '2.5rem',  // 40px
       fontWeight: 700,
-      letterSpacing: '-0.02em',
       lineHeight: 1.2,
+      letterSpacing: '-0.01em',
     },
     h2: {
-      fontSize: '2rem',
-      fontWeight: 600,
-      letterSpacing: '-0.01em',
+      fontSize: '2.25rem', // 36px
+      fontWeight: 700,
       lineHeight: 1.3,
     },
     h3: {
-      fontSize: '1.75rem',
+      fontSize: '1.875rem', // 30px
       fontWeight: 600,
       lineHeight: 1.4,
     },
     h4: {
-      fontSize: '1.5rem',
+      fontSize: '1.5rem',  // 24px
       fontWeight: 600,
       lineHeight: 1.4,
     },
     h5: {
-      fontSize: '1.25rem',
-      fontWeight: 600,
-      lineHeight: 1.4,
+      fontSize: '1.25rem', // 20px
+      fontWeight: 500,
+      lineHeight: 1.5,
     },
     h6: {
-      fontSize: '1rem',
-      fontWeight: 600,
-      lineHeight: 1.4,
+      fontSize: '1.125rem', // 18px
+      fontWeight: 500,
+      lineHeight: 1.5,
     },
     subtitle1: {
-      fontSize: '1rem',
+      fontSize: '1.125rem', // 18px
       fontWeight: 500,
       lineHeight: 1.5,
     },
     subtitle2: {
-      fontSize: '0.875rem',
+      fontSize: '1rem',     // 16px
       fontWeight: 500,
       lineHeight: 1.5,
     },
     body1: {
-      fontSize: '1rem',
+      fontSize: '1rem',     // 16px
       lineHeight: 1.5,
     },
     body2: {
-      fontSize: '0.875rem',
-      lineHeight: 1.5,
+      fontSize: '0.875rem', // 14px
+      lineHeight: 1.6,
     },
     button: {
-      textTransform: 'none' as const,
+      fontSize: '1rem',     // 16px
       fontWeight: 600,
-      fontSize: '0.875rem',
+      lineHeight: 1.5,
+      textTransform: 'none',
     },
     caption: {
-      fontSize: '0.75rem',
+      fontSize: '0.875rem', // 14px
       lineHeight: 1.5,
     },
     overline: {
-      fontSize: '0.75rem',
+      fontSize: '0.875rem', // 14px
       fontWeight: 500,
       lineHeight: 1.5,
+      textTransform: 'uppercase',
+      letterSpacing: '0.08em',
     },
   },
   shape: {
@@ -239,7 +241,7 @@ const shadows: Theme['shadows'] = [
 ] as const;
 
 // Light theme
-const lightTheme = createTheme({
+const lightTheme = responsiveFontSizes(createTheme({
   ...baseThemeOptions,
   palette: {
     mode: 'light',
@@ -259,10 +261,10 @@ const lightTheme = createTheme({
     divider: colors.grey[200],
   },
   shadows: shadows,
-});
+}));
 
 // Dark theme
-const darkTheme = createTheme({
+const darkTheme = responsiveFontSizes(createTheme({
   ...baseThemeOptions,
   palette: {
     mode: 'dark',
@@ -282,6 +284,6 @@ const darkTheme = createTheme({
     divider: colors.grey[700],
   },
   shadows: shadows,
-});
+}));
 
 export { lightTheme, darkTheme };

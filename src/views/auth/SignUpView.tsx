@@ -216,357 +216,273 @@ const SignUpView = () => {
   };
 
   return (
-    <Fade in timeout={500}>
-      <Box 
-        sx={{ 
-          width: "100%",
-          maxWidth: "480px",
-          mx: "auto",
-          px: 2,
-          py: 4,
-        }}
-      >
-        {/* Logo and Title Section */}
-        <Zoom in timeout={500} style={{ transitionDelay: "100ms" }}>
-          <Box
+    <Box>
+      {/* Logo and Title Section */}
+      <Zoom in timeout={500} style={{ transitionDelay: "100ms" }}>
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            mb: 6,
+          }}
+        >
+          <Typography
+            variant="h3"
+            className="gradient-text"
             sx={{
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              mb: 4,
+              mb: 2,
+              textAlign: "center",
+              fontWeight: 700,
             }}
           >
-            <Box
-              sx={{
-                position: "relative",
-                mb: 2,
-              }}
-            >
-              <SchoolIcon
-                sx={{
-                  fontSize: 60,
-                  color: "primary.main",
-                  filter: "drop-shadow(0 4px 8px rgba(0,0,0,0.1))",
-                  animation: "float 3s ease-in-out infinite",
-                }}
-                aria-label="ZoškaGram Logo"
-              />
-              <Box
-                sx={{
-                  position: "absolute",
-                  top: -8,
-                  right: -8,
-                  width: 24,
-                  height: 24,
-                  borderRadius: "50%",
-                  bgcolor: "secondary.main",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-                }}
-              >
-                <Typography
-                  variant="caption"
-                  sx={{
-                    color: "white",
-                    fontWeight: 700,
-                    fontSize: "0.75rem",
-                  }}
-                >
-                  BETA
-                </Typography>
-              </Box>
-            </Box>
-            <Typography
-              variant="h4"
-              className="gradient-text"
-              sx={{
-                mb: 1,
-                textAlign: "center",
-                fontWeight: 700,
-              }}
-            >
-              ZoškaGram
-            </Typography>
-            <Typography 
-              variant="body1" 
-              color="text.secondary" 
-              align="center"
-              sx={{
-                maxWidth: "80%",
-              }}
-            >
-              Vytvorte si nový účet a pripojte sa k našej komunite
-            </Typography>
-          </Box>
-        </Zoom>
+            ZoškaGram
+          </Typography>
+          <Typography 
+            variant="body1" 
+            color="text.secondary" 
+            align="center"
+            sx={{
+              fontSize: "1.1rem",
+            }}
+          >
+            Vytvorte si nový účet a pripojte sa k našej komunite
+          </Typography>
+        </Box>
+      </Zoom>
 
-        {/* Error Alert */}
-        {(error || formError) && showError && (
-          <Fade in timeout={300}>
-            <Alert 
-              severity="error" 
-              sx={{ 
-                mb: 3,
-                borderRadius: 2,
-                "& .MuiAlert-icon": {
-                  fontSize: 28,
+      {/* Error Alert */}
+      {(error || formError) && showError && (
+        <Fade in timeout={300}>
+          <Alert 
+            severity="error" 
+            sx={{ mb: 3 }}
+            onClose={() => setShowError(false)}
+          >
+            {error ? getErrorMessage(error) : formError}
+          </Alert>
+        </Fade>
+      )}
+
+      {/* Sign Up Form */}
+      <Box>
+        {/* Google Sign Up Button */}
+        <Typography
+          variant="body2"
+          color="text.secondary"
+          align="center"
+          sx={{ mb: 2 }}
+        >
+          Pomocou Vášho účtu
+        </Typography>
+        <GoogleSignButton 
+          text="Google"
+          callbackUrl="/prispevky"
+          disabled={loading}
+          onSignInStart={handleGoogleSignInStart}
+          onSignInError={handleGoogleSignInError}
+        />
+
+        {/* Divider */}
+        <Divider sx={{ my: 3 }}>
+          <Typography 
+            variant="body2" 
+            color="text.secondary"
+            sx={{
+              px: 2,
+              fontWeight: 500,
+            }}
+          >
+            alebo
+          </Typography>
+        </Divider>
+
+        {/* Email/Password Sign Up Form */}
+        <form onSubmit={handleSubmit(onSubmit)} noValidate>
+          <Box sx={{ mb: 3 }}>
+            <TextField
+              fullWidth
+              label="Email"
+              {...register("email")}
+              error={!!errors.email}
+              helperText={errors.email?.message}
+              disabled={loading}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <EmailIcon color="action" />
+                  </InputAdornment>
+                ),
+              }}
+              sx={{
+                mb: 2,
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: 2,
                 },
               }}
-              onClose={() => setShowError(false)}
-            >
-              {error ? getErrorMessage(error) : formError}
-            </Alert>
-          </Fade>
-        )}
-
-        {/* Sign Up Form */}
-        <Zoom in timeout={500} style={{ transitionDelay: "200ms" }}>
-          <Paper
-            elevation={0}
-            sx={{
-              p: 4,
-              borderRadius: 3,
-              bgcolor: "background.paper",
-              border: "1px solid",
-              borderColor: "divider",
-              boxShadow: "0 4px 20px rgba(0,0,0,0.05)",
-              transition: "all 0.3s ease",
-              "&:hover": {
-                boxShadow: "0 8px 30px rgba(0,0,0,0.1)",
-                transform: "translateY(-2px)",
-              },
-            }}
-          >
-            {/* Google Sign Up Button */}
-            <GoogleSignButton 
-              text="Registrovať sa cez Google"
-              callbackUrl="/prispevky"
-              disabled={loading}
-              onSignInStart={handleGoogleSignInStart}
-              onSignInError={handleGoogleSignInError}
             />
 
-            {/* Divider */}
-            <Divider sx={{ my: 3 }}>
-              <Typography 
-                variant="body2" 
-                color="text.secondary"
-                sx={{
-                  px: 2,
-                  fontWeight: 500,
-                }}
-              >
-                alebo
-              </Typography>
-            </Divider>
-
-            {/* Email/Password Sign Up Form */}
-            <form onSubmit={handleSubmit(onSubmit)} noValidate>
-              <Box sx={{ mb: 3 }}>
-                <TextField
-                  fullWidth
-                  label="Email"
-                  {...register("email")}
-                  error={!!errors.email}
-                  helperText={errors.email?.message}
-                  disabled={loading}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <EmailIcon color="action" />
-                      </InputAdornment>
-                    ),
-                  }}
-                  sx={{
-                    mb: 2,
-                    '& .MuiOutlinedInput-root': {
-                      borderRadius: 2,
-                    },
-                  }}
-                />
-
-                <TextField
-                  fullWidth
-                  label="Heslo"
-                  type={showPassword ? "text" : "password"}
-                  {...register("password")}
-                  error={!!errors.password}
-                  helperText={errors.password?.message}
-                  disabled={loading}
-                  InputProps={{
-                    endAdornment: (
-                      <InputAdornment position="end">
-                        <IconButton
-                          aria-label="toggle password visibility"
-                          onClick={togglePasswordVisibility}
-                          edge="end"
-                        >
-                          {showPassword ? <VisibilityOff /> : <Visibility />}
-                        </IconButton>
-                      </InputAdornment>
-                    ),
-                  }}
-                  sx={{
-                    mb: 2,
-                    '& .MuiOutlinedInput-root': {
-                      borderRadius: 2,
-                    },
-                  }}
-                />
-
-                <TextField
-                  fullWidth
-                  label="Potvrdiť heslo"
-                  type={showConfirmPassword ? "text" : "password"}
-                  {...register("confirmPassword")}
-                  error={!!errors.confirmPassword}
-                  helperText={errors.confirmPassword?.message}
-                  disabled={loading}
-                  InputProps={{
-                    endAdornment: (
-                      <InputAdornment position="end">
-                        <IconButton
-                          aria-label="toggle confirm password visibility"
-                          onClick={toggleConfirmPasswordVisibility}
-                          edge="end"
-                        >
-                          {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
-                        </IconButton>
-                      </InputAdornment>
-                    ),
-                  }}
-                  sx={{
-                    '& .MuiOutlinedInput-root': {
-                      borderRadius: 2,
-                    },
-                  }}
-                />
-              </Box>
-
-              {/* Terms and Conditions Checkbox */}
-              <Box sx={{ mb: 3 }}>
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      {...register("termsAccepted")}
-                      color="primary"
-                      disabled={loading}
-                    />
-                  }
-                  label={
-                    <Typography variant="body2">
-                      Súhlasím s{" "}
-                      <Link href="/gdpr" target="_blank" passHref>
-                        <Typography
-                          component="span"
-                          variant="body2"
-                          sx={{
-                            color: "primary.main",
-                            textDecoration: "none",
-                            "&:hover": {
-                              textDecoration: "underline",
-                            },
-                          }}
-                        >
-                          GDPR
-                        </Typography>
-                      </Link>
-                      {" "}a{" "}
-                      <Link href="/podmienky" target="_blank" passHref>
-                        <Typography
-                          component="span"
-                          variant="body2"
-                          sx={{
-                            color: "primary.main",
-                            textDecoration: "none",
-                            "&:hover": {
-                              textDecoration: "underline",
-                            },
-                          }}
-                        >
-                          podmienkami používania
-                        </Typography>
-                      </Link>
-                    </Typography>
-                  }
-                />
-                {errors.termsAccepted && (
-                  <FormHelperText error>
-                    {errors.termsAccepted.message}
-                  </FormHelperText>
-                )}
-              </Box>
-
-              <Button
-                type="submit"
-                fullWidth
-                variant="contained"
-                disabled={loading}
-                sx={{
-                  py: 1.5,
+            <TextField
+              fullWidth
+              label="Heslo"
+              type={showPassword ? "text" : "password"}
+              {...register("password")}
+              error={!!errors.password}
+              helperText={errors.password?.message}
+              disabled={loading}
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      aria-label="toggle password visibility"
+                      onClick={togglePasswordVisibility}
+                      edge="end"
+                    >
+                      {showPassword ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
+              sx={{
+                mb: 2,
+                '& .MuiOutlinedInput-root': {
                   borderRadius: 2,
-                  textTransform: "none",
-                  fontSize: "1rem",
-                  fontWeight: 600,
-                }}
-              >
-                {loading ? (
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <CircularProgress size={20} color="inherit" />
-                    <span>Registrácia...</span>
-                  </Box>
-                ) : (
-                  "Registrovať sa"
-                )}
-              </Button>
-            </form>
-          </Paper>
-        </Zoom>
+                },
+              }}
+            />
 
-        {/* Sign In Link */}
-        <Zoom in timeout={500} style={{ transitionDelay: "300ms" }}>
-          <Box 
-            sx={{ 
-              mt: 4, 
-              textAlign: "center",
-              p: 3,
+            <TextField
+              fullWidth
+              label="Potvrdiť heslo"
+              type={showConfirmPassword ? "text" : "password"}
+              {...register("confirmPassword")}
+              error={!!errors.confirmPassword}
+              helperText={errors.confirmPassword?.message}
+              disabled={loading}
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      aria-label="toggle confirm password visibility"
+                      onClick={toggleConfirmPasswordVisibility}
+                      edge="end"
+                    >
+                      {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: 2,
+                },
+              }}
+            />
+          </Box>
+
+          {/* Terms and Conditions Checkbox */}
+          <Box sx={{ mb: 3 }}>
+            <FormControlLabel
+              control={
+                <Checkbox
+                  {...register("termsAccepted")}
+                  color="primary"
+                  disabled={loading}
+                />
+              }
+              label={
+                <Typography variant="body2">
+                  Súhlasím s{" "}
+                  <Link href="/gdpr" target="_blank" passHref>
+                    <Typography
+                      component="span"
+                      variant="body2"
+                      sx={{
+                        color: "primary.main",
+                        textDecoration: "none",
+                        "&:hover": {
+                          textDecoration: "underline",
+                        },
+                      }}
+                    >
+                      GDPR
+                    </Typography>
+                  </Link>
+                  {" "}a{" "}
+                  <Link href="/podmienky" target="_blank" passHref>
+                    <Typography
+                      component="span"
+                      variant="body2"
+                      sx={{
+                        color: "primary.main",
+                        textDecoration: "none",
+                        "&:hover": {
+                          textDecoration: "underline",
+                        },
+                      }}
+                    >
+                      podmienkami
+                    </Typography>
+                  </Link>
+                </Typography>
+              }
+            />
+            {errors.termsAccepted && (
+              <FormHelperText error>
+                {errors.termsAccepted.message}
+              </FormHelperText>
+            )}
+          </Box>
+
+          <Button
+            type="submit"
+            fullWidth
+            variant="contained"
+            disabled={loading}
+            sx={{
+              py: 1.5,
               borderRadius: 2,
-              bgcolor: "background.paper",
-              border: "1px solid",
-              borderColor: "divider",
-              transition: "all 0.2s ease",
-              "&:hover": {
-                boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
-              },
+              textTransform: "none",
+              fontSize: "1rem",
+              fontWeight: 600,
             }}
           >
-            <Typography variant="body2" color="text.secondary">
-              Už máte účet?{" "}
-              <Link href="/auth/prihlasenie" passHref>
-                <Typography
-                  component="span"
-                  variant="body2"
-                  sx={{
-                    fontWeight: 600,
-                    color: "primary.main",
-                    textDecoration: "none",
-                    transition: "all 0.2s ease",
-                    "&:hover": {
-                      color: "primary.dark",
-                      textDecoration: "underline",
-                    },
-                  }}
-                >
-                  Prihláste sa
-                </Typography>
-              </Link>
-            </Typography>
-          </Box>
-        </Zoom>
+            {loading ? (
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <CircularProgress size={20} color="inherit" />
+                <span>Registrácia...</span>
+              </Box>
+            ) : (
+              "Registrovať"
+            )}
+          </Button>
+        </form>
       </Box>
-    </Fade>
+
+      {/* Sign In Link */}
+      <Box sx={{ mt: 4, textAlign: "center" }}>
+        <Typography variant="body2" color="text.secondary">
+          Už máte účet?{" "}
+          <Link href="/auth/prihlasenie" passHref>
+            <Typography
+              component="span"
+              variant="body2"
+              sx={{
+                fontWeight: 600,
+                color: "primary.main",
+                textDecoration: "none",
+                "&:hover": {
+                  color: "primary.dark",
+                  textDecoration: "underline",
+                },
+              }}
+            >
+              Prihlásiť
+            </Typography>
+          </Link>
+        </Typography>
+      </Box>
+    </Box>
   );
 };
 

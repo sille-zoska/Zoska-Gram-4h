@@ -2,53 +2,182 @@
 
 "use client";
 
-import { Box, Container, Typography, Button, Grid, Paper } from "@mui/material";
+// React imports
+import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 
+// MUI imports
+import { Box, Container, Typography, Button, Paper, useTheme } from "@mui/material";
+import { School as SchoolIcon } from "@mui/icons-material";
+
+// Animation variants
+const fadeInUp = {
+  initial: { opacity: 0, y: 20 },
+  animate: { opacity: 1, y: 0 },
+  transition: { duration: 0.5 }
+};
+
+/**
+ * HomeNonAuthView Component
+ * 
+ * Landing page for non-authenticated users with strong call-to-action
+ * and value proposition for the ZoskaGram platform.
+ */
 const HomeNonAuthView = () => {
+  const theme = useTheme();
+
   return (
-    <Container maxWidth="lg" sx={{ py: 8 }}>
-      <Grid container spacing={4} alignItems="center">
-        {/* Left side - Hero content */}
-        <Grid item xs={12} md={6}>
-          <Box sx={{ mb: 4 }}>
+    <Box
+      sx={{
+        minHeight: "100vh",
+        display: "flex",
+        flexDirection: "column",
+        position: "relative",
+        overflow: "hidden",
+        bgcolor: "background.default",
+      }}
+    >
+      <Container
+        maxWidth="sm"
+        sx={{
+          flex: 1,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          position: "relative",
+          zIndex: 1,
+          py: { xs: 4, sm: 6 },
+          px: { xs: 2, sm: 3 },
+        }}
+      >
+        {/* Logo and Title Section */}
+        <motion.div {...fadeInUp}>
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              mb: { xs: 4, sm: 6 },
+            }}
+          >
+            {/* Logo and Badge */}
+            <Box
+              sx={{
+                position: "relative",
+                mb: 3,
+              }}
+            >
+              <SchoolIcon
+                sx={{
+                  fontSize: { xs: 60, sm: 72 },
+                  color: "primary.main",
+                  filter: "drop-shadow(0 4px 8px rgba(0,0,0,0.1))",
+                }}
+              />
+              <Box
+                sx={{
+                  position: "absolute",
+                  top: -8,
+                  right: -8,
+                  bgcolor: "secondary.main",
+                  color: "white",
+                  px: 1,
+                  py: 0.5,
+                  borderRadius: "12px",
+                  fontSize: "0.75rem",
+                  fontWeight: 700,
+                  boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+                }}
+              >
+                BETA
+              </Box>
+            </Box>
+
+            {/* Title */}
             <Typography
               variant="h1"
               sx={{
-                fontSize: { xs: "2.5rem", md: "3.5rem" },
-                fontWeight: 700,
-                background: "linear-gradient(45deg, #FF385C, #1DA1F2)",
+                fontSize: { xs: "2.5rem", sm: "3.5rem" },
+                fontWeight: 800,
+                mb: 2,
+                textAlign: "center",
+                background: `linear-gradient(45deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
                 backgroundClip: "text",
                 WebkitBackgroundClip: "text",
                 color: "transparent",
-                mb: 2,
               }}
             >
               ZoškaGram
             </Typography>
+
+            {/* Description */}
             <Typography
               variant="h2"
               sx={{
-                fontSize: { xs: "1.5rem", md: "2rem" },
-                fontWeight: 500,
+                fontSize: { xs: "1.25rem", sm: "1.5rem" },
                 color: "text.secondary",
-                mb: 3,
+                mb: 4,
+                maxWidth: "480px",
+                textAlign: "center",
               }}
             >
-              Zdieľaj svoje školské momenty s ostatnými študentmi SPŠE Zochova
+              Tvoja školská sociálna sieť, kde môžeš zdieľať svoje úspechy, projekty a zážitky so spolužiakmi SPŠE Zochova
             </Typography>
-            <Box sx={{ display: "flex", gap: 2 }}>
+
+            {/* Hero Image */}
+            <Box
+              sx={{
+                position: "relative",
+                width: "100%",
+                height: { xs: "300px", sm: "400px" },
+                borderRadius: 4,
+                overflow: "hidden",
+                boxShadow: "0 24px 48px rgba(0,0,0,0.1)",
+                mb: 4,
+              }}
+            >
+              <Image
+                src="/images/home/zoskagram-home1.png"
+                alt="ZoskaGram ukážka aplikácie"
+                fill
+                style={{ 
+                  objectFit: "cover",
+                  objectPosition: "center",
+                }}
+                priority
+              />
+            </Box>
+
+            {/* CTA Buttons */}
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: { xs: "column", sm: "row" },
+                gap: 2,
+                width: "100%",
+                mb: 6,
+              }}
+            >
               <Button
                 component={Link}
                 href="/auth/registracia"
                 variant="contained"
+                fullWidth
                 size="large"
                 sx={{
-                  px: 4,
-                  py: 1.5,
-                  borderRadius: "50px",
-                  fontSize: "1.1rem",
+                  py: 2,
+                  borderRadius: 50,
+                  fontSize: { xs: "1rem", sm: "1.125rem" },
+                  fontWeight: 600,
+                  background: `linear-gradient(45deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
+                  boxShadow: "0 8px 16px rgba(255,56,92,0.25)",
+                  transition: "all 0.3s ease",
+                  "&:hover": {
+                    transform: "translateY(-2px)",
+                    boxShadow: "0 12px 20px rgba(255,56,92,0.35)",
+                  },
                 }}
               >
                 Pridaj sa k nám
@@ -57,83 +186,92 @@ const HomeNonAuthView = () => {
                 component={Link}
                 href="/auth/prihlasenie"
                 variant="outlined"
+                fullWidth
                 size="large"
                 sx={{
-                  px: 4,
-                  py: 1.5,
-                  borderRadius: "50px",
-                  fontSize: "1.1rem",
+                  py: 2,
+                  borderRadius: 50,
+                  fontSize: { xs: "1rem", sm: "1.125rem" },
+                  fontWeight: 600,
+                  borderWidth: 2,
+                  transition: "all 0.3s ease",
+                  "&:hover": {
+                    borderWidth: 2,
+                    transform: "translateY(-2px)",
+                    boxShadow: "0 8px 16px rgba(0,0,0,0.1)",
+                  },
                 }}
               >
-                Prihlásiť sa
+                Prihlásiť
               </Button>
             </Box>
-          </Box>
 
-          {/* Features */}
-          <Grid container spacing={2} sx={{ mt: 4 }}>
-            {[
-              {
-                title: "Zdieľaj momenty",
-                description: "Fotky z projektov, školských akcií a každodenného života",
-              },
-              {
-                title: "Buď v spojení",
-                description: "Komunikuj so spolužiakmi a zostaň v obraze",
-              },
-              {
-                title: "Buduj komunitu",
-                description: "Vytváraj a objavuj obsah pre študentov SPŠE Zochova",
-              },
-            ].map((feature, index) => (
-              <Grid item xs={12} sm={6} key={index}>
+            {/* Features */}
+            <Box
+              sx={{
+                display: "grid",
+                gridTemplateColumns: { xs: "1fr", sm: "repeat(3, 1fr)" },
+                gap: 2,
+                width: "100%",
+              }}
+            >
+              {[
+                {
+                  title: "Zdieľaj úspechy",
+                  description: "Ukáž svoje projekty a školské úspechy ostatným",
+                },
+                {
+                  title: "Buď v spojení",
+                  description: "Zostaň v kontakte so spolužiakmi a učiteľmi",
+                },
+                {
+                  title: "Inšpiruj ostatných",
+                  description: "Motivuj mladších študentov svojimi príspevkami",
+                },
+              ].map((feature, index) => (
                 <Paper
+                  key={index}
                   elevation={0}
                   sx={{
-                    p: 2,
-                    height: "100%",
+                    p: 3,
                     backgroundColor: "background.paper",
                     borderRadius: 2,
-                    transition: "transform 0.2s",
+                    transition: "all 0.3s ease",
+                    border: "1px solid",
+                    borderColor: "divider",
                     "&:hover": {
                       transform: "translateY(-4px)",
+                      boxShadow: "0 12px 24px rgba(0,0,0,0.1)",
                     },
                   }}
                 >
-                  <Typography variant="h6" sx={{ mb: 1, fontWeight: 600 }}>
+                  <Typography
+                    variant="h6"
+                    sx={{
+                      mb: 1,
+                      fontWeight: 600,
+                      fontSize: { xs: "1rem", sm: "1.125rem" },
+                      color: "primary.main",
+                    }}
+                  >
                     {feature.title}
                   </Typography>
-                  <Typography variant="body2" color="text.secondary">
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    sx={{
+                      fontSize: { xs: "0.875rem", sm: "1rem" },
+                    }}
+                  >
                     {feature.description}
                   </Typography>
                 </Paper>
-              </Grid>
-            ))}
-          </Grid>
-        </Grid>
-
-        {/* Right side - Preview Image */}
-        <Grid item xs={12} md={6}>
-          <Box
-            sx={{
-              position: "relative",
-              height: { xs: "400px", md: "600px" },
-              borderRadius: 4,
-              overflow: "hidden",
-              boxShadow: (theme) => `0 24px 48px ${theme.palette.primary.main}20`,
-            }}
-          >
-            <Image
-              src="/images/home/zoskagram-home1.png" 
-              alt="ZoškaGram App Preview"
-              fill
-              style={{ objectFit: "cover" }}
-              priority
-            />
+              ))}
+            </Box>
           </Box>
-        </Grid>
-      </Grid>
-    </Container>
+        </motion.div>
+      </Container>
+    </Box>
   );
 };
 

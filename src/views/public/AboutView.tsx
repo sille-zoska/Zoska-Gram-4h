@@ -2,17 +2,22 @@
 
 "use client";
 
-import { useTheme } from "@mui/material/styles";
+// React imports
 import { motion } from "framer-motion";
+import { useTheme } from "@mui/material/styles";
+import Link from "next/link";
 
 // MUI imports
-import { Container, Typography, Grid, Box, Paper, IconButton, Link } from "@mui/material";
-import Image from "next/image";
-import FacebookIcon from '@mui/icons-material/Facebook';
-import InstagramIcon from '@mui/icons-material/Instagram';
-import SchoolIcon from '@mui/icons-material/School';
+import {
+  Typography,
+  Box,
+  Paper,
+  Zoom,
+  Button,
+  Grid,
+} from "@mui/material";
 
-// Custom imports
+// Content import
 import aboutContent from "@/content/aboutContent";
 
 // Animation variants
@@ -30,93 +35,115 @@ const staggerContainer = {
   }
 };
 
-export default function AboutView() {
+/**
+ * AboutView Component
+ * 
+ * Displays information about ZoskaGram in a mobile-first,
+ * user-friendly format that matches the auth views design.
+ */
+const AboutView = () => {
   const theme = useTheme();
 
   return (
-    <Container maxWidth="lg" sx={{ py: 8 }}>
-      {/* Hero Section */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-      >
-        <Typography 
-          variant="h2" 
-          align="center" 
-          gutterBottom
+    <Box sx={{ maxWidth: '800px', mx: 'auto', px: 3, py: 4 }}>
+      {/* Title Section */}
+      <Zoom in timeout={500} style={{ transitionDelay: "100ms" }}>
+        <Box
           sx={{
-            background: `linear-gradient(45deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
-            backgroundClip: 'text',
-            WebkitBackgroundClip: 'text',
-            color: 'transparent',
-            fontWeight: 700,
-            mb: 2
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            mb: 6,
           }}
         >
-          {aboutContent.title}
-        </Typography>
-        <Typography 
-          variant="h5" 
-          align="center" 
-          color="text.secondary"
-          gutterBottom
-          sx={{ mb: 4 }}
-        >
-          {aboutContent.subtitle}
-        </Typography>
-      </motion.div>
+          <Typography
+            variant="h3"
+            sx={{
+              mb: 2,
+              textAlign: "center",
+              fontWeight: 700,
+              background: `linear-gradient(45deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
+              backgroundClip: 'text',
+              WebkitBackgroundClip: 'text',
+              color: 'transparent',
+            }}
+          >
+            {aboutContent.title}
+          </Typography>
+          <Typography 
+            variant="body1" 
+            color="text.secondary" 
+            align="center"
+            sx={{
+              fontSize: "1.1rem",
+            }}
+          >
+            {aboutContent.subtitle}
+          </Typography>
+        </Box>
+      </Zoom>
 
       {/* Introduction */}
       <motion.div {...fadeInUp}>
         <Typography 
           variant="body1" 
-          align="center" 
           paragraph
           sx={{ 
-            maxWidth: '800px',
-            mx: 'auto',
-            mb: 6,
-            fontSize: '1.1rem',
-            lineHeight: 1.8
+            fontSize: "1rem",
+            lineHeight: 1.8,
+            mb: 4,
+            textAlign: {
+              xs: 'left',
+              sm: 'center'
+            }
           }}
         >
           {aboutContent.introduction}
         </Typography>
       </motion.div>
 
-      {/* Features Grid */}
+      {/* Features */}
       <motion.div
         variants={staggerContainer}
         initial="initial"
         animate="animate"
       >
-        <Grid container spacing={4} sx={{ mb: 8 }}>
+        <Grid container spacing={3}>
           {aboutContent.features.map((feature, index) => (
-            <Grid item xs={12} md={4} key={index}>
+            <Grid item xs={12} sm={6} md={4} key={index}>
               <motion.div {...fadeInUp}>
                 <Paper
                   elevation={0}
                   sx={{
-                    p: 4,
+                    p: 3,
                     height: '100%',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    textAlign: 'center',
-                    background: `linear-gradient(135deg, ${theme.palette.background.paper}, ${theme.palette.background.default})`,
-                    borderRadius: 4,
+                    background: theme.palette.background.paper,
+                    borderRadius: 2,
                     transition: 'all 0.3s ease-in-out',
                     '&:hover': {
-                      transform: 'translateY(-8px)',
-                      boxShadow: theme.shadows[8],
+                      transform: 'translateY(-4px)',
+                      boxShadow: theme.shadows[4],
                     }
                   }}
                 >
-                  <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
+                  <Typography 
+                    variant="h6" 
+                    sx={{ 
+                      fontWeight: 600,
+                      color: theme.palette.primary.main,
+                      mb: 1,
+                      fontSize: "1.1rem"
+                    }}
+                  >
                     {feature.title}
                   </Typography>
-                  <Typography variant="body2" color="text.secondary">
+                  <Typography 
+                    variant="body2" 
+                    sx={{ 
+                      lineHeight: 1.6,
+                      color: theme.palette.text.secondary
+                    }}
+                  >
                     {feature.description}
                   </Typography>
                 </Paper>
@@ -126,126 +153,63 @@ export default function AboutView() {
         </Grid>
       </motion.div>
 
-      {/* Image Gallery */}
+      {/* Links */}
       <motion.div {...fadeInUp}>
-        <Grid container spacing={4} justifyContent="center" sx={{ mb: 8 }}>
-          <Grid item xs={12} sm={6} md={4}>
-            <Box
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'center',
+            gap: 2,
+            mt: 6,
+            flexWrap: 'wrap'
+          }}
+        >
+          {aboutContent.links.map((link, index) => (
+            <Button
+              key={index}
+              component="a"
+              href={link.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              variant="contained"
               sx={{
-                position: 'relative',
-                height: '300px',
-                borderRadius: 4,
-                overflow: 'hidden',
-                boxShadow: theme.shadows[4],
-                transition: 'all 0.3s ease-in-out',
+                background: `linear-gradient(45deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
+                color: 'white',
+                transition: 'all 0.3s ease',
+                textTransform: 'none',
                 '&:hover': {
-                  transform: 'scale(1.02)',
-                  boxShadow: theme.shadows[8],
+                  background: `linear-gradient(45deg, ${theme.palette.primary.dark}, ${theme.palette.secondary.dark})`,
+                  transform: 'translateY(-2px)',
+                  boxShadow: `0 4px 8px ${theme.palette.primary.main}30`,
                 }
               }}
             >
-              <Image
-                src="/images/about1.png"
-                alt="ZoskaGram momentka 1"
-                fill
-                style={{ objectFit: 'cover' }}
-              />
-            </Box>
-          </Grid>
-          <Grid item xs={12} sm={6} md={4}>
-            <Box
-              sx={{
-                position: 'relative',
-                height: '300px',
-                borderRadius: 4,
-                overflow: 'hidden',
-                boxShadow: theme.shadows[4],
-                transition: 'all 0.3s ease-in-out',
-                '&:hover': {
-                  transform: 'scale(1.02)',
-                  boxShadow: theme.shadows[8],
-                }
-              }}
-            >
-              <Image
-                src="/images/about2.png"
-                alt="ZoskaGram momentka 2"
-                fill
-                style={{ objectFit: 'cover' }}
-              />
-            </Box>
-          </Grid>
-          <Grid item xs={12} sm={6} md={4}>
-            <Box
-              sx={{
-                position: 'relative',
-                height: '300px',
-                borderRadius: 4,
-                overflow: 'hidden',
-                boxShadow: theme.shadows[4],
-                transition: 'all 0.3s ease-in-out',
-                '&:hover': {
-                  transform: 'scale(1.02)',
-                  boxShadow: theme.shadows[8],
-                }
-              }}
-            >
-              <Image
-                src="/images/about3.png"
-                alt="ZoskaGram momentka 3"
-                fill
-                style={{ objectFit: 'cover' }}
-              />
-            </Box>
-          </Grid>
-        </Grid>
+              {link.label}
+            </Button>
+          ))}
+        </Box>
       </motion.div>
 
-      {/* Footer Section */}
+      {/* Footer */}
       <motion.div {...fadeInUp}>
         <Typography 
           variant="body1" 
-          align="center" 
-          paragraph
           sx={{ 
-            maxWidth: '800px',
-            mx: 'auto',
-            mb: 4,
-            fontSize: '1.1rem',
-            lineHeight: 1.8
+            mt: 6,
+            mb: 3,
+            fontSize: "1rem",
+            lineHeight: 1.8,
+            textAlign: {
+              xs: 'left',
+              sm: 'center'
+            }
           }}
         >
           {aboutContent.footer}
         </Typography>
-
-        {/* Social Links */}
-        <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, mt: 4 }}>
-          {aboutContent.links.map((link, index) => (
-            <motion.div
-              key={index}
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <IconButton
-                component={Link}
-                href={link.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                sx={{
-                  color: theme.palette.primary.main,
-                  '&:hover': {
-                    color: theme.palette.primary.dark,
-                  }
-                }}
-              >
-                {link.icon === 'facebook' && <FacebookIcon />}
-                {link.icon === 'photo_camera' && <InstagramIcon />}
-                {link.icon === 'school' && <SchoolIcon />}
-              </IconButton>
-            </motion.div>
-          ))}
-        </Box>
       </motion.div>
-    </Container>
+    </Box>
   );
-}
+};
+
+export default AboutView;

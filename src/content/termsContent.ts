@@ -4,7 +4,6 @@
 interface Section {
   heading: string;
   text: string;
-  icon?: string; // Optional icon name for the section
 }
 
 interface TermsContent {
@@ -14,37 +13,47 @@ interface TermsContent {
   sections: Section[];
   footer: string;
   lastUpdated: string;
+  contactEmail: string;
 }
 
 // Content definition
 const termsContent: TermsContent = {
-  title: "Podmienky používania",
-  subtitle: "Pravidlá pre používanie ZoskaGram",
-  introduction: "Tieto podmienky upravujú používanie aplikácie ZoskaGram. Pred použitím našej aplikácie si prosím dôkladne prečítajte tieto podmienky.",
+  title: "Podmienky používania služby",
+  subtitle: "Zmluvné podmienky pre používanie ZoskaGram",
+  introduction: "Tieto podmienky používania upravujú vaše práva a povinnosti pri používaní služby ZoskaGram. Používaním našej služby vyjadrujete súhlas s týmito podmienkami. Prosíme vás o ich dôkladné prečítanie.",
   sections: [
     {
-      heading: "Používanie aplikácie",
-      text: "Užívateľ sa zaväzuje používať aplikáciu v súlade so zákonmi a dobrými mravmi. Nepovolené je zdieľanie nevhodného obsahu, spam alebo škodlivého softvéru.",
-      icon: "gavel"
+      heading: "Registrácia a účet",
+      text: "Pre používanie služby je potrebná registrácia. Zaväzujete sa poskytovať pravdivé a aktuálne informácie, chrániť svoje prihlasovacie údaje a neposkytnúť prístup k účtu tretím osobám. Máte právo kedykoľvek svoj účet zrušiť."
     },
     {
-      heading: "Ochrana údajov",
-      text: "Vaše údaje sú spracovávané v súlade s našimi zásadami ochrany osobných údajov a GDPR. Zaväzujeme sa k bezpečnému spracovaniu vašich údajov.",
-      icon: "security"
+      heading: "Pravidlá používania",
+      text: "Zaväzujete sa používať službu v súlade so zákonom a dobrými mravmi. Je zakázané: šíriť nevhodný alebo urážlivý obsah, porušovať práva iných užívateľov, používať automatizované skripty, alebo zneužívať službu na spam či škodlivé účely."
     },
     {
-      heading: "Duševné vlastníctvo",
-      text: "Všetok obsah zdieľaný na platforme musí byť vašim vlastným dielom alebo musíte mať práva na jeho zdieľanie.",
-      icon: "copyright"
+      heading: "Obsah a zodpovednosť",
+      text: "Ste plne zodpovední za obsah, ktorý zdieľate. Tento obsah musí rešpektovať autorské práva, ochranné známky a iné práva duševného vlastníctva. Vyhradzujeme si právo odstrániť nevhodný obsah bez predchádzajúceho upozornenia."
     },
     {
-      heading: "Účet a bezpečnosť",
-      text: "Ste zodpovední za bezpečnosť svojho účtu a všetky aktivity vykonané pod vaším účtom.",
-      icon: "account_circle"
+      heading: "Ochrana súkromia",
+      text: "Spracovanie osobných údajov sa riadi našimi Zásadami ochrany osobných údajov v súlade s GDPR. Používaním služby súhlasíte so spracovaním vašich údajov podľa týchto zásad."
+    },
+    {
+      heading: "Dostupnosť služby",
+      text: "Vynakladáme maximálne úsilie na zabezpečenie nepretržitej dostupnosti služby, nemôžeme ju však garantovať. Vyhradzujeme si právo na údržbu, aktualizácie alebo zmeny služby bez predchádzajúceho upozornenia."
+    },
+    {
+      heading: "Ukončenie používania",
+      text: "Vyhradzujeme si právo pozastaviť alebo ukončiť poskytovanie služby užívateľom, ktorí porušujú tieto podmienky. V prípade závažného porušenia môže byť účet okamžite zrušený."
+    },
+    {
+      heading: "Zmeny podmienok",
+      text: "Tieto podmienky môžeme kedykoľvek zmeniť. O významných zmenách vás budeme informovať. Pokračovaním v používaní služby po zmene podmienok vyjadrujete súhlas s novými podmienkami."
     }
   ],
-  footer: "Ďakujeme, že dodržiavate podmienky používania našej aplikácie. Vaša spolupráca je pre nás dôležitá.",
-  lastUpdated: "1. január 2024"
+  footer: "Ak máte akékoľvek otázky týkajúce sa týchto podmienok, neváhajte nás kontaktovať. Vaša spokojnosť a bezpečnosť sú pre nás prioritou.",
+  lastUpdated: "15. marec 2024",
+  contactEmail: "terms@zoskasnap.sk"
 };
 
 export default termsContent;

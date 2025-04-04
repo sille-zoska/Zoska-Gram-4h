@@ -393,7 +393,7 @@ const SignUpView = () => {
               label={
                 <Typography variant="body2">
                   Súhlasím s{" "}
-                  <Link href="/gdpr" target="_blank" passHref>
+                  <Link href="/gdpr" passHref>
                     <Typography
                       component="span"
                       variant="body2"
@@ -409,7 +409,7 @@ const SignUpView = () => {
                     </Typography>
                   </Link>
                   {" "}a{" "}
-                  <Link href="/podmienky" target="_blank" passHref>
+                  <Link href="/podmienky" passHref>
                     <Typography
                       component="span"
                       variant="body2"

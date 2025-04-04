@@ -4,13 +4,11 @@
 interface Link {
   label: string;
   url: string;
-  icon?: string; // Optional icon name for the link
 }
 
 interface Feature {
   title: string;
   description: string;
-  icon?: string; // Optional icon name for the feature
 }
 
 interface AboutContent {
@@ -26,42 +24,36 @@ interface AboutContent {
 const aboutContent: AboutContent = {
   title: "O ZoskaGram",
   subtitle: "Najdivokejšia platforma (nielen) pre študentov Zošky!",
-  introduction: "ZoskaGram, známy tiež ako ZoškaSnap, je výtvorom nás – mladých, nespútaných a večne usmievavých študentov zo Spojenej školy na Zochovej 9 v Bratislave. Ako hovoríme my: „Žijeme život naplno a chceme to ukázať celému svetu!",
+  introduction: "ZoškaGram, je výtvorom nás – mladých študentov zo Strednej priemyselnej školy elektrotechnickej na Zochovej 9 v Bratislave. Ako hovoríme my: „Žijeme život naplno a chceme to ukázať celému svetu!",
   features: [
     {
       title: "Zdieľanie momentov",
-      description: "Zdieľajte svoje najlepšie momenty zo školského života",
-      icon: "photo_camera"
+      description: "Zdieľajte svoje najlepšie momenty zo školského života"
     },
     {
       title: "Komunita",
-      description: "Spojte sa s ostatnými študentmi a vytvorte si vlastnú sieť",
-      icon: "group"
+      description: "Spojte sa s ostatnými študentmi a vytvorte si vlastnú sieť"
     },
     {
       title: "Zábava",
-      description: "Užite si zábavný obsah a interakcie s priateľmi",
-      icon: "mood"
+      description: "Užite si zábavný obsah a interakcie s priateľmi"
     }
   ],
   links: [
     {
       label: "Naša škola",
-      url: "https://zochova.sk/",
-      icon: "school"
+      url: "https://zochova.sk/"
     },
     {
       label: "Facebook",
-      url: "https://www.facebook.com/spsezochova/",
-      icon: "facebook"
+      url: "https://www.facebook.com/spsezochova/"
     },
     {
       label: "Instagram",
-      url: "https://www.instagram.com/spsezochova/",
-      icon: "photo_camera"
+      url: "https://www.instagram.com/spsezochova/"
     },
   ],
-  footer: "Tešíme sa na vaše šialené nápady, fotky z vtipných situácií a – no, vlastne na všetko, čo robí život študenta na Zoške tak výnimočným. Vitajte v našej rodine na Zochovej 9!"
+  footer: "Tešíme sa na vaše nápady, fotky z vtipných situácií a – no, vlastne na všetko, čo robí život študenta na Zoške tak výnimočným. Vitajte v našej Zoške!"
 };
 
 export default aboutContent;

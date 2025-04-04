@@ -322,6 +322,10 @@ const ProfilesView = () => {
           borderRadius: 3,
           backgroundColor: (theme) => 
             theme.palette.mode === 'dark' ? 'action.hover' : 'grey.100',
+          height: { xs: '45px', sm: '48px' },
+        },
+        '& .MuiOutlinedInput-input': {
+          fontSize: { xs: '0.875rem', sm: '1rem' },
         },
       }}
       InputProps={{
@@ -343,8 +347,22 @@ const ProfilesView = () => {
 
   const renderProfileInfo = (profile: ProfileWithUser) => (
     <Box sx={{ flexGrow: 1 }}>
-      <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-        <Typography variant="h6" sx={{ mr: 2 }}>
+      <Box 
+        sx={{ 
+          display: 'flex', 
+          flexDirection: { xs: 'column', sm: 'row' },
+          alignItems: { xs: 'flex-start', sm: 'center' }, 
+          gap: { xs: 1, sm: 2 },
+          mb: { xs: 2, sm: 1 }
+        }}
+      >
+        <Typography 
+          variant="h6" 
+          sx={{ 
+            fontSize: { xs: '1rem', sm: '1.25rem' },
+            lineHeight: { xs: '1.2', sm: '1.4' }
+          }}
+        >
           {profile.user.name || "Neznámy používateľ"}
         </Typography>
         <Button
@@ -353,13 +371,27 @@ const ProfilesView = () => {
           startIcon={isFollowing(profile) ? <PersonRemoveIcon /> : <PersonAddIcon />}
           onClick={(e) => handleFollowToggle(e, profile)}
           disabled={session?.user?.email === profile.user.email}
-          sx={{ mr: 1 }}
+          sx={{ 
+            minWidth: { xs: '100%', sm: 'auto' },
+            fontSize: { xs: '0.8125rem', sm: '0.875rem' }
+          }}
         >
           {isFollowing(profile) ? "Nesledovať" : "Sledovať"}
         </Button>
       </Box>
 
-      <Stack direction="row" spacing={3} sx={{ mb: 2 }}>
+      <Stack 
+        direction="row" 
+        spacing={{ xs: 2, sm: 3 }} 
+        sx={{ 
+          mb: 2,
+          flexWrap: { xs: 'wrap', sm: 'nowrap' },
+          '& .MuiTypography-root': {
+            fontSize: { xs: '0.8125rem', sm: '0.875rem' },
+            minWidth: { xs: 'calc(33.33% - 16px)', sm: 'auto' }
+          }
+        }}
+      >
         <Typography variant="body2">
           <strong>{profile.user.posts.length}</strong> príspevkov
         </Typography>
@@ -372,35 +404,70 @@ const ProfilesView = () => {
       </Stack>
 
       {profile.bio && (
-        <Typography variant="body2" sx={{ mb: 1 }}>
+        <Typography 
+          variant="body2" 
+          sx={{ 
+            mb: 1,
+            fontSize: { xs: '0.8125rem', sm: '0.875rem' },
+            lineHeight: { xs: '1.4', sm: '1.5' }
+          }}
+        >
           {profile.bio}
         </Typography>
       )}
       
       {profile.location && (
-        <Typography variant="body2" color="text.secondary">
+        <Typography 
+          variant="body2" 
+          color="text.secondary"
+          sx={{ 
+            fontSize: { xs: '0.8125rem', sm: '0.875rem' },
+            display: 'flex',
+            alignItems: 'center',
+            gap: 0.5
+          }}
+        >
           📍 {profile.location}
         </Typography>
       )}
     </Box>
   );
 
-  // Update the renderRecentPosts function to handle both image structures
+  // Update the renderRecentPosts function for better mobile display
   const renderRecentPosts = (profile: ProfileWithUser) => (
-    <Box sx={{ mt: 4 }}>
-      <Typography variant="h6" sx={{ mb: 2 }}>
+    <Box sx={{ mt: { xs: 2, sm: 4 } }}>
+      <Typography 
+        variant="h6" 
+        sx={{ 
+          mb: { xs: 1, sm: 2 },
+          fontSize: { xs: '0.9375rem', sm: '1.25rem' }
+        }}
+      >
         Nedávne príspevky
       </Typography>
       {profile.user.posts.length > 0 ? (
-        <ImageList cols={3} gap={8}>
+        <ImageList 
+          cols={3} 
+          gap={8}
+          sx={{
+            mb: 0,
+            '& .MuiImageListItem-root': {
+              height: { xs: '100px', sm: '120px' } 
+            }
+          }}
+        >
           {profile.user.posts.slice(0, 3).map((post: any) => (
             <ImageListItem 
               key={post.id} 
               sx={{ 
-                height: '120px', 
                 cursor: 'pointer',
                 overflow: 'hidden',
-                borderRadius: 2
+                borderRadius: { xs: 1, sm: 2 },
+                '&:hover': {
+                  opacity: 0.9,
+                  transform: 'scale(1.02)',
+                  transition: 'all 0.2s ease-in-out'
+                }
               }}
               onClick={() => handlePostClick(post.id)}
             >
@@ -436,7 +503,15 @@ const ProfilesView = () => {
           ))}
         </ImageList>
       ) : (
-        <Typography variant="body2" color="text.secondary" align="center">
+        <Typography 
+          variant="body2" 
+          color="text.secondary" 
+          align="center"
+          sx={{
+            fontSize: { xs: '0.8125rem', sm: '0.875rem' },
+            py: { xs: 2, sm: 3 }
+          }}
+        >
           Zatiaľ žiadne príspevky
         </Typography>
       )}
@@ -530,7 +605,12 @@ const ProfilesView = () => {
   }
 
   return (
-    <Container sx={{ mt: 4, mb: 10, maxWidth: "md" }}>
+    <Container sx={{ 
+      mt: { xs: 2, sm: 4 }, 
+      mb: { xs: 8, sm: 10 }, 
+      maxWidth: "md",
+      px: { xs: 1, sm: 2, md: 3 }
+    }}>
       {/* <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
         <Typography variant="h5">
           {viewMode === 'explore' ? 'Objaviť profily' : 'Môj profil'}
@@ -572,22 +652,29 @@ const ProfilesView = () => {
             <Card 
               key={profile.id}
               sx={{ 
-                mb: 4,
+                mb: { xs: 2, sm: 4 },
                 cursor: 'pointer',
                 '&:hover': {
                   bgcolor: 'action.hover',
                 },
+                borderRadius: { xs: 2, sm: 3 }
               }}
               onClick={() => handleProfileClick(profile.id)}
             >
-              <CardContent>
-                <Box sx={{ display: 'flex', mb: 3 }}>
+              <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
+                <Box sx={{ 
+                  display: 'flex',
+                  mb: { xs: 2, sm: 3 },
+                  flexDirection: { xs: 'column', sm: 'row' },
+                  alignItems: { xs: 'center', sm: 'flex-start' },
+                  gap: { xs: 2, sm: 3 }
+                }}>
                   <Avatar
                     src={getAvatarUrl(profile.user.name, profile.avatarUrl)}
                     alt={profile.user.name || "Používateľ"}
                     sx={{
-                      width: 56,
-                      height: 56,
+                      width: { xs: 48, sm: 56 },
+                      height: { xs: 48, sm: 56 },
                       border: '2px solid white',
                       background: 'linear-gradient(45deg, #FF385C, #1DA1F2)',
                     }}
@@ -595,7 +682,10 @@ const ProfilesView = () => {
                     {profile.user.name?.[0] || "U"}
                   </Avatar>
                   
-                  <Box sx={{ flexGrow: 1, ml: 3 }}>
+                  <Box sx={{ 
+                    flexGrow: 1,
+                    width: { xs: '100%', sm: 'auto' }
+                  }}>
                     {renderProfileInfo(profile)}
                   </Box>
                 </Box>

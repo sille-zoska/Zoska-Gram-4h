@@ -791,4 +791,41 @@ export async function unbookmarkPost(postId: string) {
   }
 }
 
+// Delete a post and all its associated data
+export async function deletePost(postId: string) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      throw new Error("Not authenticated");
+    }
+
+    // First verify the post exists and belongs to the user
+    const post = await prisma.post.findUnique({
+      where: { id: postId },
+      include: {
+        user: true
+      }
+    });
+
+    if (!post) {
+      throw new Error("Post not found");
+    }
+
+    if (post.userId !== session.user.id) {
+      throw new Error("Not authorized to delete this post");
+    }
+
+    // Delete the post and all related data (comments, likes, bookmarks, images)
+    // Prisma will handle the cascading deletes based on our schema
+    await prisma.post.delete({
+      where: { id: postId }
+    });
+
+    return { success: true };
+  } catch (error) {
+    console.error("Error deleting post:", error);
+    throw error;
+  }
+}
+
 

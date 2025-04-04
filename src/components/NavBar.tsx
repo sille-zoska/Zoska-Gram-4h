@@ -94,7 +94,9 @@ const NavBar = () => {
 
   const handleProfileClick = () => {
     handleMenuClose();
-    router.push("/profily/upravit");
+    if (session?.user?.id) {
+      router.push(`/profily/${session.user.id}`);
+    }
   };
 
   const handleLogoutClick = () => {
@@ -112,6 +114,7 @@ const NavBar = () => {
   };
 
   const handleProfileSettings = () => {
+    handleMenuClose();
     router.push("/profily/upravit");
   };
 

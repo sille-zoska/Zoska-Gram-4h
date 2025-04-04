@@ -50,9 +50,20 @@ const PrivateLayout = ({ children }: PrivateLayoutProps) => {
               top: 0,
               left: 0,
               right: 0,
-              height: "200px",
-              background: "linear-gradient(45deg, #FF385C, #1DA1F2)",
-              opacity: 0.1,
+              height: "260px",
+              background: "linear-gradient(45deg, var(--mui-palette-primary-main), var(--mui-palette-secondary-main))",
+              opacity: 0.08,
+              zIndex: 0,
+              transition: 'all 0.3s ease-in-out',
+            },
+            "&::after": {
+              content: '""',
+              position: "absolute",
+              top: "260px",
+              left: 0,
+              right: 0,
+              height: "40px",
+              background: "linear-gradient(to bottom, var(--mui-palette-background-paper-rgb, 255, 255, 255)15, var(--mui-palette-background-paper))",
               zIndex: 0,
             },
           }}
@@ -62,7 +73,7 @@ const PrivateLayout = ({ children }: PrivateLayoutProps) => {
             sx={containerStyles}
           >
             <Box
-              className="glass-effect"
+              className="glass-effect fade-in-up"
               sx={contentBoxStyles}
             >
               {children}

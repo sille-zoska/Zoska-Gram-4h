@@ -1,3 +1,5 @@
+
+
 import { Metadata } from "next";
 import EditProfileView from "@/views/private/EditProfileView";
 
@@ -6,6 +8,12 @@ export const metadata: Metadata = {
   description: "Spravujte svoj profil, upravte svoje informácie a nastavenia."
 };
 
-export default function EditProfilePage() {
-  return <EditProfileView />;
+interface EditProfilePageProps {
+  params: {
+    id: string;
+  };
+}
+
+export default function EditProfilePage({ params }: EditProfilePageProps) {
+  return <EditProfileView profileId={params.id} />;
 } 

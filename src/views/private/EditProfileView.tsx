@@ -103,6 +103,10 @@ type LoadingState = {
 // Utils
 import { getAvatarUrl } from "@/utils/avatar";
 
+interface EditProfileViewProps {
+  profileId: string;
+}
+
 /**
  * EditProfileView Component
  * 
@@ -114,7 +118,7 @@ import { getAvatarUrl } from "@/utils/avatar";
  * - View user's posts
  * - Display follower/following counts
  */
-const EditProfileView = () => {
+const EditProfileView = ({ profileId }: EditProfileViewProps) => {
   const { data: session } = useSession();
   const router = useRouter();
   const [loading, setLoading] = useState<LoadingState>({
@@ -124,7 +128,7 @@ const EditProfileView = () => {
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [success, setSuccess] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
+  const [isEditing, setIsEditing] = useState(true);
   const [isNewProfile, setIsNewProfile] = useState(false);
   const [formData, setFormData] = useState<FormData>({
     name: "",
@@ -240,7 +244,7 @@ const EditProfileView = () => {
         await updateProfile(formData);
       }
       setSuccess(true);
-      router.push(`/profily/${session?.user?.id}`);
+      router.push(`/profily/${profileId}`);
     } catch (error) {
       console.error(`Failed to ${isNewProfile ? 'create' : 'update'} profile:`, error);
       setError(`Nepodarilo sa ${isNewProfile ? 'vytvoriť' : 'aktualizovať'} profil. Skúste to znova neskôr.`);
@@ -322,6 +326,10 @@ const EditProfileView = () => {
     // return "/images/placeholder.jpg";
     // Instead of using a static placeholder.jpg, you could use:
     return `https://api.dicebear.com/7.x/initials/svg?seed=${formData.name || '?'}&backgroundColor=FF385C,1DA1F2`;
+  };
+
+  const handleCancel = () => {
+    router.push(`/profily/${profileId}`);
   };
 
   // Render functions
@@ -457,8 +465,8 @@ const EditProfileView = () => {
         <Paper
           elevation={0}
           sx={{
-            p: 4,
-            borderRadius: 3,
+            p: { xs: 2, sm: 3, md: 4 },
+            borderRadius: { xs: 2, sm: 3 },
             bgcolor: 'background.paper',
             border: '1px solid',
             borderColor: 'divider',
@@ -468,12 +476,19 @@ const EditProfileView = () => {
             },
           }}
         >
-          <Box sx={{ display: 'flex', alignItems: 'center', mb: 4 }}>
+          <Box sx={{ 
+            display: 'flex', 
+            flexDirection: { xs: 'column', sm: 'row' },
+            alignItems: { xs: 'flex-start', sm: 'center' },
+            gap: { xs: 2, sm: 0 },
+            mb: { xs: 3, sm: 4 }
+          }}>
             <Typography
               variant="h4"
               sx={{
                 flexGrow: 1,
                 fontWeight: 700,
+                fontSize: { xs: '1.5rem', sm: '2rem' },
                 background: 'linear-gradient(45deg, #FF385C, #1DA1F2)',
                 backgroundClip: 'text',
                 WebkitBackgroundClip: 'text',
@@ -482,30 +497,21 @@ const EditProfileView = () => {
             >
               {isNewProfile ? "Vytvoriť profil" : "Upraviť profil"}
             </Typography>
-            {!isNewProfile && (
-              <Button
-                variant="outlined"
-                onClick={() => setIsEditing(false)}
-                sx={{ 
-                  borderRadius: 50,
-                  px: 3,
-                }}
-                startIcon={<ClearIcon />}
-              >
-                Zrušiť
-              </Button>
-            )}
           </Box>
 
           <Box component="form" onSubmit={handleSubmit}>
-            <Box sx={{ display: "flex", justifyContent: "center", mb: 4 }}>
+            <Box sx={{ 
+              display: "flex", 
+              justifyContent: "center", 
+              mb: { xs: 3, sm: 4 }
+            }}>
               <Box sx={{ position: "relative" }}>
                 <Avatar
                   src={getAvatarUrl(session?.user?.name, formData.avatarUrl)}
                   alt={session?.user?.name || "Používateľ"}
                   sx={{
-                    width: 120,
-                    height: 120,
+                    width: { xs: 100, sm: 120 },
+                    height: { xs: 100, sm: 120 },
                     border: '4px solid white',
                     boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
                     background: 'linear-gradient(45deg, #FF385C, #1DA1F2)',
@@ -525,6 +531,8 @@ const EditProfileView = () => {
                       right: 0,
                       backgroundColor: "background.paper",
                       boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                      width: { xs: 32, sm: 40 },
+                      height: { xs: 32, sm: 40 },
                       '&:hover': {
                         backgroundColor: "background.paper",
                         transform: 'scale(1.1)',
@@ -535,9 +543,9 @@ const EditProfileView = () => {
                     disabled={isAvatarUploading}
                   >
                     {isAvatarUploading ? (
-                      <CircularProgress size={24} />
+                      <CircularProgress size={20} />
                     ) : (
-                      <PhotoCameraIcon />
+                      <PhotoCameraIcon sx={{ fontSize: { xs: 18, sm: 24 } }} />
                     )}
                   </IconButton>
                 </Tooltip>
@@ -551,7 +559,7 @@ const EditProfileView = () => {
               </Box>
             </Box>
 
-            <Grid container spacing={3}>
+            <Grid container spacing={2}>
               <Grid item xs={12}>
                 <TextField
                   fullWidth
@@ -564,25 +572,24 @@ const EditProfileView = () => {
                   InputProps={{
                     startAdornment: (
                       <InputAdornment position="start">
-                        <PersonIcon color="action" />
+                        <PersonIcon color="action" sx={{ fontSize: { xs: 20, sm: 24 } }} />
                       </InputAdornment>
                     ),
                     endAdornment: formData.name && (
                       <InputAdornment position="end">
-                        <Tooltip title="Vymazať meno">
-                          <IconButton
-                            size="small"
-                            onClick={() => setFormData({ ...formData, name: "" })}
-                          >
-                            <ClearIcon />
-                          </IconButton>
-                        </Tooltip>
+                        <IconButton
+                          size="small"
+                          onClick={() => setFormData({ ...formData, name: "" })}
+                        >
+                          <ClearIcon sx={{ fontSize: { xs: 18, sm: 20 } }} />
+                        </IconButton>
                       </InputAdornment>
                     ),
                   }}
                   sx={{
                     '& .MuiOutlinedInput-root': {
-                      borderRadius: 2,
+                      borderRadius: { xs: 1.5, sm: 2 },
+                      fontSize: { xs: '0.875rem', sm: '1rem' }
                     }
                   }}
                 />
@@ -600,25 +607,24 @@ const EditProfileView = () => {
                   InputProps={{
                     startAdornment: (
                       <InputAdornment position="start">
-                        <DescriptionIcon color="action" />
+                        <DescriptionIcon color="action" sx={{ fontSize: { xs: 20, sm: 24 } }} />
                       </InputAdornment>
                     ),
                     endAdornment: formData.bio && (
                       <InputAdornment position="end">
-                        <Tooltip title="Vymazať bio">
-                          <IconButton
-                            size="small"
-                            onClick={() => setFormData({ ...formData, bio: "" })}
-                          >
-                            <ClearIcon />
-                          </IconButton>
-                        </Tooltip>
+                        <IconButton
+                          size="small"
+                          onClick={() => setFormData({ ...formData, bio: "" })}
+                        >
+                          <ClearIcon sx={{ fontSize: { xs: 18, sm: 20 } }} />
+                        </IconButton>
                       </InputAdornment>
                     ),
                   }}
                   sx={{
                     '& .MuiOutlinedInput-root': {
-                      borderRadius: 2,
+                      borderRadius: { xs: 1.5, sm: 2 },
+                      fontSize: { xs: '0.875rem', sm: '1rem' }
                     }
                   }}
                 />
@@ -634,25 +640,24 @@ const EditProfileView = () => {
                   InputProps={{
                     startAdornment: (
                       <InputAdornment position="start">
-                        <LocationIcon color="action" />
+                        <LocationIcon color="action" sx={{ fontSize: { xs: 20, sm: 24 } }} />
                       </InputAdornment>
                     ),
                     endAdornment: formData.location && (
                       <InputAdornment position="end">
-                        <Tooltip title="Vymazať lokalitu">
-                          <IconButton
-                            size="small"
-                            onClick={() => setFormData({ ...formData, location: "" })}
-                          >
-                            <ClearIcon />
-                          </IconButton>
-                        </Tooltip>
+                        <IconButton
+                          size="small"
+                          onClick={() => setFormData({ ...formData, location: "" })}
+                        >
+                          <ClearIcon sx={{ fontSize: { xs: 18, sm: 20 } }} />
+                        </IconButton>
                       </InputAdornment>
                     ),
                   }}
                   sx={{
                     '& .MuiOutlinedInput-root': {
-                      borderRadius: 2,
+                      borderRadius: { xs: 1.5, sm: 2 },
+                      fontSize: { xs: '0.875rem', sm: '1rem' }
                     }
                   }}
                 />
@@ -665,8 +670,9 @@ const EditProfileView = () => {
                   disabled={loading.save}
                   startIcon={loading.save ? <CircularProgress size={20} /> : <SaveIcon />}
                   sx={{
-                    py: 1.5,
+                    py: { xs: 1, sm: 1.5 },
                     borderRadius: 50,
+                    fontSize: { xs: '0.875rem', sm: '1rem' },
                     background: 'linear-gradient(45deg, #FF385C, #1DA1F2)',
                     boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
                     transition: 'transform 0.2s',
@@ -690,7 +696,7 @@ const EditProfileView = () => {
               <Fade in>
                 <Alert 
                   severity="error" 
-                  sx={{ mt: 3 }}
+                  sx={{ mt: 2 }}
                   onClose={() => setError(null)}
                 >
                   {error}
@@ -741,7 +747,11 @@ const EditProfileView = () => {
 
   // Main render
   return (
-    <Container sx={{ mt: 4, mb: 10 }}>
+    <Container sx={{ 
+      mt: { xs: 2, sm: 4 }, 
+      mb: { xs: 8, sm: 10 },
+      px: { xs: 1, sm: 2, md: 3 }
+    }}>
       {isEditing ? renderEditForm() : (
         <Box>
           {renderProfileHeader()}
@@ -764,18 +774,20 @@ const EditProfileView = () => {
         </Alert>
       </Snackbar>
 
-      <Box sx={{ mt: 3 }}>
+      <Box sx={{ mt: 3, display: 'flex', justifyContent: 'center' }}>
         <Fade in timeout={500}>
           <Button
-            component={Link}
-            href={`/profily/${session?.user?.id}`}
+            onClick={handleCancel}
             variant="outlined"
             color="primary"
             startIcon={<ArrowBackIcon />}
             sx={{ 
               borderRadius: 50,
-              px: 3,
-              py: 1,
+              px: { xs: 2, sm: 3 },
+              py: { xs: 1, sm: 1.5 },
+              fontSize: { xs: '0.875rem', sm: '1rem' },
+              width: { xs: '100%', sm: 'auto' },
+              maxWidth: { xs: '200px', sm: 'none' },
               transition: 'transform 0.2s',
               '&:hover': {
                 transform: 'translateX(-4px)',

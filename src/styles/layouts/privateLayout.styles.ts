@@ -19,6 +19,7 @@ export const containerStyles: SxProps<Theme> = {
         xs: 8,  // Space for bottom navigation
         sm: 9,
     },
+    animation: 'fadeIn 0.5s ease-in-out',
 };
 
 /** Content box styles for private layout */
@@ -40,9 +41,36 @@ export const contentBoxStyles: SxProps<Theme> = {
     },
     display: 'flex',
     flexDirection: 'column',
-    boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
+    bgcolor: 'background.paper',
+    backdropFilter: 'blur(10px)',
+    boxShadow: '0 4px 30px var(--mui-palette-primary-main-rgb, 0, 0, 0)10',
     transition: 'all 0.3s ease',
+    animation: 'fadeInUp 0.6s ease-out',
+    border: '1px solid',
+    borderColor: 'divider',
     '&:hover': {
-        boxShadow: '0 8px 30px rgba(0,0,0,0.1)',
+        boxShadow: '0 8px 40px var(--mui-palette-primary-main-rgb, 0, 0, 0)15',
+        transform: 'translateY(-2px)',
+    },
+    '& .fade-in-up': {
+        animation: 'fadeInUp 0.6s ease-out',
+    },
+    '@keyframes fadeInUp': {
+        from: {
+            opacity: 0,
+            transform: 'translateY(20px)',
+        },
+        to: {
+            opacity: 1,
+            transform: 'translateY(0)',
+        },
+    },
+    '@keyframes fadeIn': {
+        from: {
+            opacity: 0,
+        },
+        to: {
+            opacity: 1,
+        },
     },
 }; 

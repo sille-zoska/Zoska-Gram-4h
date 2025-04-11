@@ -36,6 +36,10 @@ import {
 import { Post } from "@/types/post";
 import { fetchBookmarkedPosts } from "@/app/actions/posts";
 
+// Components
+import FeedPostImageCarousel from "@/components/FeedPostImageCarousel";
+import { getAvatarUrl } from "@/utils/avatar";
+
 // Helper function to get the appropriate image URL from a post
 const getPostImageUrl = (post: Post): string => {
   // If the post has the new images array and it's not empty, use the first image
@@ -49,8 +53,6 @@ const getPostImageUrl = (post: Post): string => {
     return post.imageUrl;
   }
   // Return a placeholder image URL as fallback
-  // return "/images/placeholder.jpg";
-  // Instead of using a static placeholder.jpg, you could use:
   return `https://api.dicebear.com/7.x/initials/svg?seed=${post.user.name || '?'}&backgroundColor=FF385C,1DA1F2`;
 };
 
@@ -185,13 +187,21 @@ const SavedPostsView = () => {
                 }}
                 onClick={() => handlePostClick(post.id)}
               >
-                <Image
-                  src={getPostImageUrl(post)}
-                  alt={post.caption || 'Saved post image'}
-                  fill
-                  sizes="(max-width: 600px) 33vw, 25vw"
-                  style={{ objectFit: 'cover' }}
-                />
+                {post.images && post.images.length > 0 ? (
+                  <FeedPostImageCarousel 
+                    images={post.images}
+                    aspectRatio="1/1"
+                    onImageClick={() => handlePostClick(post.id)}
+                  />
+                ) : (
+                  <Image
+                    src={getPostImageUrl(post)}
+                    alt={post.caption || 'Saved post image'}
+                    fill
+                    sizes="(max-width: 600px) 33vw, 25vw"
+                    style={{ objectFit: 'cover' }}
+                  />
+                )}
               </Box>
             </Grid>
           ))}

@@ -51,7 +51,7 @@ import ExploreIcon from "@mui/icons-material/Explore";
 import { fetchProfilesCursor, followUser, unfollowUser, type ProfileWithUser, fetchProfile, fetchUserBookmarks } from "@/app/actions/profiles";
 
 // Add PostImage component import
-import PostImageCarousel from "@/components/PostImageCarousel";
+import FeedPostImageCarousel from "@/components/FeedPostImageCarousel";
 
 // Types
 import { LoadingState, Profile, ExtendedUser } from '@/types/common';
@@ -140,6 +140,45 @@ interface ProfilePost {
 
 import { getAvatarUrl } from "@/utils/avatar";
 
+// Update the getUserAvatarUrl function to handle type issues correctly
+const getUserAvatarUrl = (profile: ProfileWithUser | UserProfile | any): string => {
+  // Handle null or undefined
+  if (!profile) {
+    return `https://api.dicebear.com/7.x/initials/svg?seed=U&backgroundColor=FF385C,1DA1F2`;
+  }
+  
+  // First check if the profile has avatarUrl - prioritize this over OAuth image
+  if (profile.avatarUrl) {
+    return profile.avatarUrl;
+  }
+  
+  // For regular Profile type with nested profile - prioritize profile.avatarUrl
+  if (profile.profile && profile.profile.avatarUrl) {
+    return profile.profile.avatarUrl;
+  }
+  
+  // For user profile with profile.avatarUrl
+  if (profile.user && profile.user.profile && profile.user.profile.avatarUrl) {
+    return profile.user.profile.avatarUrl;
+  }
+  
+  // Only fall back to OAuth image if no profile avatar is available
+  if (profile.user && profile.user.image) {
+    return profile.user.image;
+  }
+  
+  // User name for placeholder
+  let name = '';
+  if (profile.user && profile.user.name) {
+    name = profile.user.name;
+  } else if (profile.name) {
+    name = profile.name;
+  }
+  
+  // Return placeholder as last resort
+  return `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(name || 'U')}&backgroundColor=FF385C,1DA1F2`;
+};
+
 /**
  * ProfilesView Component
  * 
@@ -199,8 +238,15 @@ const ProfilesView = () => {
       }
       
       try {
-        const fetchedProfile = await fetchProfile(session.user.email);
-        setUserProfile(fetchedProfile as any);
+        // If email is available from session, fetch the user's profile
+        if (session.user.email) {
+          const fetchedProfile = await fetchProfile(session.user.id || session.user.email);
+          if (fetchedProfile) {
+            setUserProfile(fetchedProfile as any);
+          } else {
+            console.error('No profile found for user');
+          }
+        }
       } catch (error) {
         console.error('Error loading user profile:', error);
       } finally {
@@ -291,7 +337,7 @@ const ProfilesView = () => {
     setViewMode(viewMode === 'explore' ? 'profile' : 'explore');
   };
 
-  // Helper function to get the primary image URL from a post
+  // Helper function to get the appropriate image URL from a post
   const getPostImageUrl = (post: any): string => {
     // If the post has the new images array and it's not empty, use the first image
     if (post.images && post.images.length > 0) {
@@ -303,9 +349,7 @@ const ProfilesView = () => {
     if (post.imageUrl) {
       return post.imageUrl;
     }
-    // Return a placeholder image URL instead of null
-    // return "/images/placeholder.jpg";
-    // Instead of using a static placeholder.jpg, you could use:
+    // Return a placeholder image URL as fallback
     return `https://api.dicebear.com/7.x/initials/svg?seed=${post.user.name || '?'}&backgroundColor=FF385C,1DA1F2`;
   };
 
@@ -346,91 +390,146 @@ const ProfilesView = () => {
   );
 
   const renderProfileInfo = (profile: ProfileWithUser) => (
-    <Box sx={{ flexGrow: 1 }}>
-      <Box 
-        sx={{ 
-          display: 'flex', 
-          flexDirection: { xs: 'column', sm: 'row' },
-          alignItems: { xs: 'flex-start', sm: 'center' }, 
-          gap: { xs: 1, sm: 2 },
-          mb: { xs: 2, sm: 1 }
-        }}
-      >
-        <Typography 
-          variant="h6" 
-          sx={{ 
-            fontSize: { xs: '1rem', sm: '1.25rem' },
-            lineHeight: { xs: '1.2', sm: '1.4' }
-          }}
-        >
-          {profile.user.name || "Neznámy používateľ"}
-        </Typography>
-        <Button
-          variant="contained"
-          size="small"
-          startIcon={isFollowing(profile) ? <PersonRemoveIcon /> : <PersonAddIcon />}
-          onClick={(e) => handleFollowToggle(e, profile)}
-          disabled={session?.user?.email === profile.user.email}
-          sx={{ 
-            minWidth: { xs: '100%', sm: 'auto' },
-            fontSize: { xs: '0.8125rem', sm: '0.875rem' }
-          }}
-        >
-          {isFollowing(profile) ? "Nesledovať" : "Sledovať"}
-        </Button>
-      </Box>
+    <Card
+      elevation={0}
+      sx={{
+        p: 3,
+        mb: 3,
+        borderRadius: 3,
+        transition: 'transform 0.3s ease-in-out',
+        '&:hover': {
+          transform: 'translateY(-4px)',
+          boxShadow: '0 8px 24px rgba(0,0,0,0.1)'
+        }
+      }}
+    >
+      <Grid container spacing={3}>
+        <Grid item xs={12} sm={3} sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: { xs: 'center', sm: 'flex-start' }
+        }}>
+          <Avatar
+            src={getUserAvatarUrl(profile)}
+            alt={profile.user.name || "User"}
+            sx={{
+              width: { xs: 80, sm: 100 },
+              height: { xs: 80, sm: 100 },
+              mb: 2,
+              border: '3px solid white',
+              boxShadow: '0 4px 14px rgba(0,0,0,0.1)',
+              background: 'linear-gradient(45deg, #FF385C, #1DA1F2)',
+            }}
+          >
+            {profile.user.name?.[0] || "U"}
+          </Avatar>
+          
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            sx={{ 
+              display: { xs: 'none', sm: 'block' }, 
+              mb: 1, 
+              fontStyle: 'italic' 
+            }}
+          >
+            {profile.location || "Žiadna lokalita"}
+          </Typography>
+          
+          {session?.user?.email !== profile.user.email && (
+            <Button
+              variant={isFollowing(profile) ? "outlined" : "contained"}
+              size="small"
+              startIcon={isFollowing(profile) ? <PersonRemoveIcon /> : <PersonAddIcon />}
+              onClick={(e) => handleFollowToggle(e, profile)}
+              sx={{ 
+                mt: { xs: 0, sm: 2 }, 
+                width: { xs: '100%', sm: 'auto' },
+                display: { xs: 'none', sm: 'flex' },
+                borderRadius: 50,
+              }}
+            >
+              {isFollowing(profile) ? "Nesledovať" : "Sledovať"}
+            </Button>
+          )}
+        </Grid>
+        
+        <Grid item xs={12} sm={9}>
+          <Box sx={{ flexGrow: 1 }}>
+            <Box 
+              sx={{ 
+                display: 'flex', 
+                flexDirection: { xs: 'column', sm: 'row' },
+                alignItems: { xs: 'flex-start', sm: 'center' }, 
+                gap: { xs: 1, sm: 2 },
+                mb: { xs: 2, sm: 1 }
+              }}
+            >
+              <Typography 
+                variant="h6" 
+                sx={{ 
+                  fontSize: { xs: '1rem', sm: '1.25rem' },
+                  lineHeight: { xs: '1.2', sm: '1.4' }
+                }}
+              >
+                {profile.user.name || "Neznámy používateľ"}
+              </Typography>
+            </Box>
 
-      <Stack 
-        direction="row" 
-        spacing={{ xs: 2, sm: 3 }} 
-        sx={{ 
-          mb: 2,
-          flexWrap: { xs: 'wrap', sm: 'nowrap' },
-          '& .MuiTypography-root': {
-            fontSize: { xs: '0.8125rem', sm: '0.875rem' },
-            minWidth: { xs: 'calc(33.33% - 16px)', sm: 'auto' }
-          }
-        }}
-      >
-        <Typography variant="body2">
-          <strong>{profile.user.posts.length}</strong> príspevkov
-        </Typography>
-        <Typography variant="body2">
-          <strong>{profile.user.followers.length}</strong> sledovateľov
-        </Typography>
-        <Typography variant="body2">
-          <strong>{profile.user.following.length}</strong> sledovaných
-        </Typography>
-      </Stack>
+            <Stack 
+              direction="row" 
+              spacing={{ xs: 2, sm: 3 }} 
+              sx={{ 
+                mb: 2,
+                flexWrap: { xs: 'wrap', sm: 'nowrap' },
+                '& .MuiTypography-root': {
+                  fontSize: { xs: '0.8125rem', sm: '0.875rem' },
+                  minWidth: { xs: 'calc(33.33% - 16px)', sm: 'auto' }
+                }
+              }}
+            >
+              <Typography variant="body2">
+                <strong>{profile.user.posts.length}</strong> príspevkov
+              </Typography>
+              <Typography variant="body2">
+                <strong>{profile.user.followers.length}</strong> sledovateľov
+              </Typography>
+              <Typography variant="body2">
+                <strong>{profile.user.following.length}</strong> sledovaných
+              </Typography>
+            </Stack>
 
-      {profile.bio && (
-        <Typography 
-          variant="body2" 
-          sx={{ 
-            mb: 1,
-            fontSize: { xs: '0.8125rem', sm: '0.875rem' },
-            lineHeight: { xs: '1.4', sm: '1.5' }
-          }}
-        >
-          {profile.bio}
-        </Typography>
-      )}
-      
-      {profile.location && (
-        <Typography 
-          variant="body2" 
-          color="text.secondary"
-          sx={{ 
-            fontSize: { xs: '0.8125rem', sm: '0.875rem' },
-            display: 'flex',
-            alignItems: 'center',
-            gap: 0.5
-          }}
-        >
-          📍 {profile.location}
-        </Typography>
-      )}
-    </Box>
+            {profile.bio && (
+              <Typography 
+                variant="body2" 
+                sx={{ 
+                  mb: 1,
+                  fontSize: { xs: '0.8125rem', sm: '0.875rem' },
+                  lineHeight: { xs: '1.4', sm: '1.5' }
+                }}
+              >
+                {profile.bio}
+              </Typography>
+            )}
+            
+            {profile.location && (
+              <Typography 
+                variant="body2" 
+                color="text.secondary"
+                sx={{ 
+                  fontSize: { xs: '0.8125rem', sm: '0.875rem' },
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 0.5
+                }}
+              >
+                📍 {profile.location}
+              </Typography>
+            )}
+          </Box>
+        </Grid>
+      </Grid>
+    </Card>
   );
 
   // Update the renderRecentPosts function for better mobile display
@@ -446,58 +545,34 @@ const ProfilesView = () => {
         Nedávne príspevky
       </Typography>
       {profile.user.posts.length > 0 ? (
-        <ImageList 
-          cols={3} 
-          gap={8}
-          sx={{
-            mb: 0,
-            '& .MuiImageListItem-root': {
-              height: { xs: '100px', sm: '120px' } 
-            }
-          }}
-        >
-          {profile.user.posts.slice(0, 3).map((post: any) => (
-            <ImageListItem 
-              key={post.id} 
-              sx={{ 
+        <ImageList cols={3} gap={2}>
+          {profile.user.posts?.map((post: any) => (
+            <ImageListItem
+              key={post.id}
+              sx={{
+                aspectRatio: '1/1',
                 cursor: 'pointer',
+                '&:hover': { opacity: 0.9, transform: 'scale(1.02)' },
+                boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
+                borderRadius: 2,
                 overflow: 'hidden',
-                borderRadius: { xs: 1, sm: 2 },
-                '&:hover': {
-                  opacity: 0.9,
-                  transform: 'scale(1.02)',
-                  transition: 'all 0.2s ease-in-out'
-                }
               }}
               onClick={() => handlePostClick(post.id)}
             >
               {post.images && post.images.length > 0 ? (
-                <PostImageCarousel 
+                <FeedPostImageCarousel 
                   images={post.images}
                   aspectRatio="1/1"
-                />
-              ) : post.imageUrl ? (
-                <Image
-                  src={post.imageUrl}
-                  alt={post.caption || "Post image"}
-                  fill
-                  sizes="(max-width: 600px) 33vw, 200px"
-                  style={{ objectFit: 'cover' }}
+                  onImageClick={() => handlePostClick(post.id)}
                 />
               ) : (
-                <Box 
-                  sx={{ 
-                    backgroundColor: 'grey.200', 
-                    height: '100%', 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    justifyContent: 'center' 
-                  }}
-                >
-                  <Typography variant="caption" color="text.secondary">
-                    Žiadny obrázok
-                  </Typography>
-                </Box>
+                <Image
+                  src={getPostImageUrl(post)}
+                  alt={post.caption || "Post image"}
+                  fill
+                  sizes="(max-width: 768px) 33vw, 25vw"
+                  style={{ objectFit: 'cover' }}
+                />
               )}
             </ImageListItem>
           ))}
@@ -525,47 +600,42 @@ const ProfilesView = () => {
         Uložené príspevky
       </Typography>
       {bookmarkedPosts.length > 0 ? (
-        <ImageList cols={3} gap={8}>
+        <Grid container spacing={2}>
           {bookmarkedPosts.map((post) => (
-            <ImageListItem 
-              key={post.id} 
-              sx={{ height: '120px', cursor: 'pointer' }}
-              onClick={() => handlePostClick(post.id)}
-            >
-              {post.images && post.images.length > 0 ? (
-                // Use the carousel for multiple images
-                <PostImageCarousel 
-                  images={post.images}
-                  aspectRatio="1/1"
-                />
-              ) : post.imageUrl ? (
-                // Use a regular Image component for the old structure
-                <Image
-                  src={post.imageUrl}
-                  alt={post.caption || "Post image"}
-                  fill
-                  sizes="(max-width: 600px) 33vw, 200px"
-                  style={{ objectFit: 'cover' }}
-                />
-              ) : (
-                // No image placeholder
-                <Box 
-                  sx={{ 
-                    backgroundColor: 'grey.200', 
-                    height: '100%', 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    justifyContent: 'center' 
-                  }}
-                >
-                  <Typography variant="caption" color="text.secondary">
-                    Žiadny obrázok
-                  </Typography>
-                </Box>
-              )}
-            </ImageListItem>
+            <Grid item xs={4} key={post.id}>
+              <Box
+                sx={{
+                  position: 'relative',
+                  pt: '100%',
+                  borderRadius: 2,
+                  overflow: 'hidden',
+                  cursor: 'pointer',
+                  boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
+                  '&:hover': {
+                    transform: 'scale(1.02)',
+                  },
+                }}
+                onClick={() => handlePostClick(post.id)}
+              >
+                {post.images && post.images.length > 0 ? (
+                  <FeedPostImageCarousel 
+                    images={post.images}
+                    aspectRatio="1/1"
+                    onImageClick={() => handlePostClick(post.id)}
+                  />
+                ) : (
+                  <Image
+                    src={getPostImageUrl(post)}
+                    alt={post.caption || "Post image"}
+                    fill
+                    sizes="(max-width: 768px) 33vw, 25vw"
+                    style={{ objectFit: 'cover' }}
+                  />
+                )}
+              </Box>
+            </Grid>
           ))}
-        </ImageList>
+        </Grid>
       ) : (
         <Typography 
           align="center" 
@@ -648,6 +718,13 @@ const ProfilesView = () => {
             </Typography>
           )}
 
+          {/* Add sorting indicator */}
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
+            <Typography variant="caption" color="text.secondary" sx={{ fontStyle: 'italic' }}>
+              Zoradené od najnovších
+            </Typography>
+          </Box>
+
           {profiles.map((profile) => (
             <Card 
               key={profile.id}
@@ -670,7 +747,7 @@ const ProfilesView = () => {
                   gap: { xs: 2, sm: 3 }
                 }}>
                   <Avatar
-                    src={getAvatarUrl(profile.user.name, profile.avatarUrl)}
+                    src={getUserAvatarUrl(profile)}
                     alt={profile.user.name || "Používateľ"}
                     sx={{
                       width: { xs: 48, sm: 56 },
@@ -726,12 +803,14 @@ const ProfilesView = () => {
               <CardContent>
                 <Box sx={{ display: 'flex', mb: 3 }}>
                   <Avatar
-                    src={getAvatarUrl(userProfile?.user?.name, userProfile.avatarUrl)}
+                    src={getUserAvatarUrl(userProfile as any)}
                     alt={userProfile?.user?.name || "Používateľ"}
                     sx={{
-                      width: 56,
-                      height: 56,
-                      border: '2px solid white',
+                      width: 100,
+                      height: 100,
+                      mr: 3,
+                      border: '3px solid white',
+                      boxShadow: '0 4px 14px rgba(0,0,0,0.1)',
                       background: 'linear-gradient(45deg, #FF385C, #1DA1F2)',
                     }}
                   >
@@ -794,16 +873,27 @@ const ProfilesView = () => {
                         cursor: 'pointer',
                         '&:hover': { opacity: 0.8 },
                         position: 'relative',
+                        borderRadius: 2,
+                        overflow: 'hidden',
+                        boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
                       }}
                       onClick={() => handlePostClick(post.id)}
                     >
-                      <Image
-                        src={getPostImageUrl(post) || `https://api.dicebear.com/7.x/initials/svg?seed=${post.user.name || '?'}&backgroundColor=FF385C,1DA1F2`}
-                        alt={post.caption || ""}
-                        fill
-                        sizes="(max-width: 768px) 33vw, 25vw"
-                        style={{ objectFit: 'cover' }}
-                      />
+                      {post.images && post.images.length > 0 ? (
+                        <FeedPostImageCarousel 
+                          images={post.images}
+                          aspectRatio="1/1"
+                          onImageClick={() => handlePostClick(post.id)}
+                        />
+                      ) : (
+                        <Image
+                          src={getPostImageUrl(post)}
+                          alt={post.caption || ""}
+                          fill
+                          sizes="(max-width: 768px) 33vw, 25vw"
+                          style={{ objectFit: 'cover' }}
+                        />
+                      )}
                     </ImageListItem>
                   ))}
                 </ImageList>

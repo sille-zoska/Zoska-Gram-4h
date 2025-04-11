@@ -3,7 +3,7 @@
 "use client";
 
 // React imports
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 // Next.js imports
 import { useRouter } from "next/navigation";
@@ -49,6 +49,9 @@ import SignOutView from "@/views/auth/SignOutView";
 // Utility imports
 import { getAvatarUrl } from "@/utils/avatar";
 
+// Server actions
+import { getCurrentUserProfile } from "@/app/actions/profiles";
+
 // Types
 interface NavigationPath {
   label: string;
@@ -72,6 +75,7 @@ const NavBar = () => {
   const [value, setValue] = useState("/");
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [signOutDialogOpen, setSignOutDialogOpen] = useState(false);
+  const [userProfile, setUserProfile] = useState<{avatarUrl?: string | null} | null>(null);
 
   // Hooks
   const router = useRouter();
@@ -79,6 +83,22 @@ const NavBar = () => {
   const { toggleTheme, isDarkMode } = useTheme();
   const muiTheme = useMuiTheme();
   const isMobile = useMediaQuery(muiTheme.breakpoints.down('sm'));
+
+  // Fetch user profile for avatar URL
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      if (status === "authenticated" && session?.user?.email) {
+        try {
+          const profile = await getCurrentUserProfile();
+          setUserProfile(profile);
+        } catch (error) {
+          console.error("Error fetching user profile:", error);
+        }
+      }
+    };
+
+    fetchUserProfile();
+  }, [session, status]);
 
   // Navigation handlers
   const handleNavigation = (event: React.SyntheticEvent, newValue: string) => {
@@ -126,9 +146,9 @@ const NavBar = () => {
     {
       label: "Profil",
       value: "/profil",
-      icon: session?.user?.image ? (
+      icon: session?.user ? (
         <Avatar
-          src={getAvatarUrl(session.user.name, session.user.image)}
+          src={getAvatarUrl(session.user.name, userProfile?.avatarUrl || session.user.image)}
           alt={session.user.name || "User"}
           sx={{
             width: 32,

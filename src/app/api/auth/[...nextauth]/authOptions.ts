@@ -106,6 +106,12 @@ export const authOptions: NextAuthOptions = {
       return session;
     },
     async redirect({ url, baseUrl }) {
+      // Check if this is a first-time user (newUser redirect)
+      if (url.startsWith(`${baseUrl}/profily/upravit`)) {
+        // If it's already a new user page, keep it
+        return url;
+      }
+
       // If the url is an internal URL, allow it
       if (url.startsWith(baseUrl)) return url;
 

@@ -2,8 +2,8 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import Image from 'next/image';
-import { Box, IconButton, MobileStepper, useTheme, Fade, Zoom } from '@mui/material';
-import { KeyboardArrowLeft, KeyboardArrowRight, ZoomIn as ZoomInIcon, Close as CloseIcon } from '@mui/icons-material';
+import { Box, IconButton, MobileStepper, useTheme, Fade } from '@mui/material';
+import { KeyboardArrowLeft, KeyboardArrowRight } from '@mui/icons-material';
 import { useSwipeable } from 'react-swipeable';
 
 type PostImage = {
@@ -12,54 +12,51 @@ type PostImage = {
   order: number;
 };
 
-interface PostImageCarouselProps {
+interface FeedPostImageCarouselProps {
   images: PostImage[];
   aspectRatio?: string;
+  onImageClick?: () => void;
 }
 
 /**
- * @deprecated Use FeedPostImageCarousel instead for consistent experience
+ * FeedPostImageCarousel Component
  * 
- * This component is kept for backwards compatibility but should not be used in new code.
- * FeedPostImageCarousel provides a more consistent experience across the app without zoom functionality.
- */
-
-/**
- * PostImageCarousel Component
- * 
- * A modern image carousel for displaying multiple post images.
+ * A simplified image carousel for the feed view without zoom functionality.
+ * When images are clicked, it navigates to the post detail page.
  * Features:
  * - Smooth transitions between images
  * - Touch and mouse swipe support
  * - Keyboard navigation
- * - Image zoom functionality
  * - Progress indicators
- * - Responsive design
- * - Loading animations
+ * - No zoom functionality
  */
-const PostImageCarousel = ({ images, aspectRatio = "1/1" }: PostImageCarouselProps) => {
+const FeedPostImageCarousel = ({ 
+  images, 
+  aspectRatio = "1/1",
+  onImageClick 
+}: FeedPostImageCarouselProps) => {
   const theme = useTheme();
   const [activeStep, setActiveStep] = useState(0);
-  const [isZoomed, setIsZoomed] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const maxSteps = images.length;
 
   // Sort images by order
   const sortedImages = [...images].sort((a, b) => a.order - b.order);
 
-  const handleNext = useCallback(() => {
+  const handleNext = useCallback((e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
     setActiveStep((prevActiveStep) => Math.min(prevActiveStep + 1, maxSteps - 1));
   }, [maxSteps]);
 
-  const handleBack = useCallback(() => {
+  const handleBack = useCallback((e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
     setActiveStep((prevActiveStep) => Math.max(prevActiveStep - 1, 0));
   }, []);
 
   const handleKeyPress = useCallback((event: KeyboardEvent) => {
     if (event.key === 'ArrowRight') handleNext();
     if (event.key === 'ArrowLeft') handleBack();
-    if (event.key === 'Escape' && isZoomed) setIsZoomed(false);
-  }, [handleNext, handleBack, isZoomed]);
+  }, [handleNext, handleBack]);
 
   // Add keyboard event listener
   useEffect(() => {
@@ -68,8 +65,8 @@ const PostImageCarousel = ({ images, aspectRatio = "1/1" }: PostImageCarouselPro
   }, [handleKeyPress]);
 
   const swipeHandlers = useSwipeable({
-    onSwipedLeft: handleNext,
-    onSwipedRight: handleBack,
+    onSwipedLeft: () => handleNext(),
+    onSwipedRight: () => handleBack(),
     trackMouse: true,
     delta: 10, // minimum distance in pixels before a swipe is registered
     swipeDuration: 500, // maximum time in ms to complete a swipe
@@ -85,8 +82,9 @@ const PostImageCarousel = ({ images, aspectRatio = "1/1" }: PostImageCarouselPro
           aspectRatio,
           overflow: 'hidden',
           borderRadius: theme.shape.borderRadius,
-          boxShadow: theme.shadows[4],
+          cursor: 'pointer',
         }}
+        onClick={onImageClick}
       >
         <Image
           src={sortedImages[0]?.imageUrl || ''}
@@ -106,11 +104,12 @@ const PostImageCarousel = ({ images, aspectRatio = "1/1" }: PostImageCarouselPro
       sx={{ 
         position: 'relative', 
         width: '100%',
-        touchAction: isZoomed ? 'none' : 'pan-y pinch-zoom',
+        touchAction: 'pan-y',
         borderRadius: theme.shape.borderRadius,
         overflow: 'hidden',
-        boxShadow: theme.shadows[4],
+        cursor: 'pointer',
       }}
+      onClick={onImageClick}
     >
       <Box
         sx={{
@@ -129,13 +128,6 @@ const PostImageCarousel = ({ images, aspectRatio = "1/1" }: PostImageCarouselPro
               flexShrink: 0,
               aspectRatio,
               overflow: 'hidden',
-              cursor: isZoomed ? 'zoom-out' : 'zoom-in',
-              transition: 'all 0.3s ease',
-              transform: isZoomed ? 'scale(1.5)' : 'scale(1)',
-            }}
-            onClick={(e) => {
-              e.stopPropagation(); 
-              setIsZoomed(!isZoomed);
             }}
           >
             <Image
@@ -156,7 +148,7 @@ const PostImageCarousel = ({ images, aspectRatio = "1/1" }: PostImageCarouselPro
       </Box>
 
       {/* Navigation buttons */}
-      <Fade in={!isZoomed}>
+      <Fade in={true}>
         <Box>
           {/* Left navigation button */}
           {activeStep > 0 && (
@@ -210,54 +202,8 @@ const PostImageCarousel = ({ images, aspectRatio = "1/1" }: PostImageCarouselPro
         </Box>
       </Fade>
 
-      {/* Zoom indicator */}
-      <Zoom in={!isZoomed}>
-        <IconButton
-          sx={{
-            position: 'absolute',
-            right: 8,
-            bottom: 8,
-            backgroundColor: `${theme.palette.background.paper}CC`,
-            backdropFilter: 'blur(4px)',
-            '&:hover': { 
-              backgroundColor: theme.palette.background.paper,
-              transform: 'scale(1.1)',
-            },
-            transition: 'all 0.2s ease',
-          }}
-          onClick={(e) => {
-            e.stopPropagation();
-            setIsZoomed(true);
-          }}
-        >
-          <ZoomInIcon />
-        </IconButton>
-      </Zoom>
-
-      {/* Close zoom button */}
-      <Zoom in={isZoomed}>
-        <IconButton
-          sx={{
-            position: 'absolute',
-            top: 8,
-            right: 8,
-            backgroundColor: `${theme.palette.background.paper}CC`,
-            backdropFilter: 'blur(4px)',
-            '&:hover': { 
-              backgroundColor: theme.palette.background.paper,
-            },
-          }}
-          onClick={(e) => {
-            e.stopPropagation();
-            setIsZoomed(false);
-          }}
-        >
-          <CloseIcon />
-        </IconButton>
-      </Zoom>
-
       {/* Image indicators */}
-      <Fade in={!isZoomed}>
+      <Fade in={true}>
         <MobileStepper
           steps={maxSteps}
           position="static"
@@ -286,4 +232,4 @@ const PostImageCarousel = ({ images, aspectRatio = "1/1" }: PostImageCarouselPro
   );
 };
 
-export default PostImageCarousel; 
+export default FeedPostImageCarousel; 

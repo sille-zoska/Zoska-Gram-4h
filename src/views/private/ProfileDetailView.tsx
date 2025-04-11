@@ -62,6 +62,7 @@ import { deletePost } from "@/app/actions/posts";
 
 // Components
 import PostImageCarousel from "@/components/PostImageCarousel";
+import FeedPostImageCarousel from "@/components/FeedPostImageCarousel";
 import { getAvatarUrl } from "@/utils/avatar";
 
 // Types
@@ -270,6 +271,11 @@ const ProfileDetailView = ({ profileId }: ProfileDetailViewProps) => {
   const handleDeleteCancel = () => {
     setDeleteDialogOpen(false);
     setPostToDelete(null);
+  };
+
+  // Add a navigation handler for posts
+  const handlePostClick = (postId: string) => {
+    router.push(`/prispevky/${postId}`);
   };
 
   if (loading.initial) {
@@ -668,11 +674,13 @@ const ProfileDetailView = ({ profileId }: ProfileDetailViewProps) => {
                           '&:hover': { opacity: 0.8 },
                           position: 'relative',
                         }}
+                        onClick={() => handlePostClick(post.id)}
                       >
                         {post.images && post.images.length > 0 ? (
-                          <PostImageCarousel 
+                          <FeedPostImageCarousel 
                             images={post.images}
                             aspectRatio="1/1"
+                            onImageClick={() => handlePostClick(post.id)}
                           />
                         ) : (
                           <Image
@@ -780,11 +788,13 @@ const ProfileDetailView = ({ profileId }: ProfileDetailViewProps) => {
                             boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
                           },
                         }}
+                        onClick={() => handlePostClick(post.id)}
                       >
                         {post.images && post.images.length > 0 ? (
-                          <PostImageCarousel 
+                          <FeedPostImageCarousel 
                             images={post.images}
-                            aspectRatio="1/1" 
+                            aspectRatio="1/1"
+                            onImageClick={() => handlePostClick(post.id)}
                           />
                         ) : post.imageUrl ? (
                           <Image

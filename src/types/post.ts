@@ -52,6 +52,15 @@ export interface Post {
         id: string;
         name: string | null;
         email: string;
+        image?: string | null;
+        profile?: {
+            id: string;
+            userId: string;
+            bio?: string | null;
+            avatarUrl?: string | null;
+            location?: string | null;
+            interests?: string[];
+        };
     };
     tags?: string[];
 }

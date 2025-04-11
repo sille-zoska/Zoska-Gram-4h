@@ -6,6 +6,7 @@ import { useSession } from "next-auth/react";
 import Image from "next/image";
 import { formatDistanceToNow } from "date-fns";
 import { sk } from "date-fns/locale";
+import { useRouter } from "next/navigation";
 
 // MUI Component imports
 import {
@@ -57,9 +58,13 @@ import { fetchPosts, createComment, deleteComment, toggleLike, toggleBookmark } 
 
 // Types
 import { Post, Comment, Bookmark, PostImage } from "@/types/post";
+import { User } from "next-auth";
 
 // Import PostImageCarousel component
 import PostImageCarousel from "@/components/PostImageCarousel";
+
+// Import FeedPostImageCarousel component
+import FeedPostImageCarousel from "@/components/FeedPostImageCarousel";
 
 // Import getAvatarUrl utility
 import { getAvatarUrl } from "@/utils/avatar";
@@ -76,6 +81,26 @@ type OptimisticUpdate = {
   };
 };
 
+// Update post type to include user profile
+interface UserWithProfile {
+  id: string;
+  name: string | null;
+  email: string;
+  image?: string | null;
+  profile?: {
+    id: string;
+    userId: string;
+    bio?: string | null;
+    avatarUrl?: string | null;
+    location?: string | null;
+    interests?: string[];
+  };
+}
+
+interface PostWithUserProfile extends Omit<Post, 'user'> {
+  user: UserWithProfile;
+}
+
 /**
  * FeedView Component
  * 
@@ -90,10 +115,11 @@ type OptimisticUpdate = {
 const FeedView = () => {
   // Hooks
   const { data: session } = useSession();
+  const router = useRouter();
   
   // State
-  const [posts, setPosts] = useState<Post[]>([]);
-  const [selectedPost, setSelectedPost] = useState<Post | null>(null);
+  const [posts, setPosts] = useState<PostWithUserProfile[]>([]);
+  const [selectedPost, setSelectedPost] = useState<PostWithUserProfile | null>(null);
   const [commentDialogOpen, setCommentDialogOpen] = useState(false);
   const [newComment, setNewComment] = useState("");
   const [loading, setLoading] = useState(true);
@@ -111,20 +137,20 @@ const FeedView = () => {
   }, []);
 
   // Data fetching
-    const loadPosts = async () => {
-      try {
+  const loadPosts = async () => {
+    try {
       setLoading(true);
       const fetchedPosts = await fetchPosts();
-      setPosts(fetchedPosts as unknown as Post[]);
-      } catch (error) {
-        console.error("Failed to fetch posts:", error);
+      setPosts(fetchedPosts as unknown as PostWithUserProfile[]);
+    } catch (error) {
+      console.error("Failed to fetch posts:", error);
     } finally {
       setLoading(false);
     }
   };
 
   // Helper function to get the primary image URL or handle multiple images
-  const getPostImageUrl = (post: Post): string => {
+  const getPostImageUrl = (post: PostWithUserProfile): string => {
     // If the post has the new images array and it's not empty, use the first image
     if (post.images && post.images.length > 0) {
       // Sort by order if multiple images
@@ -203,7 +229,7 @@ const FeedView = () => {
       // Update posts state
       setPosts(prevPosts => 
         prevPosts.map(p => 
-          p.id === postId ? { ...updatedPost } as unknown as Post : p
+          p.id === postId ? { ...updatedPost } as unknown as PostWithUserProfile : p
         )
       );
     } catch (error) {
@@ -218,12 +244,23 @@ const FeedView = () => {
     }
   };
 
+  // Navigate to user profile
+  const navigateToUserProfile = (userId: string | undefined) => {
+    if (!userId) return;
+    router.push(`/profily/${userId}`);
+  };
+
+  // Navigate to post detail
+  const navigateToPostDetail = (postId: string) => {
+    router.push(`/prispevky/${postId}`);
+  };
+
   const handleBookmarkToggle = async (postId: string) => {
     try {
       const updatedPost = await toggleBookmark(postId);
       // Refresh all posts after bookmark change
       setPosts(prevPosts => prevPosts.map(p => 
-        p.id === postId ? { ...updatedPost } as unknown as Post : p
+        p.id === postId ? { ...updatedPost } as unknown as PostWithUserProfile : p
       ));
     } catch (error) {
       console.error('Error bookmarking post:', error);
@@ -268,7 +305,7 @@ const FeedView = () => {
       // Update post with new comments
       setPosts(prevPosts => 
         prevPosts.map(p => 
-          p.id === postId ? { ...updatedPost } as unknown as Post : p
+          p.id === postId ? { ...updatedPost } as unknown as PostWithUserProfile : p
         )
       );
       
@@ -283,7 +320,7 @@ const FeedView = () => {
     }
   };
 
-  const handleCommentClick = (post: Post) => {
+  const handleCommentClick = (post: PostWithUserProfile) => {
     setSelectedPost(post);
     setCommentDialogOpen(true);
   };
@@ -301,7 +338,7 @@ const FeedView = () => {
     const optimisticPost = {
       ...postToUpdate,
       comments: updatedComments
-    } as unknown as Post;
+    } as unknown as PostWithUserProfile;
     
     // Add to optimistic updates
     setOptimisticUpdates(prev => [
@@ -328,13 +365,13 @@ const FeedView = () => {
       // Update the posts state with server response
       setPosts(prevPosts => 
         prevPosts.map(p => 
-          p.id === postId ? { ...updatedPost } as unknown as Post : p
+          p.id === postId ? { ...updatedPost } as unknown as PostWithUserProfile : p
         )
       );
       
       // Update selected post if in dialog
       if (selectedPost && selectedPost.id === postId) {
-        setSelectedPost({ ...updatedPost } as unknown as Post);
+        setSelectedPost({ ...updatedPost } as unknown as PostWithUserProfile);
       }
       
       // Show success notification
@@ -376,7 +413,7 @@ const FeedView = () => {
     );
   };
 
-  const isLikedByCurrentUser = (post: Post): boolean => {
+  const isLikedByCurrentUser = (post: PostWithUserProfile): boolean => {
     if (!session?.user?.email) return false;
     const baseLikeState = post.likes.some(like => like.user.email === session.user?.email);
     
@@ -398,14 +435,14 @@ const FeedView = () => {
     );
   };
 
-  const isBookmarkedByCurrentUser = (post: Post) => {
+  const isBookmarkedByCurrentUser = (post: PostWithUserProfile) => {
     if (!post.bookmarks) return false;
     return post.bookmarks.some(bookmark => 
       bookmark.user?.email === session?.user?.email
     );
   };
 
-  const isBookmarked = (post: Post): boolean => {
+  const isBookmarked = (post: PostWithUserProfile): boolean => {
     if (!post.bookmarks) return false;
     return post.bookmarks.some(bookmark => 
       bookmark.user.email === session?.user?.email
@@ -417,7 +454,7 @@ const FeedView = () => {
       const updatedPost = await toggleBookmark(postId);
       // Refresh all posts after bookmark change
       setPosts(prevPosts => prevPosts.map(p => 
-        p.id === postId ? { ...updatedPost } as unknown as Post : p
+        p.id === postId ? { ...updatedPost } as unknown as PostWithUserProfile : p
       ));
     } catch (error) {
       console.error('Error bookmarking post:', error);
@@ -426,6 +463,20 @@ const FeedView = () => {
         severity: "error"
       });
     }
+  };
+
+  // Helper function to get avatar URL for user
+  const getUserAvatarUrl = (user: UserWithProfile): string => {
+    // First check if the profile has avatarUrl - prioritize this over OAuth image
+    if (user.profile?.avatarUrl) {
+      return user.profile.avatarUrl;
+    }
+    // Fall back to OAuth image if no profile avatar
+    if (user.image) {
+      return user.image;
+    }
+    // Return placeholder as last resort
+    return `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user.name || 'U')}&backgroundColor=FF385C,1DA1F2`;
   };
 
   // Main render
@@ -543,7 +594,7 @@ const FeedView = () => {
               <CardHeader
                 avatar={
                   <Avatar
-                    src={getAvatarUrl(post.user.name)}
+                    src={getUserAvatarUrl(post.user)}
                     alt={post.user.name || "Používateľ"}
                     sx={{
                       background: 'linear-gradient(45deg, #FF385C, #1DA1F2)',
@@ -563,6 +614,7 @@ const FeedView = () => {
                         color: 'primary.main',
                       },
                     }}
+                    onClick={() => navigateToUserProfile(post.user.id)}
                   >
                     {post.user.name}
                   </Typography>
@@ -573,40 +625,36 @@ const FeedView = () => {
                       addSuffix: true, 
                       locale: sk
                     })}
-      </Typography>
-                }
-                action={
-                  <IconButton
-                    sx={{
-                      '&:hover': {
-                        color: 'primary.main',
-                        bgcolor: 'action.hover',
-                      },
-                    }}
-                  >
-                    <MoreVertIcon />
-                  </IconButton>
+                  </Typography>
                 }
               />
               
               {post.images && post.images.length > 0 ? (
-                <Box sx={{ aspectRatio: '1/1', position: 'relative' }}>
-                  <PostImageCarousel 
+                <Box 
+                  sx={{ 
+                    aspectRatio: '1/1', 
+                    position: 'relative'
+                  }}
+                >
+                  <FeedPostImageCarousel 
                     images={post.images}
                     aspectRatio="1/1"
+                    onImageClick={() => navigateToPostDetail(post.id)}
                   />
                 </Box>
               ) : (
               <CardMedia
                 component="img"
-                  image={getPostImageUrl(post)}
-                  alt={post.caption || 'Post image'}
-                  sx={{ 
-                    aspectRatio: '1/1',
-                    objectFit: 'cover',
-                    backgroundColor: '#f0f0f0',
-                  }}
-                />
+                image={getPostImageUrl(post)}
+                alt={post.caption || 'Post image'}
+                sx={{ 
+                  aspectRatio: '1/1',
+                  objectFit: 'cover',
+                  backgroundColor: '#f0f0f0',
+                  cursor: 'pointer'
+                }}
+                onClick={() => navigateToPostDetail(post.id)}
+              />
               )}
               
               <CardActions disableSpacing sx={{ pt: 1, pb: 0 }}>
@@ -634,17 +682,6 @@ const FeedView = () => {
                   }}
                 >
                   <CommentIcon />
-                </IconButton>
-                <IconButton
-                  sx={{
-                    transition: 'transform 0.2s',
-                    '&:hover': {
-                      transform: 'scale(1.1)',
-                      color: 'primary.main',
-                    },
-                  }}
-                >
-                  <SendIcon />
                 </IconButton>
                 <Box flexGrow={1} />
                 <IconButton 
@@ -675,6 +712,7 @@ const FeedView = () => {
                       color: 'primary.main',
                     },
                   }}
+                  onClick={() => handleCommentClick(post)}
                 >
                   {post.likes.length} To sa páči
                 </Typography>
@@ -691,6 +729,7 @@ const FeedView = () => {
                           color: 'primary.main',
                         },
                       }}
+                      onClick={() => navigateToUserProfile(post.user.id)}
                     >
                       {post.user.name}
                     </Typography>
@@ -730,6 +769,7 @@ const FeedView = () => {
                                 color: 'primary.main',
                               },
                             }}
+                            onClick={() => navigateToUserProfile(comment.user.id)}
                           >
                             {comment.user.name}
                           </Typography>
@@ -881,6 +921,7 @@ const FeedView = () => {
                           background: 'linear-gradient(45deg, #FF385C, #1DA1F2)',
                           border: '2px solid white',
                         }}
+                        src={getUserAvatarUrl(comment.user as UserWithProfile)}
                       >
                         {comment.user.name?.[0] || "U"}
                       </Avatar>
@@ -896,6 +937,7 @@ const FeedView = () => {
                               color: 'primary.main',
                             },
                           }}
+                          onClick={() => navigateToUserProfile(comment.user.id)}
                         >
                           {comment.user.name}
                         </Typography>
@@ -934,10 +976,10 @@ const FeedView = () => {
                   .then(updatedPost => {
                     setPosts(prevPosts => 
                       prevPosts.map(p => 
-                        p.id === selectedPost.id ? { ...updatedPost } as unknown as Post : p
+                        p.id === selectedPost.id ? { ...updatedPost } as unknown as PostWithUserProfile : p
                       )
                     );
-                    setSelectedPost({ ...updatedPost } as unknown as Post);
+                    setSelectedPost({ ...updatedPost } as unknown as PostWithUserProfile);
                     setNewComment("");
                   })
                   .catch(error => {

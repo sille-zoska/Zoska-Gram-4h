@@ -51,7 +51,7 @@ import {
 import { getCurrentUserProfile, updateProfile, createProfile } from "@/app/actions/profiles";
 
 // Components 
-import PostImageCarousel from "@/components/PostImageCarousel";
+import FeedPostImageCarousel from "@/components/FeedPostImageCarousel";
 
 // Types
 interface ExtendedUser {
@@ -105,6 +105,7 @@ import { getAvatarUrl } from "@/utils/avatar";
 
 interface EditProfileViewProps {
   profileId: string;
+  returnTo?: string;
 }
 
 /**
@@ -118,7 +119,7 @@ interface EditProfileViewProps {
  * - View user's posts
  * - Display follower/following counts
  */
-const EditProfileView = ({ profileId }: EditProfileViewProps) => {
+const EditProfileView = ({ profileId, returnTo = "/profily" }: EditProfileViewProps) => {
   const { data: session } = useSession();
   const router = useRouter();
   const [loading, setLoading] = useState<LoadingState>({
@@ -244,7 +245,8 @@ const EditProfileView = ({ profileId }: EditProfileViewProps) => {
         await updateProfile(formData);
       }
       setSuccess(true);
-      router.push(`/profily/${profileId}`);
+      // Redirect to the returnTo path or profile page
+      router.push(returnTo);
     } catch (error) {
       console.error(`Failed to ${isNewProfile ? 'create' : 'update'} profile:`, error);
       setError(`Nepodarilo sa ${isNewProfile ? 'vytvoriť' : 'aktualizovať'} profil. Skúste to znova neskôr.`);
@@ -332,6 +334,11 @@ const EditProfileView = ({ profileId }: EditProfileViewProps) => {
     router.push(`/profily/${profileId}`);
   };
 
+  // Navigate to post detail
+  const handlePostClick = (postId: string) => {
+    router.push(`/prispevky/${postId}`);
+  };
+
   // Render functions
   const renderProfileHeader = () => {
     console.log('Rendering profile header with:', {
@@ -417,12 +424,14 @@ const EditProfileView = ({ profileId }: EditProfileViewProps) => {
                 '&:hover': { opacity: 0.8 },
                 position: 'relative',
               }}
+              onClick={() => handlePostClick(post.id)}
             >
               {post.images && post.images.length > 0 ? (
                 // Use PostImageCarousel for multiple images
-                <PostImageCarousel 
+                <FeedPostImageCarousel 
                   images={post.images}
                   aspectRatio="1/1"
+                  onImageClick={() => handlePostClick(post.id)}
                 />
               ) : (
                 // Use standard Image for single image

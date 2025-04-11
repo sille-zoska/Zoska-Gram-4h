@@ -47,7 +47,11 @@ type PrismaPostWithDetails = Prisma.PostGetPayload<{
 // Add this type to your Post type to include bookmarks
 export type PostWithDetails = Prisma.PostGetPayload<{
   include: {
-    user: true;
+    user: {
+      include: {
+        profile: true;
+      }
+    };
     likes: {
       include: {
         user: true;
@@ -55,7 +59,11 @@ export type PostWithDetails = Prisma.PostGetPayload<{
     };
     comments: {
       include: {
-        user: true;
+        user: {
+          include: {
+            profile: true;
+          }
+        };
         likes: true;
       }
     };
@@ -74,7 +82,11 @@ export const fetchPosts = async (): Promise<PrismaPostWithDetails[]> => {
     const posts = await prisma.post.findMany({
       orderBy: { createdAt: "desc" },
       include: {
-        user: true,
+        user: {
+          include: {
+            profile: true
+          }
+        },
         comments: {
           include: {
             user: true,
@@ -606,32 +618,38 @@ export async function fetchPostById(postId: string): Promise<PostWithDetails> {
     const post = await prisma.post.findUnique({
       where: { id: postId },
       include: {
-        user: true,
-        images: {
-          orderBy: {
-            order: 'asc'
-          }
-        },
-        comments: {
+        user: {
           include: {
-            user: true,
-            likes: true
-          },
-          orderBy: {
-            createdAt: 'desc'
+            profile: true
           }
         },
         likes: {
           include: {
-            user: true
-          }
+            user: true,
+          },
+        },
+        comments: {
+          include: {
+            user: {
+              include: {
+                profile: true
+              }
+            },
+            likes: true,
+          },
+          orderBy: { createdAt: "desc" },
         },
         bookmarks: {
           include: {
             user: true
           }
-        }
-      }
+        },
+        images: {
+          orderBy: {
+            order: "asc",
+          },
+        },
+      },
     });
 
     if (!post) {
@@ -640,8 +658,8 @@ export async function fetchPostById(postId: string): Promise<PostWithDetails> {
 
     return post;
   } catch (error) {
-    console.error("Error fetching post:", error);
-    throw error;
+    console.error("Error fetching post by ID:", error);
+    throw new Error("Failed to fetch post");
   }
 }
 

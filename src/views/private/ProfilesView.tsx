@@ -140,45 +140,6 @@ interface ProfilePost {
 
 import { getAvatarUrl } from "@/utils/avatar";
 
-// Update the getUserAvatarUrl function to handle type issues correctly
-const getUserAvatarUrl = (profile: ProfileWithUser | UserProfile | any): string => {
-  // Handle null or undefined
-  if (!profile) {
-    return `https://api.dicebear.com/7.x/initials/svg?seed=U&backgroundColor=FF385C,1DA1F2`;
-  }
-  
-  // First check if the profile has avatarUrl - prioritize this over OAuth image
-  if (profile.avatarUrl) {
-    return profile.avatarUrl;
-  }
-  
-  // For regular Profile type with nested profile - prioritize profile.avatarUrl
-  if (profile.profile && profile.profile.avatarUrl) {
-    return profile.profile.avatarUrl;
-  }
-  
-  // For user profile with profile.avatarUrl
-  if (profile.user && profile.user.profile && profile.user.profile.avatarUrl) {
-    return profile.user.profile.avatarUrl;
-  }
-  
-  // Only fall back to OAuth image if no profile avatar is available
-  if (profile.user && profile.user.image) {
-    return profile.user.image;
-  }
-  
-  // User name for placeholder
-  let name = '';
-  if (profile.user && profile.user.name) {
-    name = profile.user.name;
-  } else if (profile.name) {
-    name = profile.name;
-  }
-  
-  // Return placeholder as last resort
-  return `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(name || 'U')}&backgroundColor=FF385C,1DA1F2`;
-};
-
 /**
  * ProfilesView Component
  * 
@@ -410,7 +371,7 @@ const ProfilesView = () => {
           alignItems: { xs: 'center', sm: 'flex-start' }
         }}>
           <Avatar
-            src={getUserAvatarUrl(profile)}
+            src={getAvatarUrl(profile.user.name, profile.avatarUrl)}
             alt={profile.user.name || "User"}
             sx={{
               width: { xs: 80, sm: 100 },
@@ -741,17 +702,16 @@ const ProfilesView = () => {
               <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
                 <Box sx={{ 
                   display: 'flex',
-                  mb: { xs: 2, sm: 3 },
-                  flexDirection: { xs: 'column', sm: 'row' },
-                  alignItems: { xs: 'center', sm: 'flex-start' },
+                  flexDirection: 'row',
+                  alignItems: 'flex-start',
                   gap: { xs: 2, sm: 3 }
                 }}>
                   <Avatar
-                    src={getUserAvatarUrl(profile)}
+                    src={getAvatarUrl(profile.user.name, profile.avatarUrl)}
                     alt={profile.user.name || "Používateľ"}
                     sx={{
-                      width: { xs: 48, sm: 56 },
-                      height: { xs: 48, sm: 56 },
+                      width: { xs: 64, sm: 80 },
+                      height: { xs: 64, sm: 80 },
                       border: '2px solid white',
                       background: 'linear-gradient(45deg, #FF385C, #1DA1F2)',
                     }}
@@ -759,11 +719,70 @@ const ProfilesView = () => {
                     {profile.user.name?.[0] || "U"}
                   </Avatar>
                   
-                  <Box sx={{ 
-                    flexGrow: 1,
-                    width: { xs: '100%', sm: 'auto' }
-                  }}>
-                    {renderProfileInfo(profile)}
+                  <Box sx={{ flexGrow: 1 }}>
+                    <Typography 
+                      variant="h6" 
+                      sx={{ 
+                        fontSize: { xs: '1.1rem', sm: '1.25rem' },
+                        mb: 1
+                      }}
+                    >
+                      {profile.user.name || "Neznámy používateľ"}
+                    </Typography>
+
+                    <Stack 
+                      direction="row" 
+                      spacing={{ xs: 2, sm: 3 }} 
+                      sx={{ mb: 2 }}
+                    >
+                      <Typography variant="body2">
+                        <strong>{profile.user.posts.length}</strong> príspevkov
+                      </Typography>
+                      <Typography variant="body2">
+                        <strong>{profile.user.followers.length}</strong> sledovateľov
+                      </Typography>
+                      <Typography variant="body2">
+                        <strong>{profile.user.following.length}</strong> sledovaných
+                      </Typography>
+                    </Stack>
+
+                    {profile.bio && (
+                      <Typography 
+                        variant="body2" 
+                        sx={{ mb: 1 }}
+                      >
+                        {profile.bio}
+                      </Typography>
+                    )}
+                    
+                    {profile.location && (
+                      <Typography 
+                        variant="body2" 
+                        color="text.secondary"
+                        sx={{ 
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 0.5
+                        }}
+                      >
+                        📍 {profile.location}
+                      </Typography>
+                    )}
+
+                    {session?.user?.email !== profile.user.email && (
+                      <Button
+                        variant={isFollowing(profile) ? "outlined" : "contained"}
+                        size="small"
+                        startIcon={isFollowing(profile) ? <PersonRemoveIcon /> : <PersonAddIcon />}
+                        onClick={(e) => handleFollowToggle(e, profile)}
+                        sx={{ 
+                          mt: 2,
+                          borderRadius: 50,
+                        }}
+                      >
+                        {isFollowing(profile) ? "Nesledovať" : "Sledovať"}
+                      </Button>
+                    )}
                   </Box>
                 </Box>
 
@@ -803,18 +822,16 @@ const ProfilesView = () => {
               <CardContent>
                 <Box sx={{ display: 'flex', mb: 3 }}>
                   <Avatar
-                    src={getUserAvatarUrl(userProfile as any)}
+                    src={getAvatarUrl(userProfile?.user?.name || '', userProfile?.avatarUrl)}
                     alt={userProfile?.user?.name || "Používateľ"}
                     sx={{
                       width: 100,
                       height: 100,
-                      mr: 3,
-                      border: '3px solid white',
-                      boxShadow: '0 4px 14px rgba(0,0,0,0.1)',
+                      border: '2px solid white',
                       background: 'linear-gradient(45deg, #FF385C, #1DA1F2)',
                     }}
                   >
-                    {userProfile?.user?.name?.[0] || "U"}
+                    {userProfile?.user?.name?.[0] || 'U'}
                   </Avatar>
                   
                   <Box sx={{ flexGrow: 1, ml: 3 }}>

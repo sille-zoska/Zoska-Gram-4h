@@ -79,14 +79,33 @@ type PostImage = {
 type Post = {
   id: string;
   imageUrl?: string;
-  images?: PostImage[];
-  caption?: string | null;
+  images?: {
+    id: string;
+    imageUrl: string;
+    order: number;
+  }[];
+  caption: string | null;
   createdAt: Date;
+  updatedAt: Date;
+  userId: string;
+  tags: string[];
 };
 
 type Follow = {
   id: string;
+  createdAt: Date;
   followerId: string;
+  followingId: string;
+  follower?: {
+    id: string;
+    name: string | null;
+    email: string;
+  };
+  following?: {
+    id: string;
+    name: string | null;
+    email: string;
+  };
 };
 
 type User = {
@@ -96,16 +115,22 @@ type User = {
   posts: Post[];
   followers: Follow[];
   following: Follow[];
+  profile?: {
+    id: string;
+    avatarUrl: string | null;
+  };
 };
 
 type Profile = {
   id: string;
   userId: string;
-  bio?: string | null;
-  avatarUrl?: string | null;
-  location?: string | null;
+  bio: string | null;
+  avatarUrl: string | null;
+  location: string | null;
   interests: string[];
   user: User;
+  createdAt: Date;
+  updatedAt: Date;
 };
 
 type LoadingState = {
@@ -276,6 +301,17 @@ const ProfileDetailView = ({ profileId }: ProfileDetailViewProps) => {
   // Add a navigation handler for posts
   const handlePostClick = (postId: string) => {
     router.push(`/prispevky/${postId}`);
+  };
+
+  // Add helper function to get post image URL
+  const getPostImageUrl = (post: Post): string => {
+    if (post.images && post.images.length > 0) {
+      // Sort images by order and get the first one
+      const sortedImages = [...post.images].sort((a, b) => a.order - b.order);
+      return sortedImages[0].imageUrl;
+    }
+    // Fallback to legacy imageUrl
+    return post.imageUrl || '';
   };
 
   if (loading.initial) {
@@ -769,84 +805,74 @@ const ProfileDetailView = ({ profileId }: ProfileDetailViewProps) => {
             )
           ) : (
             // Bookmarked posts with similar styling
-            <Grid container spacing={2}>
+            <Box sx={{ width: '100%' }}>
               {bookmarkedPosts.length > 0 ? (
-                bookmarkedPosts.map((post) => (
-                  <Grid item xs={4} key={post.id}>
-                    <Zoom in timeout={500}>
-                      <Paper
-                        elevation={0}
-                        sx={{
-                          position: 'relative',
-                          pt: '100%',
-                          borderRadius: 2,
-                          overflow: 'hidden',
-                          cursor: 'pointer',
-                          transition: 'all 0.2s',
-                          '&:hover': {
-                            transform: 'scale(1.02)',
-                            boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
-                          },
-                        }}
-                        onClick={() => handlePostClick(post.id)}
-                      >
-                        {post.images && post.images.length > 0 ? (
-                          <FeedPostImageCarousel 
-                            images={post.images}
-                            aspectRatio="1/1"
-                            onImageClick={() => handlePostClick(post.id)}
-                          />
-                        ) : post.imageUrl ? (
-                          <Image
-                            src={post.imageUrl}
-                            alt={post.caption || 'Obrázok príspevku'}
-                            fill
-                            sizes="(max-width: 768px) 33vw, 25vw"
-                            style={{ objectFit: 'cover' }}
-                          />
-                        ) : (
-                          <Box 
-                            sx={{ 
-                              position: 'absolute',
-                              top: 0,
-                              left: 0,
-                              right: 0,
-                              bottom: 0,
-                              bgcolor: 'grey.100',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center'
-                            }}
-                          >
-                            <Typography variant="body2" color="text.secondary">
-                              Žiadny obrázok
-                            </Typography>
-                          </Box>
-                        )}
-                      </Paper>
-                    </Zoom>
-                  </Grid>
-                ))
+                <ImageList cols={3} gap={2}>
+                  {bookmarkedPosts.map((post) => (
+                    <ImageListItem 
+                      key={post.id}
+                      sx={{ 
+                        aspectRatio: '1/1',
+                        cursor: 'pointer',
+                        '&:hover': { opacity: 0.8 },
+                        position: 'relative',
+                        overflow: 'hidden',
+                        borderRadius: 2,
+                      }}
+                      onClick={() => handlePostClick(post.id)}
+                    >
+                      {post.images && post.images.length > 0 ? (
+                        <FeedPostImageCarousel 
+                          images={post.images}
+                          aspectRatio="1/1"
+                          onImageClick={() => handlePostClick(post.id)}
+                          showControls={false}
+                        />
+                      ) : post.imageUrl ? (
+                        <Image
+                          src={post.imageUrl}
+                          alt={post.caption || "Post image"}
+                          fill
+                          sizes="(max-width: 768px) 33vw, 25vw"
+                          style={{ 
+                            objectFit: 'cover',
+                          }}
+                        />
+                      ) : (
+                        <Box 
+                          sx={{ 
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            bottom: 0,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            bgcolor: 'background.paper',
+                          }}
+                        >
+                          <Typography variant="body2" color="text.secondary">
+                            Žiadny obrázok
+                          </Typography>
+                        </Box>
+                      )}
+                    </ImageListItem>
+                  ))}
+                </ImageList>
               ) : (
-                <Zoom in timeout={500}>
-                  <Box sx={{ 
-                    width: '100%',
-                    py: 8, 
-                    textAlign: 'center',
-                    bgcolor: 'background.paper',
-                    borderRadius: 2,
-                    transition: 'transform 0.2s',
-                    '&:hover': {
-                      transform: 'translateY(-2px)',
-                    },
-                  }}>
-                    <Typography variant="h6" color="text.secondary">
-                      Zatiaľ tu nie sú žiadne uložené príspevky
-                    </Typography>
-                  </Box>
-                </Zoom>
+                <Box sx={{ 
+                  py: 8, 
+                  textAlign: 'center',
+                  bgcolor: 'background.paper',
+                  borderRadius: 2,
+                }}>
+                  <Typography variant="h6" color="text.secondary">
+                    Zatiaľ tu nie sú žiadne uložené príspevky
+                  </Typography>
+                </Box>
               )}
-            </Grid>
+            </Box>
           )}
         </Box>
       </Paper>

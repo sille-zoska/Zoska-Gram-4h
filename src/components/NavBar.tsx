@@ -126,6 +126,7 @@ const NavBar = () => {
 
   const handleThemeToggle = () => {
     toggleTheme();
+    handleMenuClose();
   };
 
   const handleSavedPosts = () => {

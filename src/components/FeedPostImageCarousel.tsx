@@ -16,6 +16,7 @@ interface FeedPostImageCarouselProps {
   images: PostImage[];
   aspectRatio?: string;
   onImageClick?: () => void;
+  showControls?: boolean;
 }
 
 /**
@@ -33,7 +34,8 @@ interface FeedPostImageCarouselProps {
 const FeedPostImageCarousel = ({ 
   images, 
   aspectRatio = "1/1",
-  onImageClick 
+  onImageClick,
+  showControls = true
 }: FeedPostImageCarouselProps) => {
   const theme = useTheme();
   const [activeStep, setActiveStep] = useState(0);
@@ -148,59 +150,61 @@ const FeedPostImageCarousel = ({
       </Box>
 
       {/* Navigation buttons */}
-      <Fade in={true}>
-        <Box>
-          {/* Left navigation button */}
-          {activeStep > 0 && (
-            <IconButton
-              sx={{
-                position: 'absolute',
-                left: 8,
-                top: '50%',
-                transform: 'translateY(-50%)',
-                backgroundColor: `${theme.palette.background.paper}CC`,
-                backdropFilter: 'blur(4px)',
-                '&:hover': { 
-                  backgroundColor: theme.palette.background.paper,
-                  transform: 'translateY(-50%) scale(1.1)',
-                },
-                transition: 'all 0.2s ease',
-              }}
-              onClick={(e) => {
-                e.stopPropagation();
-                handleBack();
-              }}
-            >
-              <KeyboardArrowLeft />
-            </IconButton>
-          )}
-          
-          {/* Right navigation button */}
-          {activeStep < maxSteps - 1 && (
-            <IconButton
-              sx={{
-                position: 'absolute',
-                right: 8,
-                top: '50%',
-                transform: 'translateY(-50%)',
-                backgroundColor: `${theme.palette.background.paper}CC`,
-                backdropFilter: 'blur(4px)',
-                '&:hover': { 
-                  backgroundColor: theme.palette.background.paper,
-                  transform: 'translateY(-50%) scale(1.1)',
-                },
-                transition: 'all 0.2s ease',
-              }}
-              onClick={(e) => {
-                e.stopPropagation();
-                handleNext();
-              }}
-            >
-              <KeyboardArrowRight />
-            </IconButton>
-          )}
-        </Box>
-      </Fade>
+      {showControls && maxSteps > 1 && (
+        <Fade in={true}>
+          <Box>
+            {/* Left navigation button */}
+            {activeStep > 0 && (
+              <IconButton
+                sx={{
+                  position: 'absolute',
+                  left: 8,
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  backgroundColor: `${theme.palette.background.paper}CC`,
+                  backdropFilter: 'blur(4px)',
+                  '&:hover': { 
+                    backgroundColor: theme.palette.background.paper,
+                    transform: 'translateY(-50%) scale(1.1)',
+                  },
+                  transition: 'all 0.2s ease',
+                }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleBack();
+                }}
+              >
+                <KeyboardArrowLeft />
+              </IconButton>
+            )}
+            
+            {/* Right navigation button */}
+            {activeStep < maxSteps - 1 && (
+              <IconButton
+                sx={{
+                  position: 'absolute',
+                  right: 8,
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  backgroundColor: `${theme.palette.background.paper}CC`,
+                  backdropFilter: 'blur(4px)',
+                  '&:hover': { 
+                    backgroundColor: theme.palette.background.paper,
+                    transform: 'translateY(-50%) scale(1.1)',
+                  },
+                  transition: 'all 0.2s ease',
+                }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleNext();
+                }}
+              >
+                <KeyboardArrowRight />
+              </IconButton>
+            )}
+          </Box>
+        </Fade>
+      )}
 
       {/* Image indicators */}
       <Fade in={true}>
